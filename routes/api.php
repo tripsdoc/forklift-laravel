@@ -1,0 +1,39 @@
+<?php
+
+use Illuminate\Http\Request;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+Route::get('user', 'LoginController@getUserData');
+Route::post('login', 'LoginController@login');
+
+Route::get('device', 'TagsController@getDeviceTag');
+
+//Testing Tags Position
+Route::get('qpe/getTagPosition', 'TagsController@getTagPosition');
+
+//Retrieve Route
+Route::get('forklift/retrieve/deliverynotes', 'RetrieveController@getDeliveryNotes');
+Route::get('forklift/retrieve', 'RetrieveController@getTags');
+
+//Store Route
+Route::get('forklift/store/tag', 'StoreController@getAllTags');
+Route::post('forklift/store/tag', 'StoreController@getAllTagsByPOD');
+
+//Export Route
+Route::get('forklift/export/', 'ExportController@getAllTagsActivatedforStuffing');
+Route::get('forklift/export/pod/', 'ExportController@getAllPortActivatedforStuffing');
+Route::get('forklift/export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
