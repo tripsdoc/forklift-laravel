@@ -1,5 +1,11 @@
 <?php
 
+/*
+Note :
+    -JobInfo table is from HSC2012 Database
+    -The rest tables from .env configuration database
+*/
+
 namespace App\Http\Controllers;
 
 use Storage;
@@ -19,10 +25,11 @@ class StoreController extends Controller
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
+        //Get data from 2 databases, JobInfo Table is from HSC2012 Database
         $result = DB::table('HSC2012.dbo.JobInfo AS JI')
         ->join('ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
-        ->join('HSC_Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
-        ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
+        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->join('ForkLiftJobsFilter AS JF', 'JF.TagID', '=', 'IP.Tag')
         ->where('I.DelStatus', '=', 'N')
@@ -37,17 +44,10 @@ class StoreController extends Controller
             ->orWhere('TL.Zones', 'like', '%"name": "121"%')
             ->orWhere('TL.Zones', 'like', '%"name": "122"%');
         })
-        /* ->whereIn('IP.Tag', ['291e744f3695', 
-        '3759d0ba05a6', 
-        '3dd459dac965', 
-        '528534894fce', 
-        '549b892f464e', 
-        '574bf60c569c', 
-        '66bb4b5c20e4']) */
         ->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select(DB::raw("DISTINCT IP.Tag, I.POD, JI.ClientID, I.InventoryID, IP.CurrentLocation, CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"))
         ->get();
-        Storage::put('filestore.txt', $url);
+        Storage::put('logs/store/GetAllTags.txt', $url);
         $response['status'] = (count($result) > 0)? TRUE : FALSE;
         $response['data'] = $result;
         return response($response);
@@ -65,8 +65,8 @@ class StoreController extends Controller
         }
         $result = DB::table('HSC2012.dbo.JobInfo AS JI')
         ->join('ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
-        ->join('HSC_Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
-        ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
+        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
@@ -84,7 +84,7 @@ class StoreController extends Controller
         })
         ->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select('IP.Tag', 'I.POD', 'JI.ClientID', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"))->get();
-        Storage::put('filestore.txt', $url);
+        Storage::put('logs/store/GetAllTagsByPOD.txt', $url);
         $response['status'] = (count($result) > 0)? TRUE : FALSE;
         $response['data'] = $result;
         return response($response);

@@ -17,8 +17,8 @@ class ExportController extends Controller
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
-        $result = DB::table('HSC_Inventory AS I')
-        ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        $result = DB::table('Inventory AS I')
+        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
@@ -32,15 +32,10 @@ class ExportController extends Controller
             ->orWhere('TL.Zones', 'like', '%"name": "121"%')
             ->orWhere('TL.Zones', 'like', '%"name": "122"%');
         })
-        /* ->whereIn('IP.Tag', [
-            'd10d9b1b0b23',
-            '200eaf299dcb',
-            'e144cbc223dc'
-        ]) */
         ->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select('IP.Tag', 'IP.ExpCntrID')
         ->get();
-        Storage::put('fileexport.txt', $url);
+        Storage::put('logs/export/GetAllTags.txt', $url);
         $response['status'] = (count($result) > 0)? TRUE : FALSE;
         $response['data'] = $result;
         return response($response);
@@ -54,8 +49,8 @@ class ExportController extends Controller
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
-        $result = DB::table('HSC_Inventory AS I')
-        ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        $result = DB::table('Inventory AS I')
+        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
@@ -72,7 +67,7 @@ class ExportController extends Controller
         ->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select('I.POD')
         ->get();
-        Storage::put('fileexport.txt', $url);
+        Storage::put('logs/export/GetAllPort.txt', $url);
         $response['status'] = (count($result) > 0)? TRUE : FALSE;
         $response['total'] = count($result);
         $response['data'] = $result;
@@ -87,8 +82,8 @@ class ExportController extends Controller
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
-        $result = DB::table('HSC_Inventory AS I')
-        ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        $result = DB::table('Inventory AS I')
+        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
@@ -106,7 +101,7 @@ class ExportController extends Controller
         ->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select('IP.Tag', 'IP.ExpCntrID')
         ->get();
-        Storage::put('fileexport.txt', $url);
+        Storage::put('logs/export/GetTagsByPort.txt', $url);
         $response['status'] = (count($result) > 0)? TRUE : FALSE;
         $response['data'] = $result;
         return response($response);

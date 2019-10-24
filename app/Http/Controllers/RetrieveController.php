@@ -1,5 +1,6 @@
 <?php
-
+/* 
+*/
 namespace App\Http\Controllers;
 
 use Storage;
@@ -13,12 +14,12 @@ class RetrieveController extends Controller
         $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         //Get delivery notes by selected warehouse
         if(isset($_GET['warehouse'])) {
-            $result = DB::table('HSC_InventoryPallet AS IP')
-            ->join('HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+            $result = DB::table('InventoryPallet AS IP')
+            ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
             ->select(DB::raw('ROW_NUMBER() OVER(ORDER BY IP.DN) AS SN, IP.DN, SUM(IB.Quantity) Qty, IP.DeliveryID, IP.CurrentLocation'))
             ->whereExists(function($query) {
                 $query->select(DB::raw(1))
-                ->from('HSC_InventoryPallet AS IP1')
+                ->from('InventoryPallet AS IP1')
                 ->join('TagLocationLatest AS TL', 'IP1.Tag', '=', 'TL.Id')
                 ->where('IP1.DelStatus', '=', 'N')
                 ->where('IP1.DN', '>', 0)
@@ -41,11 +42,11 @@ class RetrieveController extends Controller
             ->get();
         } else {
         //Get all delivery notes
-            $result = DB::table('HSC_InventoryPallet AS IP')
-            ->join('HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+            $result = DB::table('InventoryPallet AS IP')
+            ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
             ->whereExists(function($query) {
                 $query->select(DB::raw(1))
-                ->from('HSC_InventoryPallet AS IP1')
+                ->from('InventoryPallet AS IP1')
                 ->join('TagLocationLatest AS TL', 'IP1.Tag', '=', 'TL.Id')
                 ->where('IP1.DelStatus', '=', 'N')
                 ->where('IP1.DN', '>', 0)
@@ -66,7 +67,7 @@ class RetrieveController extends Controller
             ->groupBy('IP.DN', 'IP.DeliveryID', 'IP.CurrentLocation')
             ->select(DB::raw('ROW_NUMBER() OVER(ORDER BY IP.DN) as SN'), 'IP.DN', DB::raw('SUM(IB.Quantity) Qty'), 'IP.DeliveryID', 'IP.CurrentLocation')->get();
         }
-        Storage::put('retrieve.txt', $url);
+        Storage::put('logs/retrieve/GetDeliveryNotes.txt', $url);
         $response['status'] = (count($result) > 0)? TRUE : FALSE;
         $response['total'] = count($result);
         $response['data'] = $result;
@@ -80,8 +81,8 @@ class RetrieveController extends Controller
         $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         if(isset($_GET['dn'])) {
             $reqdndata = explode(",", $_GET['dn']);
-            $result = DB::table('HSC_InventoryPallet')
-            ->join('HSC_Inventory AS I', 'IP.InventoryID', '=', 'I.InventoryID')
+            $result = DB::table('InventoryPallet')
+            ->join('Inventory AS I', 'IP.InventoryID', '=', 'I.InventoryID')
             ->whereIn('DeliveryID', $reqdndata)
             ->where('DelStatus','N')
             ->whereNotNull('tag')
@@ -89,10 +90,10 @@ class RetrieveController extends Controller
             ->select('Tag', 'DN', 
             DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'LOCAL' END TagColor"))
             ->get();
-            Storage::put('Retrieve_GetTags(DeliveryID).txt', $_GET['dn']);
+            Storage::put('logs/retrieve/GetTags(DeliveryID).txt', $_GET['dn']);
         } else {
-            $result = DB::table('HSC_InventoryPallet AS IP')
-            ->join('HSC_Inventory AS I', 'IP.InventoryID', '=', 'I.InventoryID')
+            $result = DB::table('InventoryPallet AS IP')
+            ->join('Inventory AS I', 'IP.InventoryID', '=', 'I.InventoryID')
             ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
             ->where('IP.DelStatus', 'N')
             ->where('IP.DN', '>', 0)
@@ -110,7 +111,7 @@ class RetrieveController extends Controller
             DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'LOCAL' END TagColor"))
             ->get();
         }
-        Storage::put('Retrieve_GetTags(URL).txt', $url);
+        Storage::put('logs/retrieve/GetTags(URL).txt', $url);
         $response['status'] = (count($result) > 0)? TRUE : FALSE;
         $response['data'] = $result;
         return response($response);
