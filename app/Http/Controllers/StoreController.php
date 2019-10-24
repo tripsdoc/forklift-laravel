@@ -27,7 +27,7 @@ class StoreController extends Controller
         }
         //Get data from 2 databases, JobInfo Table is from HSC2012 Database
         $result = DB::table('HSC2012.dbo.JobInfo AS JI')
-        ->join('ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
+        ->join('HSC2012.dbo.ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
         ->join('Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
         ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
@@ -35,21 +35,16 @@ class StoreController extends Controller
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
-        ->where('IP.isActivityForStuffing', 0)
-        ->where(function($query){
-            $query->where('TL.Zones', 'like', '%"name": "110"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "107"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "121"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "122"%');
-        })
-        ->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select(DB::raw("DISTINCT IP.Tag, I.POD, JI.ClientID, I.InventoryID, IP.CurrentLocation, CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"))
-        ->get();
+        ->where('IP.isActivityForStuffing', 0);
+        foreach($datawarehouse as $warehousedata ) {
+            $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
+        }
+        $result->whereIn('IP.CurrentLocation', $datawarehouse)
+        ->select(DB::raw("DISTINCT IP.Tag, I.POD, JI.ClientID, I.InventoryID, IP.CurrentLocation, CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
+        $data = $result->get();
         Storage::put('logs/store/GetAllTags.txt', $url);
-        $response['status'] = (count($result) > 0)? TRUE : FALSE;
-        $response['data'] = $result;
+        $response['status'] = (count($data) > 0)? TRUE : FALSE;
+        $response['data'] = $data;
         return response($response);
     }
 
@@ -64,7 +59,7 @@ class StoreController extends Controller
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
         $result = DB::table('HSC2012.dbo.JobInfo AS JI')
-        ->join('ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
+        ->join('HSC2012.dbo.ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
         ->join('Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
         ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
@@ -73,20 +68,16 @@ class StoreController extends Controller
         ->whereRaw("IP.Tag <> '' ")
         ->where('JI.ClientID', $request->clientID)
         ->where('I.POD', $request->pod)
-        ->where('IP.Tag', '<>', $request->tag)
-        ->where(function($query){
-            $query->where('TL.Zones', 'like', '%"name": "110"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "107"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "121"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "122"%');
-        })
-        ->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('IP.Tag', 'I.POD', 'JI.ClientID', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"))->get();
+        ->where('IP.Tag', '<>', $request->tag);
+        foreach($datawarehouse as $warehousedata ) {
+            $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
+        }
+        $result->whereIn('IP.CurrentLocation', $datawarehouse)
+        ->select('IP.Tag', 'I.POD', 'JI.ClientID', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
+        $data = $result->get();
         Storage::put('logs/store/GetAllTagsByPOD.txt', $url);
-        $response['status'] = (count($result) > 0)? TRUE : FALSE;
-        $response['data'] = $result;
+        $response['status'] = (count($data) > 0)? TRUE : FALSE;
+        $response['data'] = $data;
         return response($response);
     }
 }
