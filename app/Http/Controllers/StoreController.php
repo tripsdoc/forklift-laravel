@@ -19,7 +19,7 @@ class StoreController extends Controller
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
-        $result = DB::table('JobInfo AS JI')
+        $result = DB::table('HSC2012.dbo.JobInfo AS JI')
         ->join('ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
         ->join('HSC_Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
         ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
@@ -32,7 +32,10 @@ class StoreController extends Controller
         ->where(function($query){
             $query->where('TL.Zones', 'like', '%"name": "110"%')
             ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
+            ->orWhere('TL.Zones', 'like', '%"name": "109"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "107"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "121"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "122"%');
         })
         /* ->whereIn('IP.Tag', ['291e744f3695', 
         '3759d0ba05a6', 
@@ -60,7 +63,7 @@ class StoreController extends Controller
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
-        $result = DB::table('JobInfo AS JI')
+        $result = DB::table('HSC2012.dbo.JobInfo AS JI')
         ->join('ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
         ->join('HSC_Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
         ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
@@ -74,7 +77,10 @@ class StoreController extends Controller
         ->where(function($query){
             $query->where('TL.Zones', 'like', '%"name": "110"%')
             ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
+            ->orWhere('TL.Zones', 'like', '%"name": "109"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "107"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "121"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "122"%');
         })
         ->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select('IP.Tag', 'I.POD', 'JI.ClientID', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"))->get();

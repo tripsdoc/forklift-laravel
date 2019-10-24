@@ -27,7 +27,10 @@ class ExportController extends Controller
         ->where(function($query){
             $query->where('TL.Zones', 'like', '%"name": "110"%')
             ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
+            ->orWhere('TL.Zones', 'like', '%"name": "109"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "107"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "121"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "122"%');
         })
         /* ->whereIn('IP.Tag', [
             'd10d9b1b0b23',
@@ -61,7 +64,10 @@ class ExportController extends Controller
         ->where(function($query){
             $query->where('TL.Zones', 'like', '%"name": "110"%')
             ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
+            ->orWhere('TL.Zones', 'like', '%"name": "109"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "107"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "121"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "122"%');
         })
         ->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select('I.POD')
@@ -92,7 +98,10 @@ class ExportController extends Controller
         ->where(function($query){
             $query->where('TL.Zones', 'like', '%"name": "110"%')
             ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
+            ->orWhere('TL.Zones', 'like', '%"name": "109"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "107"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "121"%')
+            ->orWhere('TL.Zones', 'like', '%"name": "122"%');
         })
         ->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select('IP.Tag', 'IP.ExpCntrID')
