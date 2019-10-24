@@ -52,6 +52,8 @@ class ExportController extends Controller
         $result = DB::table('Inventory AS I')
         ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
+        ->join('ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
+        ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
@@ -65,7 +67,7 @@ class ExportController extends Controller
             ->orWhere('TL.Zones', 'like', '%"name": "122"%');
         })
         ->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('I.POD')
+        ->select('JI.POD')
         ->get();
         Storage::put('logs/export/GetAllPort.txt', $url);
         $response['status'] = (count($result) > 0)? TRUE : FALSE;
@@ -85,6 +87,8 @@ class ExportController extends Controller
         $result = DB::table('Inventory AS I')
         ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
+        ->join('ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
+        ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
