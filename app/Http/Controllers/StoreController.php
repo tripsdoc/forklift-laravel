@@ -20,7 +20,8 @@ class StoreController extends Controller
         $getwarehouse = $_GET['warehouse'];
         if($getwarehouse == "fullmap") {
             $datawarehouse = ['108', '109', '110'];
-        } else if ($getwarehouse = "full_12x") {
+        }
+        else if ($getwarehouse == "full_12x") {
             $datawarehouse = ['121', '122'];
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
@@ -34,15 +35,22 @@ class StoreController extends Controller
         ->join('ForkLiftJobsFilter AS JF', 'JF.TagID', '=', 'IP.Tag')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
-        ->whereRaw("IP.Tag <> ''")
-        ->where('IP.isActivityForStuffing', 0);
-        foreach($datawarehouse as $warehousedata ) {
-            $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
-        }
-        $result->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select(DB::raw("DISTINCT IP.Tag, I.POD, JI.ClientID, I.InventoryID, IP.CurrentLocation, CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
+        ->whereRaw("IP.Tag <> ''");
+        //->where('IP.isActivityForStuffing', 0);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                } else {
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                }
+            }
+        });
+        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
+        $result->select(DB::raw("DISTINCT IP.Tag, I.POD, JI.ClientID, I.InventoryID, IP.CurrentLocation, CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
         $data = $result->get();
-        Storage::put('logs/store/GetAllTags.txt', $url);
+        Storage::put('logs/store/GetAllTags.txt', $datawarehouse);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
         $response['data'] = $data;
         return response($response);
@@ -53,7 +61,8 @@ class StoreController extends Controller
         $getwarehouse = $_GET['warehouse'];
         if($getwarehouse == "fullmap") {
             $datawarehouse = ['108', '109', '110'];
-        } else if ($getwarehouse = "full_12x") {
+        }
+        else if ($getwarehouse == "full_12x") {
             $datawarehouse = ['121', '122'];
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
@@ -69,11 +78,18 @@ class StoreController extends Controller
         ->where('JI.ClientID', $request->clientID)
         ->where('I.POD', $request->pod)
         ->where('IP.Tag', '<>', $request->tag);
-        foreach($datawarehouse as $warehousedata ) {
-            $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
-        }
-        $result->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('IP.Tag', 'I.POD', 'JI.ClientID', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                } else {
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                }
+            }
+        });
+        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
+        $result->select('IP.Tag', 'I.POD', 'JI.ClientID', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
         $data = $result->get();
         Storage::put('logs/store/GetAllTagsByPOD.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;

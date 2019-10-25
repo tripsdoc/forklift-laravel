@@ -90,9 +90,16 @@ class RetrieveController extends Controller
             ->where('IP.DelStatus', 'N')
             ->where('IP.DN', '>', 0)
             ->whereRaw("IP.Tag <> ''");
-            foreach($datawarehouse as $warehousedata ) {
-                $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
-            }
+            $result->Where(function($query) use($datawarehouse)
+            {
+                for($i=0;$i<count($datawarehouse);$i++){
+                    if($i == 0) {
+                        $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                    } else {
+                        $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                    }
+                }
+            });
             $result->select('IP.Tag', 'IP.DN', 
             DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'LOCAL' END TagColor"));
         }

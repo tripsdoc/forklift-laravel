@@ -14,6 +14,9 @@ class ExportController extends Controller
         $getwarehouse = $_GET['warehouse'];
         if($getwarehouse == "fullmap") {
             $datawarehouse = ['108', '109', '110'];
+        }
+        else if ($getwarehouse == "full_12x") {
+            $datawarehouse = ['121', '122'];
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
@@ -24,9 +27,16 @@ class ExportController extends Controller
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
         ->where('IP.isActivityForStuffing', 1);
-        foreach($datawarehouse as $warehousedata ) {
-            $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
-        }
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                } else {
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                }
+            }
+        });
         $result->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select('IP.Tag', 'IP.ExpCntrID');
         $data = $result->get();
@@ -41,6 +51,9 @@ class ExportController extends Controller
         $getwarehouse = $_GET['warehouse'];
         if($getwarehouse == "fullmap") {
             $datawarehouse = ['108', '109', '110'];
+        }
+        else if ($getwarehouse == "full_12x") {
+            $datawarehouse = ['121', '122'];
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
@@ -53,9 +66,16 @@ class ExportController extends Controller
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
         ->where('IP.isActivityForStuffing', 1);
-        foreach($datawarehouse as $warehousedata ) {
-            $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
-        }
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                } else {
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                }
+            }
+        });
         $result->whereIn('IP.CurrentLocation', $datawarehouse)
         ->select('JI.POD');
         Storage::put('logs/export/GetAllPort.txt', $url);
@@ -71,6 +91,9 @@ class ExportController extends Controller
         $getwarehouse = $_GET['warehouse'];
         if($getwarehouse == "fullmap") {
             $datawarehouse = ['108', '109', '110'];
+        }
+        else if ($getwarehouse == "full_12x") {
+            $datawarehouse = ['121', '122'];
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
