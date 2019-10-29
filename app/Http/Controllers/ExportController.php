@@ -37,8 +37,8 @@ class ExportController extends Controller
                 }
             }
         });
-        $result->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('IP.Tag', 'IP.ExpCntrID');
+        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
+        $result->select('IP.Tag', 'IP.ExpCntrID', 'I.POD');
         $data = $result->get();
         Storage::put('logs/export/GetAllTags.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
@@ -76,8 +76,8 @@ class ExportController extends Controller
                 }
             }
         });
-        $result->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('JI.POD');
+        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
+        $result->select('JI.POD');
         Storage::put('logs/export/GetAllPort.txt', $url);
         $data = $result->get();
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
@@ -110,8 +110,8 @@ class ExportController extends Controller
         foreach($datawarehouse as $warehousedata ) {
             $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
         }
-        $result->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('IP.Tag', 'IP.ExpCntrID');
+        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
+        $result->select('IP.Tag', 'IP.ExpCntrID');
         $data = $result->get();
         Storage::put('logs/export/GetTagsByPort.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
