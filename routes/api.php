@@ -21,6 +21,10 @@ Route::get('user', 'LoginController@getUserData');
 Route::post('login', 'LoginController@login');
 
 Route::get('device', 'TagsController@getDeviceTag');
+Route::get('version', 'TagsController@getVersion');
+Route::get('redis', 'StoreController@getRedis');
+
+Route::get('latestapk', 'TagsController@getUpdate');
 
 //Testing Tags Position
 Route::get('qpe/getTagPosition', 'TagsController@getTagPosition');

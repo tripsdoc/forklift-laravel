@@ -72,7 +72,7 @@ class RetrieveController extends Controller
         //Get tags by using delivery notes
         $getwarehouse = $_GET['warehouse'];
         $datawarehouse = array_map('trim', explode(",", $getwarehouse));
-        if(isset($_GET['dn'])) {
+        if(isset($_GET['dn']) && $_GET['dn'] != "") {
             $reqdndata = array_map('trim', explode(",", $_GET['dn']));
             $result = DB::table('InventoryPallet AS IP')
             ->join('Inventory AS I', 'IP.InventoryID', '=', 'I.InventoryID')

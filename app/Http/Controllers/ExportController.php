@@ -26,6 +26,7 @@ class ExportController extends Controller
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
+        ->where('IP.ExpCntrID', '>', 0)
         ->where('IP.isActivityForStuffing', 1);
         $result->Where(function($query) use($datawarehouse)
         {
@@ -77,7 +78,7 @@ class ExportController extends Controller
             }
         });
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
-        $result->select('JI.POD');
+        $result->groupBy('JI.POD')->select('JI.POD');
         Storage::put('logs/export/GetAllPort.txt', $url);
         $data = $result->get();
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
@@ -106,12 +107,20 @@ class ExportController extends Controller
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
         ->where('IP.isActivityForStuffing', 1)
-        ->where('I.POD', '=', $pod);
-        foreach($datawarehouse as $warehousedata ) {
-            $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
-        }
+        ->where('JI.POD', '=', $pod);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                } else {
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                }
+            }
+        });
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
-        $result->select('IP.Tag', 'IP.ExpCntrID');
+        $response['pod'] = $pod;
+        $result->select('IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         $data = $result->get();
         Storage::put('logs/export/GetTagsByPort.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;

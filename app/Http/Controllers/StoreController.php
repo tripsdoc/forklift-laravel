@@ -12,6 +12,7 @@ use Storage;
 use DB;
 use Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class StoreController extends Controller
 {
@@ -76,8 +77,8 @@ class StoreController extends Controller
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> '' ")
         ->where('JI.ClientID', $request->clientID)
-        ->where('I.POD', $request->pod)
-        ->where('IP.Tag', '<>', $request->tag);
+        ->where('I.POD', $request->pod);
+        //->where('IP.Tag', '<>', $request->tag);
         $result->Where(function($query) use($datawarehouse)
         {
             for($i=0;$i<count($datawarehouse);$i++){
@@ -96,4 +97,25 @@ class StoreController extends Controller
         $response['data'] = $data;
         return response($response);
     }
+
+    function testRedis() {
+        $rawdata = Redis::command('KEYS', ['*1389d75bf1ed*']);
+        $data = end($rawdata);
+        $datas = Redis::get($data);
+        $response['status'] = ($datas != null || $datas != "");
+        $response['data'] = json_decode($datas);
+        return response($response);
+    }
+
+    function connectRedis() {
+        try {
+            $redis = new Redis();
+            $redis->connection('192.168.14.88', 6379);
+            $allKeys = $redis->keys('*');
+            print_r($allKeys);
+        } catch(\Predis\Connection\ConnectionException $e) {
+            return response('Error connect to redis');
+        }
+    }
+    
 }

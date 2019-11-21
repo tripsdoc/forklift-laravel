@@ -6,6 +6,7 @@ use Storage;
 use DB;
 use Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class TagsController extends Controller
 {
@@ -74,6 +75,20 @@ class TagsController extends Controller
         [48, 108.5, 31.5]
     );
 
+    function getTag() {
+        $url = $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        $tag = $_GET['tag'];
+        $rawdata = Redis::command('KEYS', ['*'.$tag.'*']);
+        $data = end($rawdata);
+        $datas = Redis::get($data);
+        $response['code'] = ($datas != null || $datas != "") ? 0 : 13;
+        $response['command'] = $url;
+        $response['message'] = ($datas != null || $datas != "") ? "TagInfo" : "Unknown Tag Listed";
+        $response['status'] = ($datas != null || $datas != "") ? "Ok" : "Unknown Tag Listed";
+        $response['tags'] = $datas;
+        return response($response);
+    }
+
     function getDeviceTag() {
         $serial = $_GET['serial'];
         $result = DB::table('DeviceInfo')
@@ -125,5 +140,17 @@ class TagsController extends Controller
         $response['tags'] = $datarray;
         $response['version'] = "test";
         return response($response);
+    }
+
+    function getUpdate() {
+        //return response()->file(public_path('latest.apk'));
+        return Storage::download('latest.apk', 'latest.apk', ['Connection' => 'keep-alive']);
+    }
+
+    function getVersion() {
+        $response['status'] = true;
+        $response['version'] = 10006;
+        $response['updatelog'] = "\t- Bug Fixes \n \t- Add Temporary Cache File for Tag Data";
+        return $response;
     }
 }
