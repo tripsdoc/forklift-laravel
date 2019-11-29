@@ -3,6 +3,10 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    <IfModule mod_headers.c>
+        Header set Connection keep-alive
+    </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header

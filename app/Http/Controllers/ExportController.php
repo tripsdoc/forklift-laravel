@@ -23,23 +23,23 @@ class ExportController extends Controller
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
-        ->where('IP.isActivityForStuffing', 1)
-        ->where(function($query){
-            $query->where('TL.Zones', 'like', '%"name": "110"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
-        })
-        /* ->whereIn('IP.Tag', [
-            'd10d9b1b0b23',
-            '200eaf299dcb',
-            'e144cbc223dc'
-        ]) */
-        ->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('IP.Tag', 'IP.ExpCntrID')
-        ->get();
-        Storage::put('fileexport.txt', $url);
-        $response['status'] = (count($result) > 0)? TRUE : FALSE;
-        $response['data'] = $result;
+        ->where('IP.isActivityForStuffing', 1);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                } else {
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                }
+            }
+        });
+        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
+        $result->select('IP.Tag', 'IP.ExpCntrID', 'I.POD');
+        $data = $result->get();
+        Storage::put('logs/export/GetAllTags.txt', $url);
+        $response['status'] = (count($data) > 0)? TRUE : FALSE;
+        $response['data'] = $data;
         return response($response);
     }
 
@@ -54,22 +54,29 @@ class ExportController extends Controller
         $result = DB::table('HSC_Inventory AS I')
         ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
+        ->join('ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
+        ->join('JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
-        ->where('IP.isActivityForStuffing', 1)
-        ->where(function($query){
-            $query->where('TL.Zones', 'like', '%"name": "110"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
-        })
-        ->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('I.POD')
-        ->get();
-        Storage::put('fileexport.txt', $url);
-        $response['status'] = (count($result) > 0)? TRUE : FALSE;
-        $response['total'] = count($result);
-        $response['data'] = $result;
+        ->where('IP.isActivityForStuffing', 1);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                } else {
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                }
+            }
+        });
+        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
+        $result->select('JI.POD');
+        Storage::put('logs/export/GetAllPort.txt', $url);
+        $data = $result->get();
+        $response['status'] = (count($data) > 0)? TRUE : FALSE;
+        $response['total'] = count($data);
+        $response['data'] = $data;
         return response($response);
     }
     
@@ -84,22 +91,22 @@ class ExportController extends Controller
         $result = DB::table('HSC_Inventory AS I')
         ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
+        ->join('ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
+        ->join('JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
         ->where('IP.isActivityForStuffing', 1)
-        ->where('I.POD', '=', $pod)
-        ->where(function($query){
-            $query->where('TL.Zones', 'like', '%"name": "110"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
-        })
-        ->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('IP.Tag', 'IP.ExpCntrID')
-        ->get();
-        Storage::put('fileexport.txt', $url);
-        $response['status'] = (count($result) > 0)? TRUE : FALSE;
-        $response['data'] = $result;
+        ->where('I.POD', '=', $pod);
+        foreach($datawarehouse as $warehousedata ) {
+            $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
+        }
+        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
+        $result->select('IP.Tag', 'IP.ExpCntrID');
+        $data = $result->get();
+        Storage::put('logs/export/GetTagsByPort.txt', $url);
+        $response['status'] = (count($data) > 0)? TRUE : FALSE;
+        $response['data'] = $data;
         return response($response);
     }
 }

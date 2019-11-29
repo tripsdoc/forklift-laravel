@@ -6,6 +6,7 @@ use Storage;
 use DB;
 use Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class StoreController extends Controller
 {
@@ -27,26 +28,22 @@ class StoreController extends Controller
         ->join('ForkLiftJobsFilter AS JF', 'JF.TagID', '=', 'IP.Tag')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
-        ->whereRaw("IP.Tag <> ''")
-        ->where('IP.isActivityForStuffing', 0)
-        ->where(function($query){
-            $query->where('TL.Zones', 'like', '%"name": "110"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
-        })
-        /* ->whereIn('IP.Tag', ['291e744f3695', 
-        '3759d0ba05a6', 
-        '3dd459dac965', 
-        '528534894fce', 
-        '549b892f464e', 
-        '574bf60c569c', 
-        '66bb4b5c20e4']) */
-        ->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select(DB::raw("DISTINCT IP.Tag, I.POD, JI.ClientID, I.InventoryID, IP.CurrentLocation, CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"))
-        ->get();
-        Storage::put('filestore.txt', $url);
-        $response['status'] = (count($result) > 0)? TRUE : FALSE;
-        $response['data'] = $result;
+        ->whereRaw("IP.Tag <> ''");
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                } else {
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                }
+            }
+        });
+        $result->select(DB::raw("DISTINCT IP.Tag, I.POD, JI.ClientID, I.InventoryID, IP.CurrentLocation, CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
+        $data = $result->get();
+        Storage::put('logs/store/GetAllTags.txt', $datawarehouse);
+        $response['status'] = (count($data) > 0)? TRUE : FALSE;
+        $response['data'] = $data;
         return response($response);
     }
 
@@ -70,17 +67,29 @@ class StoreController extends Controller
         ->whereRaw("IP.Tag <> '' ")
         ->where('JI.ClientID', $request->clientID)
         ->where('I.POD', $request->pod)
-        ->where('IP.Tag', '<>', $request->tag)
-        ->where(function($query){
-            $query->where('TL.Zones', 'like', '%"name": "110"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "108"%')
-            ->orWhere('TL.Zones', 'like', '%"name": "109"%');
-        })
-        ->whereIn('IP.CurrentLocation', $datawarehouse)
-        ->select('IP.Tag', 'I.POD', 'JI.ClientID', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"))->get();
-        Storage::put('filestore.txt', $url);
-        $response['status'] = (count($result) > 0)? TRUE : FALSE;
-        $response['data'] = $result;
+        ->where('IP.Tag', '<>', $request->tag);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                } else {
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                }
+            }
+        });
+        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
+        $result->select('IP.Tag', 'I.POD', 'JI.ClientID', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
+        $data = $result->get();
+        Storage::put('logs/store/GetAllTagsByPOD.txt', $url);
+        $response['status'] = (count($daa) > 0)? TRUE : FALSE;
+        $response['data'] = $data;
+        return response($response);
+    }
+
+    function getRedis() {
+        $data = Redis::get('test');
+        $response['data'] = $data;
         return response($response);
     }
 }
