@@ -55,6 +55,7 @@ Route::group(['prefix' => 'clerk'], function () {
 
 
   // Locate
-  Route::get('locate/containerlist', 'LocateController@getContainerList');
-  Route::get('locate/containerlist/tag', 'LocateController@getAllTagsByCN');
+  Route::get('locate/containerList', 'LocateController@getContainerList');
+  Route::get('locate/containerList/tag', 'LocateController@getAllTagsByCN');
+  Route::post('locate/containerList/update', 'LocateController@updateStuffing');
 });
