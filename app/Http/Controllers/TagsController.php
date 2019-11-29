@@ -7,7 +7,11 @@ use Storage;
 use DB;
 use Response;
 use Illuminate\Http\Request;
+<<<<<<< HEAD
 use Symfony\Component\HttpFoundation\StreamedResponse;
+=======
+use Illuminate\Support\Facades\Redis;
+>>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
 
 class TagsController extends Controller
 {
@@ -54,10 +58,17 @@ class TagsController extends Controller
         [8.5, 110.5, 31.5],
         [38.5, 120.5, 31.5],
 
+<<<<<<< HEAD
         [61, 22, 31.5],
         [29.5, 25.5, 31.5],
         [28.5, 39.5, 31.5],
         [36.0, 48.0, 31.5],
+=======
+        [18.5, 70.5, 31.5],
+        [0.5, 0.5, 31.5],
+        [28.5, 39.5, 31.5],
+        [36.9, 65.5, 31.5],
+>>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         [2, 19.5, 31.5],
 
         [7.5, 7.5, 31.5],
@@ -75,6 +86,20 @@ class TagsController extends Controller
 
         [2.15, 10.15, 1.2]
     );
+
+    function getTag() {
+        $url = $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        $tag = $_GET['tag'];
+        $rawdata = Redis::command('KEYS', ['*'.$tag.'*']);
+        $data = end($rawdata);
+        $datas = Redis::get($data);
+        $response['code'] = ($datas != null || $datas != "") ? 0 : 13;
+        $response['command'] = $url;
+        $response['message'] = ($datas != null || $datas != "") ? "TagInfo" : "Unknown Tag Listed";
+        $response['status'] = ($datas != null || $datas != "") ? "Ok" : "Unknown Tag Listed";
+        $response['tags'] = $datas;
+        return response($response);
+    }
 
     function getDeviceTag() {
         $serial = $_GET['serial'];
@@ -129,6 +154,7 @@ class TagsController extends Controller
         return response($response);
     }
 
+<<<<<<< HEAD
     function getTagPosition() {
         $i = 0;
         $url = $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
@@ -223,13 +249,22 @@ class TagsController extends Controller
 
     function getUpdate() {
         $res = Storage::size('latest.apk');
+=======
+    function getUpdate() {
+        //return response()->file(public_path('latest.apk'));
+>>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         return Storage::download('latest.apk', 'latest.apk', ['Connection' => 'keep-alive']);
     }
 
     function getVersion() {
         $response['status'] = true;
+<<<<<<< HEAD
         $response['version'] = 2;
         $response['updatelog'] = "\t- Bug Fixes \n \t- Add Refresh Function";
+=======
+        $response['version'] = 10006;
+        $response['updatelog'] = "\t- Bug Fixes \n \t- Add Temporary Cache File for Tag Data";
+>>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         return $response;
     }
 }

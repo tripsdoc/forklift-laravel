@@ -42,3 +42,18 @@ Route::post('forklift/store/tag', 'StoreController@getAllTagsByPOD');
 Route::get('forklift/export/', 'ExportController@getAllTagsActivatedforStuffing');
 Route::get('forklift/export/pod/', 'ExportController@getAllPortActivatedforStuffing');
 Route::get('forklift/export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
+
+Route::group(['prefix' => 'clerk'], function () {
+  Route::get('user', 'LoginController@getUserData');
+  // Global Data
+  Route::get('global/checklist', 'GlobalController@getChecklist');
+
+  //Unstuffing
+  Route::get('unstuffing/detailimportsummary', 'UnstuffingController@getDetailImportsumary');
+  Route::get('unstuffing/joblist', 'UnstuffingController@getJobList');
+  Route::get('unstuffing/palletbreakdown', 'UnstuffingController@getPalletBreakdown');
+
+
+  // Locate
+  Route::get('locate/containerlist', 'LocateController@getContainerList');
+});
