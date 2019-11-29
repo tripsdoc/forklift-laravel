@@ -26,10 +26,7 @@ class ExportController extends Controller
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
-<<<<<<< HEAD
-=======
         ->where('IP.ExpCntrID', '>', 0)
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         ->where('IP.isActivityForStuffing', 1);
         $result->Where(function($query) use($datawarehouse)
         {
@@ -64,13 +61,8 @@ class ExportController extends Controller
         $result = DB::table('Inventory AS I')
         ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
-<<<<<<< HEAD
-        ->join('ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
-        ->join('JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
-=======
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
@@ -86,11 +78,7 @@ class ExportController extends Controller
             }
         });
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
-<<<<<<< HEAD
-        $result->select('JI.POD');
-=======
         $result->groupBy('JI.POD')->select('JI.POD');
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         Storage::put('logs/export/GetAllPort.txt', $url);
         $data = $result->get();
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
@@ -113,25 +101,12 @@ class ExportController extends Controller
         $result = DB::table('Inventory AS I')
         ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
-<<<<<<< HEAD
-        ->join('ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
-        ->join('JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
-=======
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
         ->where('IP.isActivityForStuffing', 1)
-<<<<<<< HEAD
-        ->where('I.POD', '=', $pod);
-        foreach($datawarehouse as $warehousedata ) {
-            $result->where('TL.Zones', 'like', '%"name": "' . $warehousedata . '"%');
-        }
-        //$result->whereIn('IP.CurrentLocation', $datawarehouse)
-        $result->select('IP.Tag', 'IP.ExpCntrID');
-=======
         ->where('JI.POD', '=', $pod);
         $result->Where(function($query) use($datawarehouse)
         {
@@ -146,7 +121,6 @@ class ExportController extends Controller
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
         $response['pod'] = $pod;
         $result->select('IP.Tag', 'IP.ExpCntrID', 'JI.POD');
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         $data = $result->get();
         Storage::put('logs/export/GetTagsByPort.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;

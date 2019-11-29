@@ -7,11 +7,7 @@ use Storage;
 use DB;
 use Response;
 use Illuminate\Http\Request;
-<<<<<<< HEAD
-use Symfony\Component\HttpFoundation\StreamedResponse;
-=======
 use Illuminate\Support\Facades\Redis;
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
 
 class TagsController extends Controller
 {
@@ -58,17 +54,10 @@ class TagsController extends Controller
         [8.5, 110.5, 31.5],
         [38.5, 120.5, 31.5],
 
-<<<<<<< HEAD
-        [61, 22, 31.5],
-        [29.5, 25.5, 31.5],
-        [28.5, 39.5, 31.5],
-        [36.0, 48.0, 31.5],
-=======
         [18.5, 70.5, 31.5],
         [0.5, 0.5, 31.5],
         [28.5, 39.5, 31.5],
         [36.9, 65.5, 31.5],
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         [2, 19.5, 31.5],
 
         [7.5, 7.5, 31.5],
@@ -154,117 +143,15 @@ class TagsController extends Controller
         return response($response);
     }
 
-<<<<<<< HEAD
-    function getTagPosition() {
-        $i = 0;
-        $url = $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-        $response['code'] = 0;
-        $response['command'] = $url;
-        $response['message'] = "Location";
-        $response['responseTS'] = "141231532";
-        $response['status'] = "Ok";
-
-        
-        $datarray = array();
-        if(isset($_GET['tag'])) {
-            $setdata = $_GET['tag'];
-            $reqtagdata = array_map('trim', explode(",", $setdata));
-    
-            foreach($reqtagdata as $data) {
-                $key = array_search($data, $this->datatags);
-                $dataf['no'] = $i;
-                $dataf['areaId'] = "TrackingArea1";
-                $dataf['areaName'] = "KCM";
-                $dataf['color'] = "#000CC";
-                $dataf['coordinateSystemId'] = "CoordinateSystem1";
-                $dataf['coordinateSystemName'] = "FirstFloor";
-                $dataf['covarianceMatrix'] = [8.9, -3.09, -3.09, 5.56];
-                $dataf['id'] = $data;
-                $dataf['name'] = "Basket";
-                $dataf['position'] = $this->smoothedposition[$key];
-                $dataf['positionAccuracy'] = 1.55;
-                $dataf['positionTS'] = 123142323;
-                $dataf['smoothedPosition'] = $this->smoothedposition[$key];
-                $zones['id'] = "Zone005";
-                $zones['name'] = "Cashier";
-                $dataf['zones'] = [$zones];
-                array_push($datarray, $dataf);
-                $i++;
-            }
-            
-            $response['debug'] = $reqtagdata;
-            Storage::put('count.txt', count($reqtagdata));
-            Storage::put('file.txt', $url);
-            Storage::put('tag.txt', $_GET['tag']);
-        } else {
-            foreach($this->datatags as $data) {
-                $key = array_search($data, $this->datatags);
-                $dataf['no'] = $i;
-                $dataf['areaId'] = "TrackingArea1";
-                $dataf['areaName'] = "KCM";
-                $dataf['color'] = "#000CC";
-                $dataf['coordinateSystemId'] = "CoordinateSystem1";
-                $dataf['coordinateSystemName'] = "FirstFloor";
-                $dataf['covarianceMatrix'] = [8.9, -3.09, -3.09, 5.56];
-                $dataf['id'] = $data;
-                $dataf['name'] = "Basket";
-                $dataf['position'] = $this->smoothedposition[$key];
-                $dataf['positionAccuracy'] = 1.55;
-                $dataf['positionTS'] = 123142323;
-                $dataf['smoothedPosition'] = $this->smoothedposition[$key];
-                $zones['id'] = "Zone005";
-                $zones['name'] = "Cashier";
-                $dataf['zones'] = [$zones];
-                array_push($datarray, $dataf);
-                $i++;
-            }
-        }
-        $response['tags'] = $datarray;
-        $response['version'] = "test";
-        return response($response);
-    }
-
-    /* function getUpdate() {
-        $filePath = public_path('Capture.PNG');
-        $fileName = "Capture.PNG";
-        $response = new StreamedResponse(
-            function() use ($filePath, $fileName) {
-                // Open output stream
-                if ($file = fopen($filePath, 'rb')) {
-                    while(!feof($file) and (connection_status()==0)) {
-                        print(fread($file, 1024*8));
-                        flush();
-                    }
-                    fclose($file);
-                }
-            },
-            200,
-            [
-                'Content-Type' => 'application/octet-stream',
-                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-            ]);
-        
-        return $response;
-    } */
-
-    function getUpdate() {
-        $res = Storage::size('latest.apk');
-=======
     function getUpdate() {
         //return response()->file(public_path('latest.apk'));
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         return Storage::download('latest.apk', 'latest.apk', ['Connection' => 'keep-alive']);
     }
 
     function getVersion() {
         $response['status'] = true;
-<<<<<<< HEAD
-        $response['version'] = 2;
-        $response['updatelog'] = "\t- Bug Fixes \n \t- Add Refresh Function";
-=======
         $response['version'] = 10006;
         $response['updatelog'] = "\t- Bug Fixes \n \t- Add Temporary Cache File for Tag Data";
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         return $response;
     }
 }

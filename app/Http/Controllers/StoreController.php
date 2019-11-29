@@ -37,10 +37,7 @@ class StoreController extends Controller
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''");
-<<<<<<< HEAD
-=======
         //->where('IP.isActivityForStuffing', 0);
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         $result->Where(function($query) use($datawarehouse)
         {
             for($i=0;$i<count($datawarehouse);$i++){
@@ -51,10 +48,7 @@ class StoreController extends Controller
                 }
             }
         });
-<<<<<<< HEAD
-=======
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         $result->select(DB::raw("DISTINCT IP.Tag, I.POD, JI.ClientID, I.InventoryID, IP.CurrentLocation, CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
         $data = $result->get();
         Storage::put('logs/store/GetAllTags.txt', $datawarehouse);
@@ -83,13 +77,8 @@ class StoreController extends Controller
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> '' ")
         ->where('JI.ClientID', $request->clientID)
-<<<<<<< HEAD
-        ->where('I.POD', $request->pod)
-        ->where('IP.Tag', '<>', $request->tag);
-=======
         ->where('I.POD', $request->pod);
         //->where('IP.Tag', '<>', $request->tag);
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         $result->Where(function($query) use($datawarehouse)
         {
             for($i=0;$i<count($datawarehouse);$i++){
@@ -104,17 +93,7 @@ class StoreController extends Controller
         $result->select('IP.Tag', 'I.POD', 'JI.ClientID', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
         $data = $result->get();
         Storage::put('logs/store/GetAllTagsByPOD.txt', $url);
-<<<<<<< HEAD
-        $response['status'] = (count($daa) > 0)? TRUE : FALSE;
-        $response['data'] = $data;
-        return response($response);
-    }
-
-    function getRedis() {
-        $data = Redis::get('test');
-=======
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
->>>>>>> 6180bc3dd373177e2d23320feb7eb8fd7b1cbe31
         $response['data'] = $data;
         return response($response);
     }
