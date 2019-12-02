@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 use DB;
 use Illuminate\Http\Request;
+use App\InventoryPallet;
 
 class LocateController extends Controller
 {
     function getContainerList() {
-      $container =  DB::select("SELECT CI.[Dummy], JI.[ClientID], JI.[POD], CI.[ContainerPrefix], CI.[ContainerNumber], CI.[ContainerSize], CI.[ContainerType], CI.[Status], VI.[ETA], CI.[DeliverTo], CI.[TT] FROM VesselInfo VI, JobInfo JI, ContainerInfo CI WHERE VI.VesselID = JI.VesselID AND JI.JobNumber = CI.JobNumber AND JI.[Import/Export] = 'Export' AND CI.[DateofStuf/Unstuf] IS NULL AND CI.StartTime IS NULL AND CI.DeliverTo IN ('110','108','109') AND EXISTS (SELECT 1 FROM HSC_InventoryPallet IP WHERE IP.ExpCntrID = CI.[Dummy] AND IP.DelStatus = 'N') ORDER BY VI.ETA");
+      $container =  DB::select("SELECT CI.[Dummy], JI.[ClientID], JI.[POD], CI.[ContainerPrefix], CI.[ContainerNumber], CI.[ContainerSize], CI.[ContainerType], CI.[Status], VI.[ETA], CI.[DeliverTo], CI.[TT] FROM HSC2012.dbo.VesselInfo VI, HSC2012.dbo.JobInfo JI, HSC2012.dbo.ContainerInfo CI WHERE VI.VesselID = JI.VesselID AND JI.JobNumber = CI.JobNumber AND JI.[Import/Export] = 'Export' AND CI.[DateofStuf/Unstuf] IS NULL AND CI.StartTime IS NULL AND CI.DeliverTo IN ('110','108','109') AND EXISTS (SELECT 1 FROM InventoryPallet IP WHERE IP.ExpCntrID = CI.[Dummy] AND IP.DelStatus = 'N') ORDER BY VI.ETA");
       /* $data = array(
         'status' => 'success',
         'container' => $container
@@ -35,10 +36,19 @@ class LocateController extends Controller
     }
 
     function updateStuffing(Request $request) {
-      $update = DB::table('HSC_InventoryPallet')->where('ExpCntrID', $request->dummy)->update(
-        ['isActivityForStuffing' => $request->data]
-      );
-      return response($update);
+      try {
+        $inventory = InventoryPallet::where('ExpCntrID', $request->dummy)
+        ->update([
+          'isActivityForStuffing' => $request->data
+        ]);
+        $response['status'] = TRUE;
+        $response['data'] = $inventory;
+        return response($response);
+      } catch (\Illuminate\Database\QueryException $ex) {
+        $response['status'] = TRUE;
+        $response['errmsg'] = "Cannot update data!";
+        return response($response);
+      }
     }
 
     function getAllTagsByCN(Request $request) {
@@ -52,10 +62,10 @@ class LocateController extends Controller
       } else {
           $datawarehouse = array_map('trim', explode(",", $getwarehouse));
       }
-      $result = DB::table('JobInfo AS JI')
-      ->join('ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
-      ->join('HSC_Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
-      ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+      $result = DB::table('HSC2012.dbo.JobInfo AS JI')
+      ->join('HSC2012.dbo.ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
+      ->join('Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
+      ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
       ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
       ->where('I.DelStatus', '=', 'N')
       ->where('IP.DelStatus', '=', 'N')
