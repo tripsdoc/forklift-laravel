@@ -12,5 +12,13 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('forklift/index');
 });
+Route::resource('forklift', 'Web\ForkliftUserController');
+Route::get('forkliftjson', 'Web\ForkliftUserController@jsonAll')->name('DataForklift');
+
+Route::resource('device', 'Web\DeviceInfoController');
+Route::get('devicejson', 'Web\DeviceInfoController@jsonAll')->name('DataDevice');
+
+Route::resource('ips', 'Web\IPSUserController');
+Route::get('ipsjson', 'Web\IPSUserController@jsonAll')->name('DataIPS');

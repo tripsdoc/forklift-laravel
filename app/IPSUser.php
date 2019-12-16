@@ -4,9 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ForkliftUser extends Model
+class IPSUser extends Model
 {
-    protected $table = 'ForkliftUser';
+    protected $table = 'IpsUser';
     protected $primaryKey = 'UserId';
     public $timestamps = false;
     protected $fillable = [
