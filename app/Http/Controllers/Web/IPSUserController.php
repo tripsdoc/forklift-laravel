@@ -41,7 +41,8 @@ class IPSUserController extends Controller
     }
 
     function show($id) {
-        $data = IPSUser::find($id);
+        $decryptId = Crypt::decrypt($id);
+        $data = IPSUser::find($decryptId);
         return View::make('ips/show')
         ->with('data', $data);
     }
@@ -72,7 +73,8 @@ class IPSUserController extends Controller
     }
 
     function edit($id) {
-        $data = IPSUser::find($id);
+        $decryptId = Crypt::decrypt($id);
+        $data = IPSUser::find($decryptId);
         $cryptData = new \stdClass();
         $cryptData->UserId = Crypt::encrypt($data->UserId);
         $cryptData->UserName = $data->UserName;

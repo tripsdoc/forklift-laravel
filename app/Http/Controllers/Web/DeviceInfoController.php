@@ -41,8 +41,17 @@ class DeviceInfoController extends Controller
         return view('device/index');
     }
 
+    function debug($id) {
+        $decryptId = Crypt::decrypt($id);
+        $data = DeviceInfo::where('DeviceInfoId', $decryptId)->get();
+        return response($data);
+    }
+
     function show($id) {
-        $data == DeviceInfo::where('DeviceInfoId', $requset->id)->get();
+        $decryptId = Crypt::decrypt($id);
+        $data = DeviceInfo::where('DeviceInfoId', $decryptId)->first();
+        return View::make('device/show')
+        ->with('data', $data);
     }
 
     function create() {
