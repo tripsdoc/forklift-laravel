@@ -10,10 +10,18 @@
     "require": {
         "php": "^7.2",
         "fideloper/proxy": "^4.0",
+        "jeroennoten/laravel-adminlte": "^3.0",
         "laravel/framework": "^6.0",
         "laravel/tinker": "^1.0",
+<<<<<<< HEAD
         "predis/predis": "^1.1",
         "tymon/jwt-auth": "dev-develop"
+=======
+        "laravelcollective/html": "^6.0",
+        "predis/predis": "^1.1",
+        "tymon/jwt-auth": "dev-develop",
+        "yajra/laravel-datatables-oracle": "~9.0"
+>>>>>>> 0c8ad3e72201277095ce9867d803061c226a0d6a
     },
     "require-dev": {
         "facade/ignition": "^1.4",
