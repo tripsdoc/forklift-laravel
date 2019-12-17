@@ -24,7 +24,7 @@ class ForkliftUserController extends Controller
                     ->addIndexColumn()
                     ->addColumn('action', function($row){
                         $btn = '<a href="../forklift/' . Crypt::encrypt($row->UserId) . '/edit" class="edit btn btn-warning btn-sm">Edit</a>
-                                <form id="form-delete" style="display: inline-block;" class="pull-left" action="../forklift/' . Crypt::encrypt($row->UserId) . '" method="POST">'
+                                <form id="form-delete-' . $row->UserId . '" style="display: inline-block;" class="pull-left" action="../forklift/' . Crypt::encrypt($row->UserId) . '" method="POST">'
                                     . csrf_field() .
                                         '<input type="hidden" name="_method" value="DELETE">
                                         <button class="jquery-postback btn btn-danger btn-sm">Delete</button>
@@ -85,7 +85,7 @@ class ForkliftUserController extends Controller
     function update($id) {
         $decryptId = Crypt::decrypt($id);
         $rules = array(
-            'username' => 'required',
+            //'username' => 'required',
             'password' => 'required'
         );
         $validator = Validator::make(Request::all(), $rules);
@@ -96,7 +96,7 @@ class ForkliftUserController extends Controller
             ->withInput(Request::except('password'));
         } else {
             $forklift = ForkliftUser::find($decryptId);
-            $forklift->username = Request::get('username');
+            //$forklift->username = Request::get('username');
             $forklift->password = Request::get('password');
             $forklift->save();
 
@@ -107,10 +107,13 @@ class ForkliftUserController extends Controller
 
     function destroy($id) {
         $decryptId = Crypt::decrypt($id);
-        ForkliftUser::where('UserId', $decryptId)->delete();
+        $data = ForkliftUser::where('UserId', $decryptId)->first();
 
-        // redirect
-        Session::flash('message', 'Successfully deleted the forklift user!');
-        return Redirect::to('forklift');
+        if ($data->delete()) {
+            // redirect
+            Session::flash('message', 'Successfully deleted the forklift user!');
+            return Redirect::to('forklift');
+        }
+        return response($data);
     }
 }

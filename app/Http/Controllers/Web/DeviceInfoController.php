@@ -26,11 +26,11 @@ class DeviceInfoController extends Controller
                     ->addColumn('action', function($row){
                         $btn = '<a href="../device/'. Crypt::encrypt($row->DeviceInfoId) . '" class="edit btn btn-primary btn-sm">View</a>
                                 <a href="../device/' . Crypt::encrypt($row->DeviceInfoId) . '/edit" class="edit btn btn-warning btn-sm">Edit</a>
-                                <form id="form-delete" style="display: inline-block;" class="pull-left" action="../forklift/' . Crypt::encrypt($row->DeviceInfoId) . '" method="POST">'
-                                    . csrf_field() .
-                                        '<input type="hidden" name="_method" value="DELETE">
-                                        <button class="jquery-postback btn btn-danger btn-sm">Delete</button>
-                                    </form>
+                                <form id="form-delete-' . $row->DeviceInfoId . '" style="display: inline-block;" class="pull-left" action="../device/' . Crypt::encrypt($row->DeviceInfoId) . '" method="POST">'
+                                . csrf_field() .
+                                    '<input type="hidden" name="_method" value="DELETE">
+                                    <button class="jquery-postback btn btn-danger btn-sm">Delete</button>
+                                </form>
                         ';
                         return $btn;
                     })
@@ -60,27 +60,33 @@ class DeviceInfoController extends Controller
 
     function store() {
         $rules = array(
-            'username' => 'required',
-            'password' => 'required'
+            'devicename' => 'required',
+            'serialnumber' => 'required'
         );
         $validator = Validator::make(Request::all(), $rules);
 
         if($validator->fails()) {
-            return Redirect::to('forklift/create')
-            ->withErrors($validator)
-            ->withInput(Request::except('password'));
+            return Redirect::to('device/create')
+            ->withErrors($validator);
         } else {
-            $forklift = new ForkliftUser;
-            $forklift->username = Request::get('username');
-            $forklift->password = Request::get('password');
-            $forklift->save();
+            $device = new DeviceInfo;
+            $device->devicename = Request::get('devicename');
+            $device->serialnumber = Request::get('serialnumber');
+            $device->warehouses = Request::get('warehouses');
+            $device->isactive = Request::get('isactive');
+            $device->tag = Request::get('tag');
+            $device->timestamp = Request::get('timestamp');
+            $device->lastused = Request::get('lastused');
+            $device->ipaddress = Request::get('ipaddress');
+            $device->save();
 
-            return Redirect::to('forklift');
+            return Redirect::to('device');
         }
     }
 
     function edit($id) {
-        $data = DeviceInfo::find($id);
+        $decryptId = Crypt::decrypt($id);
+        $data = DeviceInfo::find($decryptId);
         $cryptData = new \stdClass();
         $cryptData->DeviceInfoId = Crypt::encrypt($data->DeviceInfoId);
         $cryptData->DeviceName = $data->DeviceName;
@@ -125,10 +131,13 @@ class DeviceInfoController extends Controller
 
     function destroy($id) {
         $decryptId = Crypt::decrypt($id);
-        DeviceInfo::where('DeviceInfoId', $decryptId)->delete();
+        $data = DeviceInfo::where('DeviceInfoId', $decryptId)->first();
 
         // redirect
-        Session::flash('message', 'Successfully deleted the device!');
-        return Redirect::to('device');
+        if ($data->delete()) {
+            Session::flash('message', 'Successfully deleted the device!');
+            return Redirect::to('device');
+        }
+        return response($data);
     }
 }

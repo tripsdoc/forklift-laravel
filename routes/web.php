@@ -16,9 +16,11 @@ Route::get('/', function () {
 });
 Route::resource('forklift', 'Web\ForkliftUserController');
 Route::get('forkliftjson', 'Web\ForkliftUserController@jsonAll')->name('DataForklift');
+Route::get('delete/forklift/{id}', 'Web\ForkliftUserController@destroy');
 
 Route::resource('device', 'Web\DeviceInfoController');
 Route::get('devicejson', 'Web\DeviceInfoController@jsonAll')->name('DataDevice');
+Route::get('delete/device/{id}', 'Web\DeviceInfoController@destroy');
 
 Route::resource('ips', 'Web\IPSUserController');
 Route::get('ipsjson', 'Web\IPSUserController@jsonAll')->name('DataIPS');

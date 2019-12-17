@@ -16,7 +16,7 @@
 
             <div class="form-group">
                 {{ Form::label('username', 'Username') }}
-                {{ Form::text('username', $data->UserName, array('class' => 'form-control')) }}
+                {{ Form::text('username', $data->UserName, array('disabled' => 'disabled', 'class' => 'form-control')) }}
             </div>
 
             <div class="form-group">

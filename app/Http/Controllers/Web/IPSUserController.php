@@ -25,7 +25,7 @@ class IPSUserController extends Controller
                     ->addIndexColumn()
                     ->addColumn('action', function($row){
                         $btn = '<a href="../ips/' . Crypt::encrypt($row->UserId) . '/edit" class="edit btn btn-warning btn-sm">Edit</a>
-                                <form id="form-delete" style="display: inline-block;" class="pull-left" action="../ips/' . Crypt::encrypt($row->UserId) . '" method="POST">'
+                                <form id="form-delete-' . $row->UserId . '" style="display: inline-block;" class="pull-left" action="../ips/' . Crypt::encrypt($row->UserId) . '" method="POST">'
                                 . csrf_field() .
                                     '<input type="hidden" name="_method" value="DELETE">
                                     <button class="jquery-postback btn btn-danger btn-sm">Delete</button>
@@ -108,8 +108,10 @@ class IPSUserController extends Controller
     function destroy($id){
         $decryptId = Crypt::decrypt($id);
         $data = IPSUser::find($decryptId);
-        $data->delete();
-        Session::flash('message', 'Successfully deleted the IPS User!');
-        return Redirect::to('ips');
+        if ($data->delete()) {
+            Session::flash('message', 'Successfully deleted the IPS User!');
+            return Redirect::to('ips');
+        }
+        return response($data);
     }
 }

@@ -55,7 +55,7 @@ $.ajaxSetup({
   }
 });
 $(document).on('click', '.jquery-postback', function(e) {
-  var form = document.getElementById("form-delete");
+  var form = e.target.parentNode;
   e.preventDefault(); // does not go through with the link.
   var confirmation = confirm("Are you sure want to delete?");
   if(confirmation) {
