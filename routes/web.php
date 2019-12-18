@@ -25,4 +25,7 @@ Route::get('delete/device/{id}', 'Web\DeviceInfoController@destroy');
 Route::resource('ips', 'Web\IPSUserController');
 Route::get('ipsjson', 'Web\IPSUserController@jsonAll')->name('DataIPS');
 
+Route::resource('container', 'Web\ContainerController');
+Route::post('containerjson', 'Web\ContainerController@jsonAll')->name('containerjson');
+
 Route::get('debugdevice/{id}', 'Web\DeviceInfoController@debug');
