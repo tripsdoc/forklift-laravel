@@ -178,6 +178,7 @@ return [
             'url'  => 'admin/blog',
             'can'  => 'manage-blog',
         ],
+        ['header' => 'Forklift'],
         [
             'text'    => 'Forklift User',
             'icon'    => 'fas fa-fw fa-user',
@@ -219,6 +220,65 @@ return [
                     'url'  => 'ips',
                 ],
             ],
+        ],
+        ['header' => 'Driver'],
+        [
+            'text'    => 'Container',
+            'icon'    => 'fas fa-fw fa-truck',
+            'submenu' => [
+                [
+                    'text' => 'Create',
+                    'url'  => 'container/create',
+                ],
+                [
+                    'text' => 'List',
+                    'url'  => 'container',
+                ],
+            ],
+        ],
+        [
+            'text'    => 'Park',
+            'icon'    => 'fas fa-fw fa-truck',
+            'submenu' => [
+                [
+                    'text' => 'Create',
+                    'url'  => 'park/create',
+                ],
+                [
+                    'text' => 'List',
+                    'url'  => 'park',
+                ],
+            ],
+        ],
+        [
+            'text'    => 'History',
+            'icon'    => 'fas fa-fw fa-history',
+            'url'  => 'history',
+        ],
+        [
+            'text'    => 'Ongoing',
+            'icon'    => 'fas fa-fw fa-truck',
+            'submenu' => [
+                [
+                    'text' => 'Create',
+                    'url'  => 'temporary/create',
+                ],
+                [
+                    'text' => 'List',
+                    'url'  => 'temporary',
+                ],
+            ],
+        ],
+        ['header' => 'account_settings'],
+        [
+            'text' => 'Driver',
+            'url'  => '#',
+            'icon' => 'fas fa-fw fa-user',
+        ],
+        [
+            'text' => 'change_password',
+            'url'  => '#',
+            'icon' => 'fas fa-fw fa-lock',
         ],
     ],
 
