@@ -8,7 +8,7 @@ class GlobalController extends Controller
 {
       function getChecklist()
       {
-          $checklist = DB::table('Checklist')->where('Category', $_GET['type'])->get();
+          $checklist = DB::table('HSC2017Test_V2.dbo.Checklist')->where('Category', $_GET['type'])->get();
           $data = array(
             'status' => 'success',
             'data' => $checklist

@@ -44,6 +44,9 @@ Route::get('forklift/export/pod/', 'ExportController@getAllPortActivatedforStuff
 Route::get('forklift/export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
 
 Route::group(['prefix' => 'clerk'], function () {
+  // Authentication
+  Route::post('login', 'LoginController@loginClerk');
+
   Route::get('user', 'LoginController@getUserData');
   // Global Data
   Route::get('global/checklist', 'GlobalController@getChecklist');
@@ -52,13 +55,20 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::get('unstuffing/detailimportsummary', 'UnstuffingController@getDetailImportsumary');
   Route::get('unstuffing/joblist', 'UnstuffingController@getJobList');
   Route::get('unstuffing/palletbreakdown', 'UnstuffingController@getPalletBreakdown');
-
+  Route::post('unstuffing/updatebaystevedore', 'UnstuffingController@updateBaySteveDore');
+  Route::get('unstuffing/copypallet', 'UnstuffingController@copyPallet');
+  Route::get('unstuffing/deletepallet', 'UnstuffingController@deletePallet');
+  Route::get('unstuffing/addbreakdown', 'UnstuffingController@addBreakdown');
+  Route::get('unstuffing/deletebreakdown', 'UnstuffingController@deleteBreakdown');
+  Route::post('unstuffing/updatebreakdown', 'UnstuffingController@updateBreakdown');
+  Route::post('unstuffing/updatebreakdownLBH', 'UnstuffingController@updateBreakdownLBH');
+  Route::post('unstuffing/updatepallet', 'UnstuffingController@updatePallet');
+  Route::post('unstuffing/uploadphoto', 'UnstuffingController@uploadBreakdownGallery');
 
   // Locate
   Route::get('locate/containerList', 'LocateController@getContainerList');
   Route::get('locate/containerList/tag', 'LocateController@getAllTagsByCN');
-<<<<<<< HEAD
-=======
-  Route::post('locate/containerList/update', 'LocateController@updateStuffing');
->>>>>>> 0c8ad3e72201277095ce9867d803061c226a0d6a
+
+  // Devices
+
 });
