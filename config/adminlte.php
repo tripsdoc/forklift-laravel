@@ -224,7 +224,7 @@ return [
         ['header' => 'Driver'],
         [
             'text'    => 'Container',
-            'icon'    => 'fas fa-fw fa-truck',
+            'icon'    => 'fas fa-fw fa-box',
             'submenu' => [
                 [
                     'text' => 'Create',

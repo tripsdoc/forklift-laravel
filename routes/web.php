@@ -28,4 +28,6 @@ Route::get('ipsjson', 'Web\IPSUserController@jsonAll')->name('DataIPS');
 Route::resource('container', 'Web\ContainerController');
 Route::post('containerjson', 'Web\ContainerController@jsonAll')->name('containerjson');
 
+Route::get('debug/container', 'Web\ContainerController@debug');
+
 Route::get('debugdevice/{id}', 'Web\DeviceInfoController@debug');

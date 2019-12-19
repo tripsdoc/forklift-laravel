@@ -26,6 +26,8 @@ Route::get('redis', 'StoreController@getRedis');
 
 Route::get('latestapk', 'TagsController@getUpdate');
 
+Route::get('container', 'ContainerAPIController@getAll');
+
 //Testing Tags Position
 Route::get('qpe/getTagPosition', 'TagsController@getTagPosition');
 ROute::get('qpe/alltags', 'TagsController@getAllTags');
