@@ -11,11 +11,17 @@ use Validator;
 use Redirect;
 use Session;
 use View;
+use DB;
 
 class ContainerController extends Controller
 {
     function index() {
         return view('container/index');
+    }
+
+    function debug() {
+        $data = DB::table('job_items')->get();
+        return response($data);
     }
 
     function jsonAll(Request $request) {
