@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePasswordResetsTable extends Migration
+class RemoveUniqueParkName extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class CreatePasswordResetsTable extends Migration
      */
     public function up()
     {
-        Schema::create('PasswordResets', function (Blueprint $table) {
-            $table->string('email')->index();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+        Schema::table('HSC_Park', function(Blueprint $table)
+        {
+            $table->dropUnique('hsc_park_name_unique');
         });
     }
 
@@ -27,6 +26,11 @@ class CreatePasswordResetsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('password_resets');
+        Schema::table('HSC_Park', function(Blueprint $table)
+        {
+            //Put the index back when the migration is rolled back
+            $table->unique('name');
+
+        });
     }
 }

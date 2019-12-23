@@ -20,6 +20,16 @@
               </div>
 
               <div class="form-group">
+                  {{ Form::label('type', 'Park Type') }}
+                  {!! Form::select('type',  array(1 => 'Warehouse', 2 => 'Parking Lots'), null, ['class' => 'form-control']) !!}
+              </div>
+
+              <div class="form-group">
+                  {{ Form::label('place', 'Warehouse / Parking Lots') }}
+                  {{ Form::text('place', Request::old('place'), array('class' => 'form-control')) }}
+              </div>
+
+              <div class="form-group">
                   {{ Form::label('detail', 'Detail') }}
                   {{ Form::text('detail', Request::old('detail'), array('class' => 'form-control')) }}
               </div>

@@ -54,10 +54,21 @@ class ParkController extends Controller
         return response($response);
     }
 
+    function getAllParkSpinner(Request $request, $type) {
+        $data = Park::where('type', '=', $type)->paginate(10);
+
+        $response['status'] = !$data->isEmpty();
+        $response['current'] = $data->currentPage();
+        $response['nextUrl'] = $data->nextPageUrl();
+        $response['last'] = $data->lastPage();
+        $response['data'] = $data->items();
+        return response($response);
+    }
+
     function getAllPark(Request $request) {
         date_default_timezone_set('Asia/Jakarta');
-        $data = Park::all();
-        $fulldate = date("Y-m-d H:i:s");
+        $data = Park::paginate(10);
+        /* $fulldate = date("Y-m-d H:i:s");
         $tomorrow = Carbon::tomorrow('Asia/Jakarta');
         $dataArray = array();
         $dataUser = $request->user;
@@ -86,6 +97,8 @@ class ParkController extends Controller
             $loopData = array(
                 "id" => $datas->id,
                 "name" => $datas->name,
+                "place" => $datas->place,
+                "type" => $datas->type,
                 "availability" => $this->checkLevel($datas->id),
                 "canEdit" => ($filtered->isEmpty() || $checked),
                 "temp" => $filterFlatten
@@ -93,8 +106,13 @@ class ParkController extends Controller
             array_push($dataArray, $loopData);
         }
         $response['status'] = !$data->isEmpty();
-        $response['fulldate'] = $fulldate;
-        $response['data'] = $dataArray;
+        $response['fulldate'] = $fulldate; */
+        //$response['data'] = $data;
+        $response['status'] = !$data->isEmpty();
+        $response['current'] = $data->currentPage();
+        $response['nextUrl'] = $data->nextPageUrl();
+        $response['last'] = $data->lastPage();
+        $response['data'] = $data->items();
         return response($response);
     }
 

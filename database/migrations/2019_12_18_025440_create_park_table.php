@@ -13,9 +13,11 @@ class CreateParkTable extends Migration
      */
     public function up()
     {
-        Schema::create('park', function (Blueprint $table) {
+        Schema::create('HSC_Park', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name')->unique();
+            $table->string('name');
+            $table->integer('type');
+            $table->string('place'); // Warehouse / Parking lots
             $table->text('detail')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();

@@ -9,6 +9,6 @@ class Park extends Model
     protected $table = "HSC_Park";
     protected $primaryKey = "id";
     protected $fillable = [
-        'name', 'detail'
+        'name', 'detail', 'type', 'place'
     ];
 }

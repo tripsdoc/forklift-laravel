@@ -27,6 +27,8 @@ Route::get('redis', 'StoreController@getRedis');
 Route::get('latestapk', 'TagsController@getUpdate');
 
 Route::get('container', 'ContainerAPIController@getAll');
+Route::get('container/{id}', 'ContainerAPIController@getOverview');
+Route::get('debug/container', 'ContainerAPIController@debug');
 
 //Testing Tags Position
 Route::get('qpe/getTagPosition', 'TagsController@getTagPosition');
@@ -44,6 +46,20 @@ Route::post('forklift/store/tag', 'StoreController@getAllTagsByPOD');
 Route::get('forklift/export/', 'ExportController@getAllTagsActivatedforStuffing');
 Route::get('forklift/export/pod/', 'ExportController@getAllPortActivatedforStuffing');
 Route::get('forklift/export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
+
+//Shifter
+Route::post('park', 'API\ParkController@getAllPark');
+Route::post('park/type/{type}', 'API\ParkController@getAllParkSpinner');
+Route::get('park/{park}', 'API\ParkController@detailPark');
+
+Route::get('temppark/today/{id}', 'API\ParkController@getCurrent');
+Route::post('temppark/update', 'API\ParkController@editContainer');
+Route::post('temppark/add', 'API\ParkController@bookPark');
+
+Route::post('temppark/user', 'API\ParkController@getAllOnGoingByUser');
+
+Route::post('finish', 'API\ParkController@releasePark');
+ROute::post('cancel', 'API\ParkController@cancelPark');
 
 Route::group(['prefix' => 'clerk'], function () {
   // Authentication

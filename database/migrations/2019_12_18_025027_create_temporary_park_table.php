@@ -13,12 +13,13 @@ class CreateTemporaryParkTable extends Migration
      */
     public function up()
     {
-        Schema::create('temporary_park', function (Blueprint $table) {
+        Schema::create('HSC_OngoingPark', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('parkId');
+            $table->bigInteger('ShifterId');
+            $table->bigInteger('parkId')->nullable();
             $table->bigInteger('CntrId')->nullable();
-            $table->timestamp('parkIn');
-            $table->timestamp('parkOut')->nullable();
+            $table->timestamp('requestIn');
+            $table->string('status');
             $table->timestamp('created_at')->useCurrent();
             $table->string('created_by');
             $table->timestamp('updated_at')->nullable();

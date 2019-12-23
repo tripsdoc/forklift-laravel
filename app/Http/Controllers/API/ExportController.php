@@ -23,6 +23,8 @@ class ExportController extends Controller
         $result = DB::table('Inventory AS I')
         ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
+        ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
+        ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")

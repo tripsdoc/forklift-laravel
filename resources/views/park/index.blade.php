@@ -10,7 +10,7 @@
 @stop
 @section('content')
 <div class="row">
-  @if($data->isEmpty())
+  <!-- @if($data->isEmpty())
     <h4>Currently there is no Park Data. You can create the new park from 'Create' Function on menu!</h4>
   @else
   @foreach($data as $datas)
@@ -19,7 +19,7 @@
     <div class="card-header card-header-primary">
       <div class="d-flex justify-content-between">
         <input type="hidden" value="{{ $datas->id }}"/>
-        <h4 class="card-title ">{{$datas->name}}</h4>
+        <h4 class="card-title ">{{$datas->name}}-{{$datas->place}}</h4>
         <div class="card-tools">
           <a href="../park/{{ $datas->id }}" class="btn btn-tool" data-toggle="tooltip" title="Detail"><i class="fas fa-external-link-alt"></i></button></a>
           <a href="#" class="btn btn-tool" data-toggle="tooltip" title="Remove"><i class="fas fa-times"></i></button></a>
@@ -40,9 +40,9 @@
   </div>
   </div>
   @endforeach
-  @endif
+  @endif -->
   
-  <!-- <div class="col-12">
+  <div class="col-12">
     <div class="card">
       @if(Session::has('message'))
       <div class="card-header">
@@ -54,14 +54,15 @@
         <thead>
           <tr>
             <th> Name</th>
-            <th> Detail</th>
+            <th> Place</th>
+            <th> Type</th>
             <th> Action  </th>
           </tr>
         </thead>
       </table>
       </div>
     </div>
-  </div> -->
+  </div>
 </div>
 @stop
 
@@ -71,7 +72,7 @@
 <script type="text/javascript" src="{{ asset('datatables/dataTables.bootstrap4.js') }}"></script>
 <script type="text/javascript">
 $(function () {
-  $('.park-table').each(function(i, obj){
+  /* $('.park-table').each(function(i, obj){
     var id = $(this).attr('id');
     var routeurl = "{{ route('TemporaryDataByPark', ":id") }}";
     routeurl = routeurl.replace(':id', id);
@@ -86,8 +87,24 @@ $(function () {
           { data: 'action', name: 'action', orderable: false, searchable: false },
       ]
     });
+  }); */
+  $('.park-table').each(function(i, obj){
+    var id = $(this).attr('id');
+    var routeurl = "{{ route('DataPark', ":id") }}";
+    routeurl = routeurl.replace(':id', id);
+    console.log(routeurl);
+    $(this).DataTable({
+      responsive: true,
+      processing: true,
+      ajax: routeurl,
+      columns: [
+          { data: 'name', name: 'Name' },
+          { data: 'place', name: 'Place' },
+          { data: 'type', name: 'Type' },
+          { data: 'action', name: 'action', orderable: false, searchable: false },
+      ]
+    });
   });
-    
 });
 $(document).on('click', '.jquery-postback', function(e) {
   var form = e.target.parentNode;

@@ -9,6 +9,6 @@ class TemporaryPark extends Model
     protected $table = "HSC_OngoingPark";
     protected $primaryKey = "id";
     protected $fillable = [
-        'parkId', 'CntrId', 'parkIn', 'parkOut', 'created_at', 'created_by', 'updated_at', 'updated_by'
+        'ShifterId', 'parkId', 'CntrId', 'requestIn', 'status', 'created_at', 'created_by', 'updated_at', 'updated_by'
     ];
 }
