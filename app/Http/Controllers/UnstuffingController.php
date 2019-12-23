@@ -26,18 +26,21 @@ class UnstuffingController extends Controller
             {
                 // Check other breakdown have shortlanded
                 $flags = array();
-                $rawPallet = $this->Global_model->global_get('HSC_InventoryPallet', array(
-                    'InventoryID' => $value->InventoryID,
-                    'DelStatus' => 'N'
-                ));
+                $rawPallet = DB::table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $value->InventoryID)->where('DelStatus', 'N')->get();
+                // $rawPallet = $this->Global_model->global_get('HSC_InventoryPallet', array(
+                //     'InventoryID' => $value->InventoryID,
+                //     'DelStatus' => 'N'
+                // ));
                 foreach ($rawPallet as $key => $valuePallet)
                 {
-                    $rawBreakdown = $this->Global_model->global_get('HSC2017Test_V2.dbo.HSC_InventoryBreakdown', array(
-                        'InventoryPalletID' => $valuePallet->InventoryPalletID,
-                        'DelStatus' => 'N'
-                    ));
+                    // $rawBreakdown = $this->Global_model->global_get('HSC_InventoryBreakdown', array(
+                    //     'InventoryPalletID' => $valuePallet->InventoryPalletID,
+                    //     'DelStatus' => 'N'
+                    // ));
+                    $rawBreakdown = DB::table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $valuePallet->InventoryPalletID)->where('DelStatus', 'N')->get();
                     foreach ($rawBreakdown as $keyBreak => $break)
                     {
+                        // dd($break);
                         if (in_array('SHORTLANDED', explode(',', $break->Flags))) {
                             array_push($flags, $break->Flags);
                         }
@@ -65,6 +68,17 @@ class UnstuffingController extends Controller
           'is_completed' => in_array('bad', $check) ? 'no' : 'yes'
         );
         return response($data);
+    }
+    function updateBaySteveDore(Request $request)
+    {
+      DB::table('HSC2017Test_V2.dbo.ContainerInfo')
+        ->where('Dummy', $request->get('dummy'))
+        ->update(array($request->get('type') => $request->get('data')));
+
+      $data = array(
+            'status' => "success"
+      );
+      return response($data);
     }
     function getJobList()
     {
@@ -153,9 +167,9 @@ class UnstuffingController extends Controller
                 array_push($breakdown, $loopBreakdown);
             }
         }
-        $typeChecklist = DB::table('Checklist')->where('Category', 'type')->get();
-        $flagsChecklist = DB::table('Checklist')->where('Category', 'flag')->get();
-        $locations = DB::table('Checklist')->where('Category', 'location')->get();
+        $typeChecklist = DB::table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'type')->get();
+        $flagsChecklist = DB::table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'flag')->get();
+        $locations = DB::table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'location')->get();
         $data = array(
             'status' => "success",
             'pallet' => $pallet,
@@ -163,6 +177,183 @@ class UnstuffingController extends Controller
             'type' => $typeChecklist,
             'flags' => $flagsChecklist,
             'locations' => $locations
+        );
+        return response($data);
+    }
+    function copyPallet(Request $request)
+    {
+      $copy = DB::table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
+      $pallet       = array(
+          "InventoryID" => $copy->InventoryID,
+          "SequenceNo" => $copy->SequenceNo,
+          "ExpCntrID" => $copy->ExpCntrID,
+          "Reserved" => $copy->Reserved,
+          "ReservedBy" => $copy->ReservedBy,
+          "ReservedDt" => $copy->ReservedDt,
+          "ClearedDate" => $copy->ClearedDate,
+          "DeliveryID" => $copy->DeliveryID,
+          "CreatedBy" => $copy->CreatedBy,
+          "CreatedDt" => date("Y-m-d h:i:s"),
+          "UpdatedBy" => $copy->UpdatedBy,
+          "UpdatedDt" => $copy->UpdatedDt,
+          "DelStatus" => $copy->DelStatus,
+          "InterWhseFlag" => $copy->InterWhseFlag,
+          "CurrentLocation" => $copy->CurrentLocation,
+          "InterWhseTo" => $copy->InterWhseTo,
+          "Tag" => $copy->Tag,
+          "Location" => $copy->Location,
+          "DN" => $copy->DN
+      );
+      $store = DB::table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->insertGetId($pallet);
+      $breakdownRaw = DB::table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
+      // dd($breakdownRaw);
+      foreach ($breakdownRaw as $key => $valueBreakdown) {
+          $breakdown      = array(
+              "InventoryPalletID" => $store,
+              "Markings" => $valueBreakdown->Markings,
+              "Quantity" => $valueBreakdown->Quantity,
+              "Type" => $valueBreakdown->Type,
+              "Length" => $valueBreakdown->Length,
+              "Breadth" => $valueBreakdown->Breadth,
+              "Height" => $valueBreakdown->Height,
+              "Volume" => $valueBreakdown->Volume,
+              "Remarks" => '',
+              "CreatedBy" => $valueBreakdown->CreatedBy,
+              "CreatedDt" => $valueBreakdown->CreatedDt,
+              "UpdatedBy" => $valueBreakdown->UpdatedBy,
+              "UpdatedDt" => $valueBreakdown->UpdatedDt,
+              "DelStatus" => $valueBreakdown->DelStatus,
+              "Flags" => '',
+              "Tally" => $valueBreakdown->Tally,
+              "Weight" => $valueBreakdown->Weight
+          );
+          DB::table('HSC_InventoryBreakdown')->insert($breakdown);
+      }
+      $data  = array(
+          'status' => "success"
+      );
+      return response($data);
+    }
+    function deletePallet(Request $request)
+    {
+      DB::table('HSC2017Test_V2.dbo.HSC_InventoryPallet')
+        ->where('InventoryPalletID', $request->get('InventoryPalletID'))
+        ->update(array('DelStatus' => 'Y'));
+
+      $data = array(
+            'status' => "success"
+      );
+      return response($data);
+    }
+    function addBreakdown(Request $request)
+    {
+      $breakdownRaw = DB::table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
+      $breakdown      = array(
+          "InventoryPalletID" => (int) $breakdownRaw->InventoryPalletID,
+          "Markings" => $breakdownRaw->Markings,
+          "Quantity" => (int) $breakdownRaw->Quantity,
+          "Type" => $breakdownRaw->Type,
+          "Length" => (int) $breakdownRaw->Length,
+          "Breadth" => (int) $breakdownRaw->Breadth,
+          "Height" => (int) $breakdownRaw->Height,
+          "Volume" => $breakdownRaw->Volume,
+          "Remarks" => '',
+          "CreatedBy" => $breakdownRaw->CreatedBy,
+          "CreatedDt" => $breakdownRaw->CreatedDt,
+          "UpdatedBy" => $breakdownRaw->UpdatedBy,
+          "UpdatedDt" => $breakdownRaw->UpdatedDt,
+          "DelStatus" => $breakdownRaw->DelStatus,
+          "Flags" => '',
+          "Tally" => $breakdownRaw->Tally,
+          "Weight" => $breakdownRaw->Weight
+      );
+      DB::table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->insert($breakdown);
+      $data = array(
+            'status' => "success"
+      );
+      return response($data);
+    }
+    function deleteBreakdown(Request $request)
+    {
+        DB::table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')
+          ->where('BreakDownID', $request->get('BreakDownID'))
+          ->update(array('DelStatus' => 'Y'));
+
+        $data = array(
+              'status' => "success"
+        );
+        return response($data);
+    }
+    public function updateBreakdown(Request $request)
+    {
+        DB::table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')
+          ->where('BreakDownID', $request->post('BreakDownID'))
+          ->update(array($request->post('type') => $request->post('data')));
+
+        $data = array(
+              'status' => "success"
+        );
+        return response($data);
+    }
+    public function updatePallet(Request $request)
+    {
+        DB::table('HSC2017Test_V2.dbo.HSC_InventoryPallet')
+          ->where('InventoryPalletID', $request->post('InventoryPalletID'))
+          ->update(array($request->post('type') => $request->post('data')));
+
+        $data = array(
+              'status' => "success"
+        );
+        return response($data);
+    }
+    function updateBreakdownLBH(Request $request)
+    {
+        $qty       = (int) $request->post('Qty') ? $request->post('Qty') : 0;
+        $length    = (int) $request->post('L') ? $request->post('L') : 0;
+        $breadth   = (int) $request->post('B') ? $request->post('B') : 0;
+        $height    = (int) $request->post('H') ? $request->post('H') : 0;
+
+        $lbh = array(
+            'Quantity' => $qty,
+            'Length' => $length,
+            'Breadth' => $breadth,
+            'Height' => $height,
+            'Volume' => sprintf("%.3f", ($qty * $length * $breadth * $height) / 1000000)
+        );
+        DB::table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')
+          ->where('BreakDownID', $request->post('BreakDownID'))
+          ->update($lbh);
+        $data = array(
+            'status' => "success",
+            'volume' => sprintf("%.3f", ($qty * $length * $breadth * $height) / 1000000)
+        );
+        return response($data);
+    }
+    function uploadBreakdownGallery(Request $request)
+    {
+        $cover = $request->file('image');
+        $image = $cover->getClientOriginalName();
+        $filename = pathinfo($image, PATHINFO_FILENAME);
+        $extension = pathinfo($image, PATHINFO_EXTENSION);
+        $finalName = $filename . '_' . time() . '.'. $extension;
+        Storage::disk('public')->put('breakdown/' . $finalName,  File::get($cover));
+
+        $dataImg  = array(
+            'BreakDownID' => $request->post('BreakDownID'),
+            'PhotoName' => $finalName,
+            'PhotoExt' => $extension,
+            'CreatedDt' => date("Y-m-d h:i:s"),
+            'CreatedBy' => '',
+            'ModifyDt' => date("Y-m-d h:i:s"),
+            'ModifyBy' => '',
+            'DelStatus' => 'N',
+            'Ordering' => 0,
+            'Emailed' => null,
+            'PhotoNameSystem' => $finalName
+        );
+        DB::table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->insert($dataImg);
+        $data = array(
+          'status' => 'success'
         );
         return response($data);
     }
