@@ -65,7 +65,7 @@ Route::post('finish', 'API\ParkController@releasePark');
 ROute::post('cancel', 'API\ParkController@cancelPark');
 
 Route::group(['prefix' => 'clerk'], function () {
-  // Authentication
+  
   Route::post('login', 'LoginController@loginClerk');
 
   Route::get('user', 'LoginController@getUserData');
@@ -73,8 +73,13 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::get('global/checklist', 'GlobalController@getChecklist');
 
   //Unstuffing
+  Route::get('unstuffing/currentContainer', 'UnstuffingController@getCurrentContainer');
   Route::get('unstuffing/detailimportsummary', 'UnstuffingController@getDetailImportsumary');
+  Route::get('unstuffing/listimportsummary', 'UnstuffingController@detailimportsummary');
+  Route::post('unstuffing/startjob', 'UnstuffingController@startJob');
+  Route::post('unstuffing/finishjob', 'UnstuffingController@finishJob');
   Route::get('unstuffing/joblist', 'UnstuffingController@getJobList');
+  Route::post('unstuffing/addoverlanded', 'UnstuffingController@addOverlanded');
   Route::get('unstuffing/palletbreakdown', 'UnstuffingController@getPalletBreakdown');
   Route::post('unstuffing/updatebaystevedore', 'UnstuffingController@updateBaySteveDore');
   Route::get('unstuffing/copypallet', 'UnstuffingController@copyPallet');
@@ -89,5 +94,9 @@ Route::group(['prefix' => 'clerk'], function () {
   // Locate
   Route::get('locate/containerList', 'LocateController@getContainerList');
   Route::get('locate/containerList/tag', 'LocateController@getAllTagsByCN');
-  Route::post('locate/containerList/update', 'LocateController@updateStuffing');
+
+  // Devices
+
+  // ReceivingController
+  Route::get('receiving/summary', 'ReceivingController@getSummary');
 });
