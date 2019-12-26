@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Container;
+use App\ContainerView;
 use App\History;
 use App\Park;
 use App\TemporaryPark;
@@ -26,19 +27,37 @@ class ParkController extends Controller
         $forfilter = array();
         foreach($data as $key => $dataFilter) {
             $loopData = new \stdClass();
-            $container = Container::find($dataFilter->containerId);
-            $loopData->id = $dataFilter->id;
-            $loopData->containerNumber = $container->containerNumber;
-            $loopData->clientId = $container->clientId;
-            $loopData->size = $container->size;
-            $loopData->status = (empty($container->note)) ? "" : $container->note;
-            $loopData->parkIn = $dataFilter->parkIn;
-            $loopData->parkOut = $dataFilter->parkOut;
-            $loopData->created_by = $dataFilter->created_by;
-            $loopData->created_at = $dataFilter->created_at;
-            array_push($forfilter, $loopData);
+            //$container = Container::find($dataFilter->containerId);
+            $container = ContainerView::where('Dummy', '=', $dataFilter->Dummy)->first();
+            $loopData->VesselID = $container->VesselID;
+            $loopData->VesselName = $container->VesselName;
+            $loopData->InVoy = $container->InVoy;
+            $loopData->OutVoy = $container->OutVoy;
+            $loopData->ETA = $container->ETA;
+            $loopData->COD = $container->COD;
+            $loopData->Berth = $container->Berth;
+            $loopData->ETD = $container->ETD;
+            $loopData->ServiceRoute = $container->ServiceRoute;
+            $loopData->Client = $container->Client;
+            $loopData->TruckTo = $container->TruckTo;
+            $loopData->ImportExport = $container->ImportExport;
+            $loopData->IE = $container->IE;
+            $loopData->LDPOD = $container->LDPOD;
+            $loopData->DeliverTo = $container->DeliverTo;
+            $loopData->Prefix = $container->Prefix;
+            $loopData->Number = $container->Number;
+            $loopData->Seal = $container->Seal;
+            $loopData->Size = $container->Size;
+            $loopData->Type = $container->Type;
+            $loopData->Remarks = $container->Remarks;
+            $loopData->Status = $container->Status;
+            $loopData->DateofStufUnstuf = $container->DateofStufUnstuf;
+            $loopData->Dummy = $container->Dummy;
+            $loopData->Expr1 = $container->Expr1;
+            $loopData->Expr2 = $container->Expr2;
+            $loopData->Expr3 = $container->Expr3;
+            $loopData->Chassis = $container->Chassis;
         }
-
         return collect($forfilter);
     }
 
@@ -55,65 +74,69 @@ class ParkController extends Controller
     }
 
     function getAllParkSpinner(Request $request, $type) {
+        $dataUser = $request->user;
         $data = Park::where('type', '=', $type)->paginate(10);
+
+        $dataArray = $this->convertData($data->items(), $dataUser);
 
         $response['status'] = !$data->isEmpty();
         $response['current'] = $data->currentPage();
         $response['nextUrl'] = $data->nextPageUrl();
         $response['last'] = $data->lastPage();
-        $response['data'] = $data->items();
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+
+    function getParkSearch(Request $request) {
+        $dataUser = $request->user;
+        $search = $request->search;
+        $data = Park::where('name','LIKE',"%{$search}%")
+        ->orWhere('place', 'LIKE',"%{$search}%")
+        ->get();
+
+        $dataArray = $this->convertData($data, $dataUser);
+
+        $response['status'] = !$data->isEmpty();
+        $response['data'] = $dataArray;
         return response($response);
     }
 
     function getAllPark(Request $request) {
         date_default_timezone_set('Asia/Jakarta');
         $data = Park::paginate(10);
-        /* $fulldate = date("Y-m-d H:i:s");
-        $tomorrow = Carbon::tomorrow('Asia/Jakarta');
-        $dataArray = array();
+
         $dataUser = $request->user;
-        foreach($data as $key => $datas) {
-            $temppark = TemporaryPark::where('parkId', $datas->id)
-            ->orderBy('parkIn', 'asc')
-            ->get();
+        $dataArray = $this->convertData($data->items(), $dataUser);
 
-            $newdata = $this->getFullData($temppark);
-            $filtered = $newdata->filter(function($newdata) use($fulldate) {
-                // parkIn < fulldate < parkOut
-                return ($newdata->parkIn < $fulldate && $newdata->parkOut > $fulldate) || $newdata->parkIn > $fulldate;
-            });
-            $filterFlatten = $filtered->flatten(1);
-
-            $countOfData = 0;
-            if(!$filtered->isEmpty()) {
-                foreach($filtered as $key => $datatemp) {
-                    if ($datatemp->created_by == $dataUser) {
-                        $countOfData++;
-                    }
-                }
-            }
-            $checked = $countOfData > 0;
-            
-            $loopData = array(
-                "id" => $datas->id,
-                "name" => $datas->name,
-                "place" => $datas->place,
-                "type" => $datas->type,
-                "availability" => $this->checkLevel($datas->id),
-                "canEdit" => ($filtered->isEmpty() || $checked),
-                "temp" => $filterFlatten
-            );
-            array_push($dataArray, $loopData);
-        }
-        $response['status'] = !$data->isEmpty();
-        $response['fulldate'] = $fulldate; */
-        //$response['data'] = $data;
         $response['status'] = !$data->isEmpty();
         $response['current'] = $data->currentPage();
         $response['nextUrl'] = $data->nextPageUrl();
         $response['last'] = $data->lastPage();
-        $response['data'] = $data->items();
+        $response['data'] = $dataArray;
         return response($response);
+    }
+
+    function convertData($data, $dataUser) {
+        $fulldate = date("Y-m-d H:i:s");
+        $dataArray = array();
+        foreach ($data as $key => $datas) {
+            //Get ongoing park
+            $temppark = TemporaryPark::where('ParkingLot', $datas->id)
+            ->get();
+
+            $newdata = $this->getFullData($temppark);
+            $loopData = array(
+                "id" => $datas->ParkID,
+                "name" => $datas->Name,
+                "place" => $datas->Place,
+                "type" => $datas->Type,
+                "availability" => ($temppark->isEmpty())? 1 : 0,
+                "temp" => $temppark
+            );
+            array_push($dataArray, $loopData);
+        }
+
+        return $dataArray;
     }
 
     function detailPark($id) {
@@ -165,7 +188,6 @@ class ParkController extends Controller
                 return response($response);
             }
         }
-        
     }
 
     function editContainer(Request $request) {

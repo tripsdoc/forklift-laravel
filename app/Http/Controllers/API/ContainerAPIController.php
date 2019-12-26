@@ -19,8 +19,12 @@ class ContainerAPIController extends Controller
 
     function getAll() {
         $data = ContainerView::paginate(20);
-        $response['status'] = (!$data->isEmpty());
-        $response['data'] = $data;
+
+        $response['status'] = !$data->isEmpty();
+        $response['current'] = $data->currentPage();
+        $response['nextUrl'] = $data->nextPageUrl();
+        $response['last'] = $data->lastPage();
+        $response['data'] = $data->items();
         return response($response);
     }
 
@@ -49,7 +53,7 @@ class ContainerAPIController extends Controller
             $temp->CntrId = $data->Dummy;
             $temp->requestIn = date('Y-m-d H:i:s');
             $temp->createdBy = $request->user;
-            $temp->status = $request->status; // -Request Container - Request Parking Lots
+            $temp->status = $request->status; //1: Inform Shifter, 2: Request Position, 3: Return to Shifter, 4: Return to Driver
 
             $temp->save();
 
@@ -72,7 +76,7 @@ class ContainerAPIController extends Controller
         //inform driver to park on selected parking lots
         $temp->parkId = $request->parkId;
         $temp->updatedBy = $request->user;
-        $temp->status = $request->status; // -Sent Parking Lots -Allow access container Data -Denied
+        $temp->status = $request->status; //1: Inform Shifter, 2: Request Position, 3: Return to Shifter, 4: Return to Driver
 
         $temp->save();
         //Call socket io events return parking lots data

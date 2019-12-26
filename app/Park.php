@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Park extends Model
 {
     protected $table = "HSC_Park";
-    protected $primaryKey = "id";
+    protected $primaryKey = "ParkID";
     protected $fillable = [
-        'name', 'detail', 'type', 'place'
+        'Name', 'Detail', 'Type', 'Place'
     ];
 }

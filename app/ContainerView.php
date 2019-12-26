@@ -33,7 +33,7 @@ class ContainerView extends Model
     Show list of available container
 
     Container from outside to KD
-    -Driver select container
+    -Driver select container (Driver will be automatically asigned to the conainer)
     -Driver click button inform shifter -- Button disabled, change text "Requesting"
     -System choice shifter to inform
     -Shifter receive container information (Shown as dialog with list of selectable park)
@@ -83,31 +83,31 @@ class ContainerView extends Model
     "data":[{
         "VesselID":"628498", ---
         "VesselName":"MOL GRANDEUR", ---
-        "InVoy":"066W", ---
-        "OutVoy":"066W", ---
+        "InVoy":"066W", 
+        "OutVoy":"066W", 
         "ETA":"2019-12-01 05:10:00.000", ---
         "COD":"2019-12-02 00:00:00.000", ---
-        "Berth":"P27", ---
+        "Berth":"P27", --- 
         "ETD":"2019-12-02 07:55:00.000", ---
-        "ServiceRoute":null, ---
-        "Client":"VANGUARD",
-        "TruckTo":"109",
-        "Import\/Export":"Export",
+        "ServiceRoute":null, --- 
+        "Client":"VANGUARD", ---
+        "TruckTo":"109", ---
+        "Import\/Export":"Export", ---
         "I\/E":"E",
-        "LD\/POD":"KARACHI",
-        "DeliverTo":"109",
-        "Prefix":"",
-        "Number":"",
-        "Seal":"",
-        "Size":"0",
-        "Type":"",
-        "Remarks":"",
-        "Status":"",
-        "DateofStuf\/Unstuf":null,
+        "LD\/POD":"KARACHI", ---
+        "DeliverTo":"109", ---
+        "Prefix":"", ---
+        "Number":"", ---
+        "Seal":"", ---
+        "Size":"0", ---
+        "Type":"", ---
+        "Remarks":"", ---
+        "Status":"", ---
+        "DateofStuf\/Unstuf":null, ---
         "Dummy":708399,
-        "Expr1":null,
-        "Expr2":null,
-        "Expr3":null,
+        "Expr1":null, ---
+        "Expr2":null, ---
+        "Expr3":null, ---
         "Chassis":null}
         */
 }

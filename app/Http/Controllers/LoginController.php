@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use DB;
 use Response;
 use Illuminate\Http\Request;
+use App\ShifterUser;
 
 class LoginController extends Controller
 {
@@ -44,5 +45,19 @@ class LoginController extends Controller
           $response['profile'][0] = $check;
           return response($response);
         }
+    }
+    function loginShifter(Request $request) {
+        $check = ShifterUser::where('UserName', $request->username)
+        ->where('Password', $request->password)->first();
+        
+        if(!$check) {
+            $response['status'] = FALSE;
+            $response['error'] = 'Username or Password not correct';
+            $response['profile'] = $check;
+        }
+        $response['status'] = TRUE;
+        $response['error'] = '';
+        $response['profile'][0] = $check;
+        return response($response);
     }
 }

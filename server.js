@@ -31,8 +31,8 @@ var ioRedis = require('ioredis');
 var redis = new ioRedis(REDIS);
 
 app.listen(SOCKET_PORT, function() {
-    //Need to add loop
-    sql.connect(config, function (err) {
+    //Check function
+    /* sql.connect(config, function (err) {
         if (err) console.log(err);
         var request = new sql.Request();
 
@@ -42,7 +42,6 @@ app.listen(SOCKET_PORT, function() {
             request.query('select * from temporary_park', function (err, recordset) {
                 if (err) console.log(err)
                 var data = recordset.recordsets[0];
-                //console.log(data);
     
                 var datecheck = new Date();
                 console.log(datecheck +  "-");
@@ -51,7 +50,7 @@ app.listen(SOCKET_PORT, function() {
                     console.log("-----")
                     var parkOut = new Date(item.parkOut);
                     
-                    parkOut.setTime(parkOut.getTime() + parkOut.getTimezoneOffset() * 60 * 1000 /* convert to UTC */ );
+                    parkOut.setTime(parkOut.getTime() + parkOut.getTimezoneOffset() * 60 * 1000);
                     var strParkIn = item.parkIn.toISOString();
                     var strParkOut = item.parkOut.toISOString();
                     console.log(strParkIn + "-")
@@ -73,7 +72,7 @@ app.listen(SOCKET_PORT, function() {
                 })
             });
         }, interval);
-    });
+    }); */
 });
 
 data.listen(8081, function () {

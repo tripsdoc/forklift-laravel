@@ -52,6 +52,9 @@ Route::post('park', 'API\ParkController@getAllPark');
 Route::post('park/type/{type}', 'API\ParkController@getAllParkSpinner');
 Route::get('park/{park}', 'API\ParkController@detailPark');
 
+//Search
+Route::post('search/park', 'API\ParkController@getParkSearch');
+
 Route::get('temppark/today/{id}', 'API\ParkController@getCurrent');
 Route::post('temppark/update', 'API\ParkController@editContainer');
 Route::post('temppark/add', 'API\ParkController@bookPark');
