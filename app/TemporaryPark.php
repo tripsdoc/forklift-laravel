@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class TemporaryPark extends Model
 {
     protected $table = "HSC_OngoingPark";
-    protected $primaryKey = "id";
+    protected $primaryKey = "ParkingID";
+    public $timestamps = false;
     protected $fillable = [
-        'parkId', 'CntrId', 'parkIn', 'parkOut', 'created_at', 'created_by', 'updated_at', 'updated_by'
+        'ParkingLot', 'Dummy', 'createdBy', 'createdDt', 'updatedBy', 'updatedDt'
     ];
 }

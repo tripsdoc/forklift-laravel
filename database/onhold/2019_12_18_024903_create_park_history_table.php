@@ -13,15 +13,13 @@ class CreateParkHistoryTable extends Migration
      */
     public function up()
     {
-        Schema::create('park_history', function (Blueprint $table) {
+        Schema::create('HSC_ParkHistory', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('parkId');
+            $table->string('Driver');
+            $table->string('Park');
             $table->bigInteger('CntrId');
-            $table->dateTime('parkIn');
-            $table->dateTime('parkOut')->nullable();
-            //Status (0: Finished, 1: Cancelled)
-            $table->integer('status');
-            $table->text('note')->nullable();
+            $table->dateTime('requestIn');
+            $table->dateTime('finishTime')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->string('created_by');
         });

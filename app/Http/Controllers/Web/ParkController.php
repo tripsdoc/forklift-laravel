@@ -97,7 +97,25 @@ class ParkController extends Controller
     function getAllPark() {
         if(request()->ajax()) {
             $data = Park::all();
-            return DataTables::of($data)
+            $newdata = array();
+            foreach($data as $key => $datas) {
+                $loopData = new \stdClass();
+                $loopData->id = $datas->id;
+                $loopData->name = $datas->name;
+                $loopData->place = $datas->place;
+                if ($datas->type == 1) {
+                    $type = "Warehouse";
+                }
+                if ($datas->type == 2) {
+                    $type = "Parking Lots";
+                }
+                if ($datas->type == 3) {
+                    $type = "Temporary";
+                }
+                $loopData->type = $type;
+                array_push($newdata, $loopData);
+            }
+            return DataTables::of($newdata)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
                     $btn = '<a href="../park/' . $row->id . '/edit" class="edit btn btn-warning btn-sm">Edit</a>
@@ -120,7 +138,9 @@ class ParkController extends Controller
 
     function store() {
         $rules = array(
-            'name' => 'required'
+            'name' => 'required',
+            'type' => 'required',
+            'place' => 'required'
         );
         $validator = Validator::make(Request::all(), $rules);
 
@@ -131,6 +151,8 @@ class ParkController extends Controller
             $device = new Park;
             $device->name = Request::get('name');
             $device->detail = Request::get('detail');
+            $device->type = Request::get('type');
+            $device->place = Request::get('place');
             $device->save();
 
             Session::flash('message', 'Successfully added new Park!');

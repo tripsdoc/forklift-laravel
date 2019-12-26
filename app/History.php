@@ -10,6 +10,6 @@ class History extends Model
     protected $primaryKey = "id";
     public $timestamps = false;
     protected $fillable = [
-        'parkId', 'CntrId', 'note', 'status', 'parkIn', 'parkOut', 'created_at', 'created_by'
+        'Driver', 'Park', 'CntrId', 'note', 'status', 'parkIn', 'parkOut', 'created_at', 'created_by'
     ];
 }
