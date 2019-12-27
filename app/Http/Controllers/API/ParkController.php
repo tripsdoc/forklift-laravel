@@ -22,6 +22,67 @@ Need to do
 
 class ParkController extends Controller
 {
+    // -----------------------------------------  Park List Function -----------------------------------------------------------
+    function getAllPark(Request $request) {
+        date_default_timezone_set('Asia/Jakarta');
+        $data = Park::paginate(10);
+
+        $dataUser = $request->user;
+        $dataArray = $this->convertData($data->items(), $dataUser);
+
+        $response['status'] = !$data->isEmpty();
+        $response['current'] = $data->currentPage();
+        $response['nextUrl'] = $data->nextPageUrl();
+        $response['last'] = $data->lastPage();
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+    function getAllParkSpinner(Request $request, $type) {
+        $dataUser = $request->user;
+        $data = Park::where('type', '=', $type)->paginate(10);
+
+        $dataArray = $this->convertData($data->items(), $dataUser);
+
+        $response['status'] = !$data->isEmpty();
+        $response['current'] = $data->currentPage();
+        $response['nextUrl'] = $data->nextPageUrl();
+        $response['last'] = $data->lastPage();
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+
+    function getParkSearch(Request $request) {
+        $dataUser = $request->user;
+        $search = $request->search;
+        $data = Park::where('name','LIKE',"%{$search}%")
+        ->orWhere('place', 'LIKE',"%{$search}%")
+        ->get();
+
+        $dataArray = $this->convertData($data, $dataUser);
+
+        $response['status'] = !$data->isEmpty();
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+    // -------------------------------------------------------------------------------------------------------------------------
+    
+    function asignContainerToPark(Request $request) {
+        $temp = new TemporaryPark();
+
+        $temp->ParkingLot = $request->park;
+        $temp->Dummy = $request->dummy;
+        $temp->createdBy = $request->user;
+        if($temp->save()) {
+            $response['status'] = TRUE;
+            $response['data'] = $temp;
+            return response($response);
+        } else {
+            $response['status'] = FALSE;
+            $response['errMsg'] = "Server error, cannot asign data!";
+            return response($response);
+        }
+    }
+
     //Get Container Data from TemporaryPark and merge it
     function getFullData($data) {
         $forfilter = array();
@@ -73,48 +134,7 @@ class ParkController extends Controller
         return response($response);
     }
 
-    function getAllParkSpinner(Request $request, $type) {
-        $dataUser = $request->user;
-        $data = Park::where('type', '=', $type)->paginate(10);
-
-        $dataArray = $this->convertData($data->items(), $dataUser);
-
-        $response['status'] = !$data->isEmpty();
-        $response['current'] = $data->currentPage();
-        $response['nextUrl'] = $data->nextPageUrl();
-        $response['last'] = $data->lastPage();
-        $response['data'] = $dataArray;
-        return response($response);
-    }
-
-    function getParkSearch(Request $request) {
-        $dataUser = $request->user;
-        $search = $request->search;
-        $data = Park::where('name','LIKE',"%{$search}%")
-        ->orWhere('place', 'LIKE',"%{$search}%")
-        ->get();
-
-        $dataArray = $this->convertData($data, $dataUser);
-
-        $response['status'] = !$data->isEmpty();
-        $response['data'] = $dataArray;
-        return response($response);
-    }
-
-    function getAllPark(Request $request) {
-        date_default_timezone_set('Asia/Jakarta');
-        $data = Park::paginate(10);
-
-        $dataUser = $request->user;
-        $dataArray = $this->convertData($data->items(), $dataUser);
-
-        $response['status'] = !$data->isEmpty();
-        $response['current'] = $data->currentPage();
-        $response['nextUrl'] = $data->nextPageUrl();
-        $response['last'] = $data->lastPage();
-        $response['data'] = $dataArray;
-        return response($response);
-    }
+    
 
     function convertData($data, $dataUser) {
         $fulldate = date("Y-m-d H:i:s");

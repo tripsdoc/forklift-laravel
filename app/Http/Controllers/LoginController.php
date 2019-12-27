@@ -23,10 +23,11 @@ class LoginController extends Controller
             $response['status'] = FALSE;
             $response['error'] = 'Username or Password not correct';
             $response['profile'] = $check;
+        } else {
+            $response['status'] = TRUE;
+            $response['error'] = '';
+            $response['profile'][0] = $check;
         }
-        $response['status'] = TRUE;
-        $response['error'] = '';
-        $response['profile'][0] = $check;
         return response($response);
     }
     function loginClerk(Request $request)
@@ -54,10 +55,11 @@ class LoginController extends Controller
             $response['status'] = FALSE;
             $response['error'] = 'Username or Password not correct';
             $response['profile'] = $check;
+        } else {
+            $response['status'] = TRUE;
+            $response['error'] = '';
+            $response['profile'][0] = $check;
         }
-        $response['status'] = TRUE;
-        $response['error'] = '';
-        $response['profile'][0] = $check;
         return response($response);
     }
 }
