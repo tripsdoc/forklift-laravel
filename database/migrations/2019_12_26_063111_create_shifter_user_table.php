@@ -30,6 +30,6 @@ class CreateShifterUserTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('shifter_user');
+        Schema::dropIfExists('ShifterUser');
     }
 }

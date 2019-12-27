@@ -31,6 +31,6 @@ class CreateTemporaryParkTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('temporary_park');
+        Schema::dropIfExists('HSC_OngoingPark');
     }
 }

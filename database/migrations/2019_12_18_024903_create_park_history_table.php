@@ -33,6 +33,6 @@ class CreateParkHistoryTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('park_history');
+        Schema::dropIfExists('HSC_ParkHistory');
     }
 }
