@@ -32,7 +32,7 @@ class ContainerAPIController extends Controller
     function getOverview($id) {
         $data = ContainerView::where('Dummy', '=', $id)->first();
 
-        $response['status'] = (!$data->isEmpty());
+        $response['status'] = (!empty($data));
         $response['data'] = [$data];
         return response($response);
     }
