@@ -166,7 +166,7 @@ class ParkController extends Controller
         $dataArray = array();
         foreach ($data as $key => $datas) {
             //Get ongoing park
-            $temppark = TemporaryPark::where('ParkingLot', $datas->id)
+            $temppark = TemporaryPark::where('ParkingLot', $datas->ParkID)
             ->get();
 
             $newdata = $this->getFullData($temppark);

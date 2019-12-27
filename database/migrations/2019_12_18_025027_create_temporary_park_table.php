@@ -19,7 +19,7 @@ class CreateTemporaryParkTable extends Migration
             $table->bigInteger('Dummy')->nullable();
             $table->string('createdBy')->nullable();
             $table->timestamp('createdDt')->useCurrent();
-            $table->string('updatedBy');
+            $table->string('updatedBy')->nullable();
             $table->timestamp('updatedDt')->nullable();
         });
     }
