@@ -17,6 +17,7 @@ class ContainerAPIController extends Controller
         return response($data);
     }
 
+    // -----------------------------------------  Park List Function -----------------------------------------------------------
     function getAll() {
         $data = ContainerView::paginate(20);
 
@@ -32,9 +33,27 @@ class ContainerAPIController extends Controller
         $data = ContainerView::where('Dummy', '=', $id)->first();
 
         $response['status'] = (!$data->isEmpty());
-        $response['data'] = $data;
+        $response['data'] = [$data];
         return response($response);
     }
+
+    function getContainerSearch(Request $request) {
+        $search = $request->search;
+        $data = ContainerView::where('Client','LIKE',"%{$search}%")
+        ->orWhere('Number', 'LIKE',"%{$search}%")
+        ->orWhere('Prefix', 'LIKE',"%{$search}%")
+        ->orWhere('VesselName', 'LIKE',"%{$search}%")
+        ->paginate(20);
+
+        $response['status'] = !$data->isEmpty();
+        $response['current'] = $data->currentPage();
+        $response['nextUrl'] = $data->nextPageUrl();
+        $response['last'] = $data->lastPage();
+        $response['data'] = $data->items();
+        return response($response);
+    }
+
+    // --------------------------------------------------------------------------------------------------------------------------
 
     //Call function to request parking lots
     //or function to retrieve where container at

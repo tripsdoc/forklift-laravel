@@ -34,18 +34,18 @@ Route::get('debug/container', 'ContainerAPIController@debug');
 Route::get('qpe/getTagPosition', 'TagsController@getTagPosition');
 ROute::get('qpe/alltags', 'TagsController@getAllTags');
 
-//Retrieve Route
-Route::get('forklift/retrieve/deliverynotes', 'RetrieveController@getDeliveryNotes');
-Route::get('forklift/retrieve', 'RetrieveController@getTags');
-
-//Store Route
-Route::get('forklift/store/tag', 'StoreController@getAllTags');
-Route::post('forklift/store/tag', 'StoreController@getAllTagsByPOD');
-
-//Export Route
-Route::get('forklift/export/', 'ExportController@getAllTagsActivatedforStuffing');
-Route::get('forklift/export/pod/', 'ExportController@getAllPortActivatedforStuffing');
-Route::get('forklift/export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
+Route::group(['prefix' => 'forklift'], function () {
+  //Retrieve Route
+  Route::get('retrieve/deliverynotes', 'RetrieveController@getDeliveryNotes');
+  Route::get('retrieve', 'RetrieveController@getTags');
+  //Store Route
+  Route::get('store/tag', 'StoreController@getAllTags');
+  Route::post('store/tag', 'StoreController@getAllTagsByPOD');
+  //Export Route
+  Route::get('export/', 'ExportController@getAllTagsActivatedforStuffing');
+  Route::get('export/pod/', 'ExportController@getAllPortActivatedforStuffing');
+  Route::get('export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
+});
 
 //Shifter
 Route::post('park', 'API\ParkController@getAllPark');
@@ -54,6 +54,7 @@ Route::get('park/{park}', 'API\ParkController@detailPark');
 
 //Search
 Route::post('search/park', 'API\ParkController@getParkSearch');
+Route::post('search/container', 'API\ContainerAPIController@getContainerSearch');
 
 Route::get('temppark/today/{id}', 'API\ParkController@getCurrent');
 Route::post('temppark/update', 'API\ParkController@editContainer');
@@ -66,6 +67,10 @@ ROute::post('cancel', 'API\ParkController@cancelPark');
 
 Route::group(['prefix' => 'shifter'], function () {
   Route::post('login', 'LoginController@loginShifter');
+<<<<<<< HEAD
+=======
+  Route::post('asign', 'ParkController@asignContainerToPark');
+>>>>>>> 38b8053a751d49122b3e9a67f4f10a420579aae2
 });
 
 Route::group(['prefix' => 'clerk'], function () {
