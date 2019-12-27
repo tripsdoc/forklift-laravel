@@ -67,19 +67,44 @@ class ParkController extends Controller
     // -------------------------------------------------------------------------------------------------------------------------
     
     function asignContainerToPark(Request $request) {
-        $temp = new TemporaryPark();
+        $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
+        if(empty($check)) {
+            $temp = new TemporaryPark();
 
-        $temp->ParkingLot = $request->park;
-        $temp->Dummy = $request->dummy;
-        $temp->createdBy = $request->user;
-        if($temp->save()) {
-            $response['status'] = TRUE;
-            $response['data'] = $temp;
-            return response($response);
+            $temp->ParkingLot = $request->park;
+            $temp->Dummy = $request->dummy;
+            $temp->createdBy = $request->user;
+            if($temp->save()) {
+                $response['status'] = TRUE;
+                $response['data'] = $temp;
+                return response($response);
+            } else {
+                $response['status'] = FALSE;
+                $response['errMsg'] = "Server error, cannot asign data!";
+                return response($response);
+            }
         } else {
-            $response['status'] = FALSE;
-            $response['errMsg'] = "Server error, cannot asign data!";
-            return response($response);
+            $history = new History();
+            $history->SetDt = $check->createdDt;
+            $history->UnSetDt = date('Y-m-d H:i:s');
+            $history->ParkingLot = $check->ParkingLot;
+            $history->Dummy = $check->Dummy;
+            $history->createdBy = $request->user;
+
+            if($history->save()){
+                $check->Dummy = $request->dummy;
+                $check->updatedBy = $request->user;
+                $check->updatedDt = date('Y-m-d H:i:s');
+
+                $check->save();
+                $response['status'] = TRUE;
+                $response['data'] = $check;
+                return response($response);
+            } else {
+                $response['status'] = FALSE;
+                $response['errMsg'] = "Server error, cannot asign data!";
+                return response($response);
+            }
         }
     }
 

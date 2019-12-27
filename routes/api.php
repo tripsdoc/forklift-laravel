@@ -67,10 +67,7 @@ ROute::post('cancel', 'API\ParkController@cancelPark');
 
 Route::group(['prefix' => 'shifter'], function () {
   Route::post('login', 'LoginController@loginShifter');
-<<<<<<< HEAD
-=======
   Route::post('asign', 'ParkController@asignContainerToPark');
->>>>>>> 38b8053a751d49122b3e9a67f4f10a420579aae2
 });
 
 Route::group(['prefix' => 'clerk'], function () {
