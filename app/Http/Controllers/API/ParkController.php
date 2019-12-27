@@ -169,6 +169,21 @@ class ParkController extends Controller
             $temppark = TemporaryPark::where('ParkingLot', $datas->ParkID)
             ->get();
 
+            $datatemparray = array();
+            foreach($temppark as $key => $temp) {
+                $container = ContainerView::where('Dummy', '=', $temp->Dummy)->first();
+                $ndt = new \stdClass();
+                $ndt->ParkingLot = $temp->ParkingLot;
+                $ndt->Dummy = $temp->Dummy;
+                $ndt->createdBy = $temp->createdBy;
+                $ndt->createdDt = $temp->createdDt;
+                $ndt->updatedBy = $temp->updatedBy;
+                $ndt->updatedDt = $temp->updatedDt;
+                $ndt->container = $container;
+
+                array_push($datatemparray, $ndt);
+            }
+
             $newdata = $this->getFullData($temppark);
             $loopData = array(
                 "id" => $datas->ParkID,
@@ -176,7 +191,7 @@ class ParkController extends Controller
                 "place" => $datas->Place,
                 "type" => $datas->Type,
                 "availability" => ($temppark->isEmpty())? 1 : 0,
-                "temp" => $temppark
+                "temp" => $datatemparray
             );
             array_push($dataArray, $loopData);
         }
