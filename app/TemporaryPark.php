@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TemporaryPark extends Model
 {
-    protected $table = "HSC_OngoingPark";
+    protected $table = "HSC2017Test_V2.dbo.HSC_OngoingPark";
     protected $primaryKey = "ParkingID";
     public $timestamps = false;
     protected $fillable = [

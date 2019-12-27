@@ -64,8 +64,12 @@ Route::post('temppark/user', 'API\ParkController@getAllOnGoingByUser');
 Route::post('finish', 'API\ParkController@releasePark');
 ROute::post('cancel', 'API\ParkController@cancelPark');
 
+Route::group(['prefix' => 'shifter'], function () {
+  Route::post('login', 'LoginController@loginShifter');
+});
+
 Route::group(['prefix' => 'clerk'], function () {
-  
+
   Route::post('login', 'LoginController@loginClerk');
 
   Route::get('user', 'LoginController@getUserData');
