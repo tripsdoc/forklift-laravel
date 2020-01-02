@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class ContainerView extends Model
 {
-    protected $table = "HSC2012.dbo.Onee";
+    protected $table = "Onee";
     protected $primaryKey = "Dummy";
     public $timestamps = false;
 
     /*
+    ADD sub button to select where the park is
     There will be 2 Process
     - Import
         -Driver will bring container from outside to KD, then driver will inform shifter and ask where to park the container -> Show container
@@ -28,6 +29,9 @@ class ContainerView extends Model
     /*
     Part 1 
     Show summary and overview of the job, will show most data from onee view
+    -Park List
+    -Container View (Summary)
+    -Assign Park
 
     Part 2 (Parking)
     Show list of available container
@@ -69,6 +73,13 @@ class ContainerView extends Model
     VI.VesselID, VI.VesselName, VI.InVoy, VI.OutVoy, VI.ETA, VI.COD, VI.Berth, VI.ETD, ServiceRoute,
 
     FROM VesselInfo VI
+
+    SELECT  
+    VI.VesselID, VI.VesselName, VI.Invoy, VI.OutVoy, VI.ETA, VI.COD, VI.Berth. VI.ETD, VI.ServiceRoute,
+    JI.ClientID AS Client, JI.TruckTo, JI.Import/Export, CASE WHEN JI.Import/Export = 'EXPORT' THEN 'E', ELSE 'I' END I/E
+    JI.POD AS LD/POD, CI.DeliverTo, CI.ContainerPrefix AS Prefix, CI.ContainerNumber AS Number, CI.SealNumber AS Seal,
+    CI.ContainerSize AS Size, CI.ContainerType AS Type, CI.Remarks, CI.Status, CI.DateofStuf/Unstuf, CI.Dummy
+    FROM ContainerInfo CI, VesselInfo VI, JobInfo JI WHERE JI.JobNumber = CI.JobNumber AND VI.VesselID = JI.VesselID
     */
 
     /*
@@ -81,7 +92,7 @@ class ContainerView extends Model
     -ParkId
 
     "data":[{
-        "VesselID":"628498", ---
+        "VesselID":"628498", --- 
         "VesselName":"MOL GRANDEUR", ---
         "InVoy":"066W", 
         "OutVoy":"066W", 

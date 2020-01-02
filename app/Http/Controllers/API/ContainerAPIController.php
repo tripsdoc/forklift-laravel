@@ -23,7 +23,6 @@ class ContainerAPIController extends Controller
 
         $response['status'] = !$data->isEmpty();
         $response['current'] = $data->currentPage();
-        $response['nextUrl'] = $data->nextPageUrl();
         $response['last'] = $data->lastPage();
         $response['data'] = $data->items();
         return response($response);
@@ -47,7 +46,6 @@ class ContainerAPIController extends Controller
 
         $response['status'] = !$data->isEmpty();
         $response['current'] = $data->currentPage();
-        $response['nextUrl'] = $data->nextPageUrl();
         $response['last'] = $data->lastPage();
         $response['data'] = $data->items();
         return response($response);

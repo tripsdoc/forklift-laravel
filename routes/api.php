@@ -47,10 +47,12 @@ Route::group(['prefix' => 'forklift'], function () {
   Route::get('export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
 });
 
-//Shifter
+//Park
 Route::post('park', 'API\ParkController@getAllPark');
 Route::post('park/type/{type}', 'API\ParkController@getAllParkSpinner');
 Route::get('park/{park}', 'API\ParkController@detailPark');
+Route::post('park/place', 'API\ParkController@getPlace');
+Route::get('park/place/{place}', 'API\ParkController@getParkByPlace');
 
 //Search
 Route::post('search/park', 'API\ParkController@getParkSearch');
@@ -67,7 +69,8 @@ ROute::post('cancel', 'API\ParkController@cancelPark');
 
 Route::group(['prefix' => 'shifter'], function () {
   Route::post('login', 'LoginController@loginShifter');
-  Route::post('asign', 'API\ParkController@asignContainerToPark');
+  Route::post('assign', 'API\ParkController@assignContainerToPark');
+  Route::post('remove', 'API\ParkController@removeContainer');
 });
 
 Route::group(['prefix' => 'clerk'], function () {
