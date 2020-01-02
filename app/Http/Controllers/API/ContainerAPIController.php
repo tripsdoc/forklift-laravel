@@ -13,7 +13,7 @@ use DB;
 class ContainerAPIController extends Controller
 {
     function debug() {
-        $data = DB::table('ContainerInfo')->paginate(20);
+        $data = ContainerView::paginate(20);
         return response($data);
     }
 
