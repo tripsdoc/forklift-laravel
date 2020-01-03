@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class History extends Model
 {
+    protected $connection = 'sqlsrv3';
     protected $table = "HSC_ParkHistory";
     protected $primaryKey = "HistoryID";
     public $timestamps = false;
