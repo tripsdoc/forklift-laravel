@@ -215,7 +215,7 @@ class ParkController extends Controller
                 $ndt->createdDt = $temp->createdDt;
                 $ndt->updatedBy = $temp->updatedBy;
                 $ndt->updatedDt = $temp->updatedDt;
-                $ndt->container = $container;
+                $ndt->container = $this->formatData($container);
 
                 array_push($datatemparray, $ndt);
             }
@@ -240,5 +240,38 @@ class ParkController extends Controller
         $response['status'] = !$data->isEmpty();
         $response['data'] = $data;
         return response($response);
+    }
+
+    function formatData($datas) {
+        $loopdata = new \stdClass();
+        $loopdata->VesselID = $datas->VesselID;
+        $loopdata->VesselName = $datas->VesselName;
+        $loopdata->InVoy = $datas->InVoy;
+        $loopdata->OutVoy = $datas->OutVoy;
+        $loopdata->ETA = $datas->ETA;
+        $loopdata->COD = $datas->COD;
+        $loopdata->Berth = $datas->Berth;
+        $loopdata->ETD = $datas->ETD;
+        $loopdata->ServiceRoute = $datas->ServiceRoute;
+        $loopdata->Client = $datas->Client;
+        $loopdata->TruckTo = $datas->TruckTo;
+        $loopdata->ImportExport = $datas["Import/Export"];
+        $loopdata->IE = $datas["I/E"];
+        $loopdata->LDPOD = $datas["LD/POD"];
+        $loopdata->DeliverTo = $datas->DeliverTo;
+        $loopdata->Prefix = $datas->Prefix;
+        $loopdata->Number = $datas->Number;
+        $loopdata->Seal = $datas->Seal;
+        $loopdata->Size = $datas->Size;
+        $loopdata->Type = $datas->Type;
+        $loopdata->Remarks = $datas->Remarks;
+        $loopdata->Status = $datas->Status;
+        $loopdata->DateOfStuffUnStuff = $datas["DateofStuf/Unstuf"];
+        $loopdata->Dummy = $datas->Dummy;
+        $loopdata->Expr1 = $datas->Expr1;
+        $loopdata->Expr2 = $datas->Expr2;
+        $loopdata->Expr3 = $datas->Expr3;
+        $loopdata->Chassis = $datas->Chassis;
+        return $loopdata;
     }
 }

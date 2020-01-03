@@ -255,25 +255,20 @@ return [
             'icon'    => 'fas fa-fw fa-history',
             'url'  => 'history',
         ],
+        ['header' => 'account_settings'],
         [
-            'text'    => 'Ongoing',
-            'icon'    => 'fas fa-fw fa-truck',
+            'text' => 'Shifter',
+            'icon' => 'fas fa-fw fa-user',
             'submenu' => [
                 [
                     'text' => 'Create',
-                    'url'  => 'temporary/create',
+                    'url'  => 'shifter/create',
                 ],
                 [
                     'text' => 'List',
-                    'url'  => 'temporary',
+                    'url'  => 'shifter',
                 ],
             ],
-        ],
-        ['header' => 'account_settings'],
-        [
-            'text' => 'Driver',
-            'url'  => '#',
-            'icon' => 'fas fa-fw fa-user',
         ],
         [
             'text' => 'change_password',

@@ -21,6 +21,7 @@ Route::resource('forklift', 'Web\ForkliftUserController');
 Route::resource('device', 'Web\DeviceInfoController');
 Route::resource('ips', 'Web\IPSUserController');
 Route::resource('container', 'Web\ContainerController');
+Route::resource('shifter', 'Web\ShifterController');
 
 //Web Portal
 Route::get('forkliftjson', 'Web\ForkliftUserController@jsonAll')->name('DataForklift');
@@ -40,6 +41,7 @@ Route::get('debugdevice/{id}', 'Web\DeviceInfoController@debug');
 //Park Function
 Route::get('parkData', 'Web\ParkController@getAllPark')->name('DataPark');
 Route::get('historyData', 'Web\HistoryController@getAllHistory')->name('DataHistory');
+Route::get('shifterData', 'Web\ShifterController@getAllShifter')->name('DataShifter');
 Route::get('temporaryParkData', 'Web\TemporaryParkController@getAllTemporary')->name('TemporaryDataPark');
 Route::get('temporaryParkDataByPark/{id}', 'Web\ParkController@getTempPark')->name('TemporaryDataByPark');
 
@@ -52,3 +54,5 @@ Route::get('today/history', 'Web\HistoryController@getTodayHistory');
 Route::post('month/history', 'Web\HistoryController@getMonthHistory');
 Route::post('year/history', 'Web\HistoryController@getYearHistory');
 Route::post('custom/history', 'Web\HistoryController@getCustomHistory');
+
+Route::get('register/device', 'Web\ShifterController@debug');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Container;
+use App\ContainerView;
 use App\History;
 use App\Park;
 use DataTables;
@@ -31,13 +32,13 @@ class HistoryController extends Controller
 
             $newdata = array();
             foreach($data as $key => $datas) {
-                $container = Container::find($datas->containerId);
+                $dataOnee = ContainerView::where('Dummy', '=', $datas->Dummy)->first();
                 $loopData = new \stdClass();
-                $loopData->id = $datas->id;
-                $loopData->containerNumber = $container->containerNumber;
-                $loopData->clientId = $container->clientId;
-                $loopData->parkIn = $datas->parkIn;
-                $loopData->parkOut = $datas->parkOut;
+                $loopData->id = $datas->HistoryID;
+                $loopData->containerNumber = $dataOnee->Number;
+                $loopData->clientId = $dataOnee->Client;
+                $loopData->parkIn = $datas->SetDt;
+                $loopData->parkOut = $datas->UnSetDt;
                 array_push($newdata, $loopData);
             }
             return DataTables::of($newdata)

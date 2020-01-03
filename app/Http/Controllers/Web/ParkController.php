@@ -100,16 +100,16 @@ class ParkController extends Controller
             $newdata = array();
             foreach($data as $key => $datas) {
                 $loopData = new \stdClass();
-                $loopData->id = $datas->id;
-                $loopData->name = $datas->name;
-                $loopData->place = $datas->place;
-                if ($datas->type == 1) {
+                $loopData->id = $datas->ParkID;
+                $loopData->name = $datas->Name;
+                $loopData->place = $datas->Place;
+                if ($datas->Type == 1) {
                     $type = "Warehouse";
                 }
-                if ($datas->type == 2) {
+                if ($datas->Type == 2) {
                     $type = "Parking Lots";
                 }
-                if ($datas->type == 3) {
+                if ($datas->Type == 3) {
                     $type = "Temporary";
                 }
                 $loopData->type = $type;
