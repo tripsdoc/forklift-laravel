@@ -42,12 +42,15 @@ class ContainerAPIController extends Controller
         ->orWhere('Number', 'LIKE',"%{$search}%")
         ->orWhere('Prefix', 'LIKE',"%{$search}%")
         ->orWhere('VesselName', 'LIKE',"%{$search}%")
+        ->orWhere('Seal', 'LIKE',"%{$search}%")
+        ->orWhere('Client', 'LIKE',"%{$search}%")
+        ->orWhere('LD/POD', 'LIKE',"%{$search}%")
         ->paginate(20);
 
         $response['status'] = !$data->isEmpty();
         $response['current'] = $data->currentPage();
         $response['last'] = $data->lastPage();
-        $response['data'] = $data->items();
+        $response['data'] = $this->formatList($data->items());
         return response($response);
     }
 

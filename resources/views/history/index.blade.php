@@ -20,9 +20,14 @@
       <table class="table table-hover history-table" style="width:100%">
         <thead>
           <tr>
+            <th> Set DT</th>
             <th> Client</th>
-            <th> Container Number</th>
-            <th> Park On</th>
+            <th> Yard</th>
+            <th> Container</th>
+            <th> Seal</th>
+            <th> Size</th>
+            <th> UnSet DT</th>
+            <th> Est Wt</th>
             <th> Action  </th>
           </tr>
         </thead>
@@ -42,10 +47,15 @@ $(function () {
         processing: true,
         ajax: "{{ route('DataHistory') }}",
         columns: [
-            { data: 'clientId', name: 'Client' },
-            { data: 'containerNumber', name: 'Container Number' },
-            { data: 'parkIn', name: 'Park On' },
-            { data: 'action', name: 'action', orderable: false, searchable: false },
+          { data: 'parkIn', name: 'Set DT' },
+          { data: 'clientId', name: 'Client' },
+          { data: 'yard', name: 'Yard' },
+          { data: 'containerNumber', name: 'Container' },
+          { data: 'seal', name: 'Seal' },
+          { data: 'size', name: 'Size' },
+          { data: 'parkOut', name: 'UnSet DT' },
+          { data: 'estwt', name: 'Est Wt' },
+          { data: 'action', name: 'action', orderable: false, searchable: false },
         ]
     });
 });

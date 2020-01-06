@@ -32,44 +32,28 @@ var redis = new ioRedis(REDIS);
 
 app.listen(SOCKET_PORT, function() {
     //Check function
-    /* sql.connect(config, function (err) {
+    /*
+    //Check if new month
+    TODO
+    //Select last month data
+    sql.connect(config, function (err) {
         if (err) console.log(err);
         var request = new sql.Request();
 
-        var interval = 1000 * 60;
+        var interval = 1000 * 60 * 60 * 24;
         var foo = setInterval (function () {
             console.log("Triggered")
-            request.query('select * from temporary_park', function (err, recordset) {
+            request.query('SELECT * FROM HSC_ParkHistory WHERE createdDt BETWEEN([LASTMONTHFIRST], [LASTMONTHEND])', function (err, recordset) {
                 if (err) console.log(err)
+                
+                //Iterate History
+                TODO
                 var data = recordset.recordsets[0];
-    
-                var datecheck = new Date();
-                console.log(datecheck +  "-");
-                console.log("--------------------- ")
                 data.forEach(function(item, index, arr) {
-                    console.log("-----")
-                    var parkOut = new Date(item.parkOut);
-                    
-                    parkOut.setTime(parkOut.getTime() + parkOut.getTimezoneOffset() * 60 * 1000);
-                    var strParkIn = item.parkIn.toISOString();
-                    var strParkOut = item.parkOut.toISOString();
-                    console.log(strParkIn + "-")
-                    if (datecheck > parkOut) {
-                        
-                        request.query("INSERT INTO park_history(parkId, containerId, parkIn, parkOut, status, created_by) VALUES(" + item.parkId + "," + item.containerId + ", '" + strParkIn + "', '" + strParkOut + "', 0, 'admin')", function(err, result) {
-                            if (err) {
-                                console.log(err)
-                            } else {
-                                request.query("DELETE temporary_park WHERE id=" + item.id, function(err, result) {
-                                    if (err) console.log(err)
-                                    console.log(result);
-                                })
-                            }
-                            console.log(result);
-                            io.emit("parkFinished");
-                        })
-                    }
-                })
+                    request.query("SELECT * FROM Onee WHERE Dummy = '" + item.Dummy + "'", function (err, recordset) {
+                        //Save to file
+                    })
+                }
             });
         }, interval);
     }); */

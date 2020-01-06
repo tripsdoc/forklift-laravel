@@ -90,15 +90,6 @@ class TagsController extends Controller
         return response($response);
     }
 
-    function getDeviceTag() {
-        $serial = $_GET['serial'];
-        $result = DB::table('DeviceInfo')
-        ->where('SerialNumber', '=', $serial)->get();
-        $response['status'] = (count($result) > 0)? TRUE : FALSE;
-        $response['tags'] = $result;
-        return response($response);
-    }
-
     function getAllTags() {
         $i = 0;
         $url = $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";

@@ -20,7 +20,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('user', 'LoginController@getUserData');
 Route::post('login', 'LoginController@login');
 
-Route::get('device', 'TagsController@getDeviceTag');
+Route::get('device', 'API\DeviceController@getDeviceTag');
+Route::post('device/register', 'API\DeviceController@registerDevice');
 Route::get('version', 'TagsController@getVersion');
 Route::get('redis', 'StoreController@getRedis');
 

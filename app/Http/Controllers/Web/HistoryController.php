@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Container;
+use App\ContainerInfo;
 use App\ContainerView;
 use App\History;
 use App\Park;
@@ -33,19 +33,23 @@ class HistoryController extends Controller
             $newdata = array();
             foreach($data as $key => $datas) {
                 $dataOnee = ContainerView::where('Dummy', '=', $datas->Dummy)->first();
+                $dataContainer = ContainerInfO::find($datas->Dummy);
                 $loopData = new \stdClass();
                 $loopData->id = $datas->HistoryID;
-                $loopData->containerNumber = $dataOnee->Number;
+                $loopData->containerNumber = $dataOnee->Prefix . $dataOnee->Number;
+                $loopData->size = (!empty($dataOnee->Type)) ? $dataOnee->Size . $dataOnee->Type : $dataOnee->Size;
+                $loopData->yard = $dataContainer->Yard;
+                $loopData->seal = $dataOnee->Seal;
                 $loopData->clientId = $dataOnee->Client;
-                $loopData->parkIn = $datas->SetDt;
-                $loopData->parkOut = $datas->UnSetDt;
+                $loopData->parkIn = date('d/m H:i', strtotime($datas->SetDt));
+                $loopData->parkOut = date('d/m', strtotime($datas->UnSetDt));
+                $loopData->estwt = (!empty($dataContainer->EstWt))? $dataContainer->EstWt : "";
                 array_push($newdata, $loopData);
             }
             return DataTables::of($newdata)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
                     $btn = '<a href="../history/' . $row->id . '" class="edit btn btn-primary btn-sm">View</a>
-                            <a href="../history/' . $row->id . '/edit" class="edit btn btn-warning btn-sm">Edit</a>
                             <form id="form-delete-' . $row->id . '" style="display: inline-block;" class="pull-left" action="../history/' . $row->id . '" method="POST">'
                             . csrf_field() .
                                 '<input type="hidden" name="_method" value="DELETE">
@@ -61,15 +65,31 @@ class HistoryController extends Controller
 
     function show($id) {
         $data = History::find($id);
-        $container = Container::find($data->containerId);
+        $park = Park::find($data->ParkingLot);
+        $container = ContainerView::find($data->Dummy);
         $check = new \stdClass();
-        $check->number = $container->containerNumber;
-        $check->client = $container->clientId;
-        $check->size = $container->size;
-        $check->note = $data->note;
-        $check->parkin = $data->parkIn;
-        $check->parkout = $data->parkOut;
-        $check->status = ($data->status == 0)? "Finished" : "Cancelled";
+        $check->number = $container->Number;
+        $check->client = $container->Client;
+        $check->size = $container->Size;
+        $check->parkname = $park->Name;
+        $check->parkplace = $park->Place;
+        $check->parkin = date('d/m H:i', strtotime($data->SetDt));
+        $check->parkout = $data->UnSetDt;
+
+        switch($park->Type) {
+            case 1:
+                $check->type = "Warehouse";
+                break;
+            case 2:
+                $check->type = "Parking Lots";
+                break;
+            case 3:
+                $check->type = "Temporary";
+                break;
+            default:
+                $check->type = "Warehouse";
+                break;
+        }
         return View::make('history.show')->with('data', $check);
     }
 

@@ -270,11 +270,6 @@ return [
                 ],
             ],
         ],
-        [
-            'text' => 'change_password',
-            'url'  => '#',
-            'icon' => 'fas fa-fw fa-lock',
-        ],
     ],
 
     /*
