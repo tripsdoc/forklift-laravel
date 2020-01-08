@@ -12,4 +12,9 @@ class InventoryPallet extends Model
     protected $fillable = [
         'InventoryID', 'SequenceNo', 'ExpCntrID', 'Reserved', 'ReservedBy', 'ReservedDt', 'ClearedDate', 'DeliveryID', 'CreatedBy', 'CreatedDt', 'UpdatedBy', 'UpdatedDt', 'DelStatus', 'InterWhseFlag', 'CurrentLocation', 'InterWhseTo', 'Tag', 'Location', 'DN', 'isActivityForStuffing', 'isActivityForSearch'
     ];
+
+    public function breakdown()
+    {
+        return $this->hasMany('App\InventoryBreakdown', 'InventoryPalletID', 'InventoryPalletID');
+    }
 }

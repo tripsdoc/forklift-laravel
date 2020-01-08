@@ -32,7 +32,7 @@ class DeviceController extends Controller
         return response($response);
     }
 
-    function getDeviceTag() {
+    function getDeviceTag(Request $request) {
         $serial = $_GET['serial'];
         $result = DeviceInfo::where('SerialNumber', '=', $serial)->first();
         $response['status'] = (!empty($result));

@@ -7,6 +7,8 @@ use Storage;
 use DB;
 use Response;
 use Illuminate\Http\Request;
+use App\InventoryPallet;
+use App\InventoryBreakdown;
 
 class RetrieveController extends Controller
 {
