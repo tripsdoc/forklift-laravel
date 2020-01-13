@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ContainerView extends Model
 {
+    protected $connection = 'sqlsrv2';
     protected $table = "Onee";
     protected $primaryKey = "Dummy";
     public $timestamps = false;

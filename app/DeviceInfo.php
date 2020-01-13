@@ -10,6 +10,6 @@ class DeviceInfo extends Model
     protected $primaryKey = 'DeviceInfoId';
     public $timestamps = false;
     protected $fillable = [
-        'DeviceName', 'SerialNumber', 'WareHouses', 'IsActive', 'tag', 'timestamp', 'lastUsed', 'ipAddress'
+        'DeviceName', 'SerialNumber', 'WareHouses', 'IsActive', 'tag'
     ];
 }

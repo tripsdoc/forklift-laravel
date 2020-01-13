@@ -20,6 +20,12 @@ use Illuminate\Http\Request;
 
 class ParkController extends Controller
 {
+
+    function debug() {
+        $data = ContainerView::paginate(20);
+        return response($data);
+    }
+
     // -----------------------------------------  Park List Function -----------------------------------------------------------
     function getAllPark(Request $request) {
         date_default_timezone_set('Asia/Jakarta');
@@ -181,6 +187,8 @@ class ParkController extends Controller
             $loopData->Expr2 = $container->Expr2;
             $loopData->Expr3 = $container->Expr3;
             $loopData->Chassis = $container->Chassis;
+            $loopData->Driver = $container->Driver;
+            $loopData->YardRemarks = $container->YardRemarks;
         }
         return collect($forfilter);
     }
@@ -274,6 +282,8 @@ class ParkController extends Controller
         $loopdata->Expr2 = $datas->Expr2;
         $loopdata->Expr3 = $datas->Expr3;
         $loopdata->Chassis = $datas->Chassis;
+        $loopdata->Driver = $datas->Driver;
+        $loopdata->YardRemarks = $datas->YardRemarks;
         return $loopdata;
     }
 }
