@@ -33,7 +33,7 @@ class HistoryController extends Controller
             $newdata = array();
             foreach($data as $key => $datas) {
                 $dataOnee = ContainerView::where('Dummy', '=', $datas->Dummy)->first();
-                $dataContainer = ContainerInfO::find($datas->Dummy);
+                $dataContainer = ContainerInfo::find($datas->Dummy);
                 $loopData = new \stdClass();
                 $loopData->id = $datas->HistoryID;
                 $loopData->containerNumber = $dataOnee->Prefix . $dataOnee->Number;

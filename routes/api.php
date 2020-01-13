@@ -23,6 +23,9 @@ Route::post('login', 'LoginController@login');
 Route::get('device', 'API\DeviceController@getDeviceTag');
 Route::post('device/register', 'API\DeviceController@registerDevice');
 Route::get('version', 'TagsController@getVersion');
+Route::get('patch', 'API\DeviceController@getPatch');
+Route::get('newpatch', 'API\DeviceController@getUpdate');
+Route::get('newdiff', 'API\DeviceController@getDiff');
 Route::get('redis', 'StoreController@getRedis');
 
 Route::get('latestapk', 'TagsController@getUpdate');
@@ -67,6 +70,8 @@ Route::post('temppark/user', 'API\ParkController@getAllOnGoingByUser');
 
 Route::post('finish', 'API\ParkController@releasePark');
 ROute::post('cancel', 'API\ParkController@cancelPark');
+
+Route::get('summary', 'API\HistoryController@getAllSummary');
 
 Route::group(['prefix' => 'shifter'], function () {
   Route::post('login', 'LoginController@loginShifter');

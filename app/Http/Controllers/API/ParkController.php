@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Container;
+use App\ContainerInfo;
 use App\ContainerView;
 use App\History;
 use App\Park;
@@ -208,6 +208,7 @@ class ParkController extends Controller
             $datatemparray = array();
             foreach($temppark as $key => $temp) {
                 $container = ContainerView::where('Dummy', '=', $temp->Dummy)->first();
+                $dataContainer = ContainerInfo::where('Dummy', '=', $temp->Dummy)->first();
                 $ndt = new \stdClass();
                 $ndt->ParkingLot = $temp->ParkingLot;
                 $ndt->Dummy = $temp->Dummy;
@@ -215,6 +216,7 @@ class ParkController extends Controller
                 $ndt->createdDt = $temp->createdDt;
                 $ndt->updatedBy = $temp->updatedBy;
                 $ndt->updatedDt = $temp->updatedDt;
+                $ndt->yardRemarks = $dataContainer->YardRemarks;
                 $ndt->container = $this->formatData($container);
 
                 array_push($datatemparray, $ndt);

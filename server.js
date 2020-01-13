@@ -8,8 +8,8 @@ var config = {
     "user": '',
     "password": '',
     "server": '',
-    "database": 'HSC_IPS',
-    "port": 59877,
+    "database": 'HSC2017Test_V2',
+    "port": 1433,
     "dialect": "mssql",
     "dialectOptions": {
         "instanceName": "SQLEXPRESS"
@@ -32,11 +32,15 @@ var redis = new ioRedis(REDIS);
 
 app.listen(SOCKET_PORT, function() {
     //Check function
-    /*
+    
     //Check if new month
-    TODO
+
+    var interval = 1000 * 60;
+    var foo = setInterval(function () {
+        console.log("Triggered")
+    }, interval)
     //Select last month data
-    sql.connect(config, function (err) {
+    /* sql.connect(config, function (err) {
         if (err) console.log(err);
         var request = new sql.Request();
 
@@ -53,7 +57,7 @@ app.listen(SOCKET_PORT, function() {
                     request.query("SELECT * FROM Onee WHERE Dummy = '" + item.Dummy + "'", function (err, recordset) {
                         //Save to file
                     })
-                }
+                })
             });
         }, interval);
     }); */
