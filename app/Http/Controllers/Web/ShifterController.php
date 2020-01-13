@@ -19,7 +19,6 @@ class ShifterController extends Controller
     }
 
     function getAllShifter() {
-        if(request()->ajax()) {
             $data = ShifterUser::all();
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -34,8 +33,6 @@ class ShifterController extends Controller
                     return $btn;
                 })
                 ->make(true);
-        }
-        return view('shifter.index');
     }
 
     function create() {

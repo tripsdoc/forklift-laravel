@@ -75,9 +75,9 @@ class DeviceInfoController extends Controller
             $device->warehouses = Request::get('warehouses');
             $device->isactive = Request::get('isactive');
             $device->tag = Request::get('tag');
-            $device->timestamp = Request::get('timestamp');
+            /* $device->timestamp = Request::get('timestamp');
             $device->lastused = Request::get('lastused');
-            $device->ipaddress = Request::get('ipaddress');
+            $device->ipaddress = Request::get('ipaddress'); */
             $device->save();
 
             return Redirect::to('device');
@@ -94,9 +94,9 @@ class DeviceInfoController extends Controller
         $cryptData->WareHouses = $data->WareHouses;
         $cryptData->IsActive = $data->IsActive;
         $cryptData->tag = $data->tag;
-        $cryptData->timestamp = $data->timestamp;
+        /* $cryptData->timestamp = $data->timestamp;
         $cryptData->lastUsed = $data->lastUsed;
-        $cryptData->ipAddress = $data->ipAddress;
+        $cryptData->ipAddress = $data->ipAddress; */
         return View::make('device.edit')
         ->with('data', $cryptData);
     }
@@ -119,9 +119,9 @@ class DeviceInfoController extends Controller
             $forklift->warehouses = Request::get('warehouses');
             $forklift->isactive = Request::get('isactive');
             $forklift->tag = Request::get('tag');
-            $forklift->timestamp = Request::get('timestamp');
+            /* $forklift->timestamp = Request::get('timestamp');
             $forklift->lastused = Request::get('lastused');
-            $forklift->ipaddress = Request::get('ipaddress');
+            $forklift->ipaddress = Request::get('ipaddress'); */
             $forklift->save();
 
             Session::flash('message', 'Successfully updated Device!');

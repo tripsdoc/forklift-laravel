@@ -1,4 +1,4 @@
-const SOCKET_PORT = 9000;
+const SOCKET_PORT = 9131;
 const REDIS = {
     "host" : "192.168.14.88",
     "port" : "6379"
@@ -31,6 +31,7 @@ var ioRedis = require('ioredis');
 var redis = new ioRedis(REDIS);
 
 app.listen(SOCKET_PORT, function() {
+	console.log("Client Connected")
     //Check function
     /*
     //Check if new month
@@ -59,7 +60,7 @@ app.listen(SOCKET_PORT, function() {
     }); */
 });
 
-data.listen(8081, function () {
+data.listen(9132, function () {
 })
 
 const awaitHandlerFactory = (middleware) => {
@@ -72,12 +73,33 @@ const awaitHandlerFactory = (middleware) => {
     }
 }
 
+var getmember = async(data, params) => {
+    let val = await redis.zrange(data, 0, -1)
+    return val
+};
+
 var getzrange = async(data) => {
     let val = await redis.zrevrangebyscore(data, '+inf', '-inf', 'LIMIT', 0, 1)
     return val
 };
 
+var getkeys = async(data) => {
+    let val = await redis.keys(data + '*')
+    val.sort()
+    var lastitem = val.pop();
+    return lastitem
+};
 
+var getarraykeys = async(data) => {
+    let val = await redis.keys('*' + data + '*')
+    val.sort()
+    return val
+}
+
+var getdata = async(data) => {
+    let val = await redis.get(data)
+    return val
+};
 data.get('/tag=:id', awaitHandlerFactory( async(req, res, next) => {
     var selectedkeys = await getzrange(req.params.id)
     console.log(selectedkeys)
@@ -95,8 +117,46 @@ data.get('/tag=:id', awaitHandlerFactory( async(req, res, next) => {
     res.json(datas)
 }))
 
+data.get('/debug/tag=:id', awaitHandlerFactory( async(req, res, next) => {
+    var selectedkeys = await getkeys(req.params.id)
+    var data = await getdata(selectedkeys)
+    var datas = {
+        code: (data != null) ? 0 : 13,
+        command: "http://192.168.14.147:8081/tag=" + req.params.id,
+        message: (data != null) ? "Tag Position" : "Unknown Tag Listed",
+        responseTS: Date.now(),
+        status: (data != null) ? "Tag Position" : "Unknown Tag Listed",
+        tags: JSON.parse(data),
+        version: 1
+    }
+    res.json(datas)
+}))
+
+data.get('/tagsdata=:id', awaitHandlerFactory(async(req, res, next) => {
+    redis.keys('*' + req.params.id + '*', function(err, result) {
+        res.send(result)
+    })
+}))
+
+data.get('/keys=:id', awaitHandlerFactory(async(req,res,next) => {
+    var selectedkeys = await getdata(req.params.id)
+    res.send(selectedkeys)
+}))
+
+data.get('/debug/sort=:id', awaitHandlerFactory(async(req,res, next) => {
+    var selectedkeys = await getkeys(req.params.id)
+    var data = await getmember(req.params.id)
+    //console.log("val", selectedkeys)
+    var datas = {
+        selected: selectedkeys,
+        array: await getarraykeys(req.params.id),
+        data: data
+    }
+    res.json(datas)
+}))
+
 io.on('connection', function(socket) {
-    
+    console.log("Client Connected")
 })
 
 //Listen to redis data change
@@ -105,6 +165,7 @@ redis.monitor(function (err, monitor) {
         if(args[0] == "SET" || args[0] == "set") {
             var fullkey = args[1]
             var splitkey = fullkey.split('_')
+			console.log(splitkey[0])
             io.emit(splitkey[0],JSON.parse(args[2]))
         }
     })
