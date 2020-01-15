@@ -18,8 +18,22 @@ class ContainerAPIController extends Controller
     }
 
     // -----------------------------------------  Park List Function -----------------------------------------------------------
-    function getAll() {
-        $data = ContainerView::paginate(20);
+    function getAll(Request $request) {
+        $deliverto = ShifterUser::where('UserName', '=', $request->user)->pluck('Warehouse');
+        $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
+        $result = ContainerView::
+        whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('DeliverTo', '=', $datawarehouse[$i]);
+                } else {
+                    $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+                }
+            }
+        });
+        $data = $result->paginate(20);
 
         $response['status'] = !$data->isEmpty();
         $response['current'] = $data->currentPage();
@@ -38,14 +52,28 @@ class ContainerAPIController extends Controller
 
     function getContainerSearch(Request $request) {
         $search = $request->search;
-        $data = ContainerView::where('Client','LIKE',"%{$search}%")
+        $deliverto = ShifterUser::where('UserName', '=', $request->user)->pluck('Warehouse');
+        $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
+        $result = ContainerView::
+        whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('DeliverTo', '=', $datawarehouse[$i]);
+                } else {
+                    $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+                }
+            }
+        });
+        $result->where('Client','LIKE',"%{$search}%")
         ->orWhere('Number', 'LIKE',"%{$search}%")
         ->orWhere('Prefix', 'LIKE',"%{$search}%")
         ->orWhere('VesselName', 'LIKE',"%{$search}%")
         ->orWhere('Seal', 'LIKE',"%{$search}%")
         ->orWhere('Client', 'LIKE',"%{$search}%")
-        ->orWhere('LD/POD', 'LIKE',"%{$search}%")
-        ->paginate(20);
+        ->orWhere('LD/POD', 'LIKE',"%{$search}%");
+        $data = $result->paginate(20);
 
         $response['status'] = !$data->isEmpty();
         $response['current'] = $data->currentPage();

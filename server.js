@@ -5,9 +5,9 @@ const REDIS = {
 }
 var sql = require("mssql");
 var config = {
-    "user": '',
-    "password": '',
-    "server": '',
+    "user": 'Angga',
+    "password": 'P@ssw0rd',
+    "server": '192.168.16.3',
     "database": 'HSC2017Test_V2',
     "port": 1433,
     "dialect": "mssql",
@@ -30,38 +30,57 @@ var io = require('socket.io')(app);
 var ioRedis = require('ioredis');
 var redis = new ioRedis(REDIS);
 
-app.listen(SOCKET_PORT, function() {
-	console.log("Client Connected")
-    //Check function
-    
-    //Check if new month
+io.on('connection', function(socket) {
+    console.log("Client Connected")
+})
 
-    var interval = 1000 * 60;
-    var foo = setInterval(function () {
-        console.log("Triggered")
-    }, interval)
-    //Select last month data
-    /* sql.connect(config, function (err) {
+app.listen(SOCKET_PORT, function() {
+    sql.connect(config, function (err) {
+        console.log("Triggered SQL")
         if (err) console.log(err);
         var request = new sql.Request();
-
-        var interval = 1000 * 60 * 60 * 24;
+        var interval = 1000 * 60 * 60;
+        var intervalDel = 1000 * 60 * 60 * 24 * 7
+        var intervalTemporary = 1000 * 60 * 60 * 2
         var foo = setInterval (function () {
-            console.log("Triggered")
-            request.query('SELECT * FROM HSC_ParkHistory WHERE createdDt BETWEEN([LASTMONTHFIRST], [LASTMONTHEND])', function (err, recordset) {
+            var current = utcToLocal(new Date())
+            request.query('SELECT * FROM HSC_OngoingPark', function (err, recordset) {
                 if (err) console.log(err)
-                
-                //Iterate History
-                TODO
                 var data = recordset.recordsets[0];
                 data.forEach(function(item, index, arr) {
-                    request.query("SELECT * FROM Onee WHERE Dummy = '" + item.Dummy + "'", function (err, recordset) {
-                        //Save to file
-                    })
+                    var dateSql = new Date(item.updatedDt + "")
+                    var dateCheck = new Date(dateSql.getTime() + intervalTemporary)
+                    var itemdate = item.updatedDt
+                    if (current > dateCheck) {
+                        request.query("DELETE HSC_OngoingPark WHERE ParkingID = '" + item.ParkingID + "'", function (err, recordset) {
+                            if (err) console.log(err)
+                            console.log("Temporary Park is Deleted")
+                            io.emit("onParkFinished","Park Update")
+                        })
+                        
+                        request.query("INSERT INTO HSC_ParkHistory (SetDt, UnSetDt, ParkingLot, Dummy, createdBy, createdDt) VALUES(" + "convert(datetime,'" + convertDatabase(itemdate) + "',20)" + "," + "convert(datetime,'" + convertDatabase(current) + "',20)" + ",'" + item.ParkingLot + "','" + item.Dummy + "','Admin'," + "convert(datetime,'" + convertDatabase(current) + "',20)" + ")", function (err, recordset) {
+                            if (err) console.log(err)
+                            console.log("Temporary Park is Now in History")
+                        })
+                    }
                 })
             });
+            request.query('SELECT * FROM HSC_ParkHistory', function (err, recordset) {
+                if (err) console.log(err)
+                var data = recordset.recordsets[0];
+                data.forEach(function(item, index, arr) {
+                    var dateSql = new Date(item.createdDt)
+                    var dateCheck = new Date(dateSql.getTime() + intervalDel)
+                    if (current > dateCheck) {
+                        request.query("DELETE HSC_ParkHistory WHERE HistoryID = '" + item.HistoryID + "'", function (err, recordset) {
+                            if (err) console.log(err)
+                            console.log("Park History is Deleted")
+                        })
+                    }
+                })
+            })
         }, interval);
-    }); */
+    });
 });
 
 data.listen(9132, function () {
@@ -111,7 +130,7 @@ data.get('/tag=:id', awaitHandlerFactory( async(req, res, next) => {
     //var data = await getdata(selectedkeys)
     var datas = {
         code: (data != null) ? 0 : 13,
-        command: "http://192.168.14.147:8081/tag=" + req.params.id,
+        command: "http://192.168.14.70:9131/tag=" + req.params.id,
         message: (data != null) ? "Tag Position" : "Unknown Tag Listed",
         responseTS: Date.now(),
         status: (data != null) ? "Tag Position" : "Unknown Tag Listed",
@@ -126,7 +145,7 @@ data.get('/debug/tag=:id', awaitHandlerFactory( async(req, res, next) => {
     var data = await getdata(selectedkeys)
     var datas = {
         code: (data != null) ? 0 : 13,
-        command: "http://192.168.14.147:8081/tag=" + req.params.id,
+        command: "http://192.168.14.70:9131/tag=" + req.params.id,
         message: (data != null) ? "Tag Position" : "Unknown Tag Listed",
         responseTS: Date.now(),
         status: (data != null) ? "Tag Position" : "Unknown Tag Listed",
@@ -159,10 +178,6 @@ data.get('/debug/sort=:id', awaitHandlerFactory(async(req,res, next) => {
     res.json(datas)
 }))
 
-io.on('connection', function(socket) {
-    console.log("Client Connected")
-})
-
 //Listen to redis data change
 redis.monitor(function (err, monitor) {
     monitor.on("monitor", function(time, args, source, database) {
@@ -174,3 +189,28 @@ redis.monitor(function (err, monitor) {
         }
     })
 })
+
+redis.subscribe('update-park', function(err, count) {
+    console.log(count)
+})
+
+redis.on('message', function(channel, message) { 
+    if (channel == "update-park") {
+        io.emit("onParkFinished", "Park Updated")
+        var data = message
+        var splitdata = message.split(',')
+        var data = '{"type":' + splitdata[0] + ',"data":' + splitdata[2] + "}"
+        io.emit("park" + splitdata[1], JSON.parse(data))
+    }
+    
+    
+    console.log('Message Recieved: ' + channel + "with :" + message);
+});
+
+var utcToLocal = function (date) {
+    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(),  date.getHours(), date.getMinutes(), date.getSeconds()));
+}
+
+var localToUTC = function(date){
+    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),  date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
+}

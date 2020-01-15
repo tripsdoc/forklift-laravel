@@ -30,7 +30,7 @@ Route::get('redis', 'StoreController@getRedis');
 
 Route::get('latestapk', 'TagsController@getUpdate');
 
-Route::get('container', 'ContainerAPIController@getAll');
+Route::post('container', 'ContainerAPIController@getAll');
 Route::get('container/{id}', 'ContainerAPIController@getOverview');
 Route::get('debug/container', 'ContainerAPIController@debug');
 
@@ -67,11 +67,13 @@ Route::post('temppark/update', 'API\ParkController@editContainer');
 Route::post('temppark/add', 'API\ParkController@bookPark');
 
 Route::post('temppark/user', 'API\ParkController@getAllOnGoingByUser');
+Route::get('temppark/dummy', 'API\ParkController@getDummy');
 
 Route::post('finish', 'API\ParkController@releasePark');
 ROute::post('cancel', 'API\ParkController@cancelPark');
 
-Route::get('summary', 'API\HistoryController@getAllSummary');
+Route::post('summary', 'API\HistoryController@getAllSummary');
+Route::post('search/summary', 'API\HistoryController@getSummarySearch');
 
 Route::group(['prefix' => 'shifter'], function () {
   Route::post('login', 'LoginController@loginShifter');

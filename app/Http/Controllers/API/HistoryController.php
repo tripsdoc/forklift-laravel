@@ -8,10 +8,11 @@ use App\History;
 use App\TemporaryPark;
 use App\ContainerView;
 use App\ContainerInfo;
+use App\ShifterUser;
 
 class HistoryController extends Controller
 {
-    function getAllSummary() {
+    function getAllSummaryBak() {
         $page = (!isset($_GET['page']))? 1: $_GET['page'];
         $dataongoing = TemporaryPark::all();
         $datahistory = History::all();
@@ -37,7 +38,113 @@ class HistoryController extends Controller
         return response($response);
     }
 
-    function formatContainer($datas, $type) {
+    function getAllSummary(Request $request) {
+        $mode = (empty($request->mode))? 0: $request->mode;
+        $deliverto = ShifterUser::where('UserName', '=', $request->user)->pluck('Warehouse');
+        $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
+        $result = ContainerView::
+        whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('DeliverTo', '=', $datawarehouse[$i]);
+                } else {
+                    $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+                }
+            }
+        });
+        $result->Where(function($query) use($mode)
+        {
+            if ($mode == 1) {
+                $query->where('Import/Export', '=', 'Import');
+            }
+            if ($mode == 2) {
+                $query->where('Import/Export', '=', 'Export');
+            }
+        });
+        $result->orderBy('ETA');
+        $data = $result->paginate(20);
+        $dataArray = array();
+        foreach($data->items() as $key => $datas) {
+            $newdata = $this->formatContainer($datas);
+            array_push($dataArray, $newdata);
+        }
+        $response['shifter'] = $datawarehouse;
+        $response['status'] = !$data->isEmpty();
+        $response['current'] = $data->currentPage();
+        $response['nextUrl'] = $data->nextPageUrl();
+        $response['last'] = $data->lastPage();
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+
+    function getSummarySearch(Request $request) {
+        $mode = $request->mode;
+        $search = $request->search;
+        $deliverto = ShifterUser::where('UserName', '=', $request->user)->pluck('Warehouse');
+        $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
+        $result = ContainerView::
+        whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('DeliverTo', '=', $datawarehouse[$i]);
+                } else {
+                    $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+                }
+            }
+        });
+        $result->Where(function($query) use($mode)
+        {
+            if ($mode == 1) {
+                $query->where('Import/Export', '=', 'Import');
+            }
+            if ($mode == 2) {
+                $query->where('Import/Export', '=', 'Export');
+            }
+        });
+        $result->where('Number','LIKE',"%{$search}%")
+        ->orderBy('ETA');
+        $data = $result->paginate(20);
+        $dataArray = array();
+        foreach($data->items() as $key => $datas) {
+            $newdata = $this->formatContainer($datas);
+            array_push($dataArray, $newdata);
+        }
+        $response['status'] = !$data->isEmpty();
+        $response['current'] = $data->currentPage();
+        $response['nextUrl'] = $data->nextPageUrl();
+        $response['last'] = $data->lastPage();
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+
+    function formatContainer($data) {
+        $loopData = new \stdClass();
+        $loopData->Client = $data->Client;
+        $loopData->Seal = $data->Seal;
+        $loopData->Yard = $data->Yard;
+        $loopData->Size = $data->Size . $data->Type;
+        $loopData->Container = $data->Prefix . $data->Number;
+        $loopData->Remarks = $data->Remarks;
+        $loopData->Chassis = $data->Chassis;
+        $loopData->YardRemarks = $data->YardRemarks;
+        $loopData->IE = $data["Import/Export"];
+        $ongoing = TemporaryPark::where('Dummy', '=', $data->Dummy)->first();
+        $driver = "";
+        if (!empty($ongoing)) {
+            $driver = (empty($ongoing->updatedBy)) ? $ongoing->createdBy : $ongoing->updatedBy;
+        }
+        $loopData->Driver = $driver;
+
+        $loopData->parkIn = (!empty($data->ETA)) ? date('d/m H:i', strtotime($data->ETA)) : "";
+        $loopData->parkOut = $data["LD/POD"];
+        return $loopData;
+    }
+
+    function formatContainerBak($datas, $type) {
         $loopData = new \stdClass();
         $container = ContainerView::where('Dummy', '=', $datas->Dummy)->first();
         $dataContainer = ContainerInfo::find($datas->Dummy);

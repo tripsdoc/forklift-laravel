@@ -13,6 +13,7 @@ use DataTables;
 use Date;
 use View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 /*
 
@@ -24,6 +25,12 @@ class ParkController extends Controller
     function debug() {
         $data = ContainerView::paginate(20);
         return response($data);
+    }
+
+    function getDummy() {
+        $parkid = $_GET['park'];
+        $data = TemporaryPark::where('ParkingLot', '=', $parkid)->first();
+        return (!empty($data)) ? $data->Dummy : null;
     }
 
     // -----------------------------------------  Park List Function -----------------------------------------------------------
@@ -98,6 +105,8 @@ class ParkController extends Controller
             if($temp->save()) {
                 $response['status'] = TRUE;
                 $response['data'] = $temp;
+                $dataRedis = "1," . $request->park . "," .  $temp->Dummy;
+                $this->broadcastRedis($dataRedis);
                 return response($response);
             } else {
                 $response['status'] = FALSE;
@@ -120,6 +129,8 @@ class ParkController extends Controller
                 $check->save();
                 $response['status'] = TRUE;
                 $response['data'] = $check;
+                $dataRedis = "1," . $request->park . "," .  $check->Dummy;
+                $this->broadcastRedis($dataRedis);
                 return response($response);
             } else {
                 $response['status'] = FALSE;
@@ -144,6 +155,8 @@ class ParkController extends Controller
             $check->delete();
             $response['status'] = TRUE;
             $response['data'] = $history;
+            $dataRedis = "0," . $request->park . ",0";
+            $this->broadcastRedis($dataRedis);
             return response($response);
         } else {
             $response['status'] = FALSE;
@@ -216,7 +229,6 @@ class ParkController extends Controller
             $datatemparray = array();
             foreach($temppark as $key => $temp) {
                 $container = ContainerView::where('Dummy', '=', $temp->Dummy)->first();
-                $dataContainer = ContainerInfo::where('Dummy', '=', $temp->Dummy)->first();
                 $ndt = new \stdClass();
                 $ndt->ParkingLot = $temp->ParkingLot;
                 $ndt->Dummy = $temp->Dummy;
@@ -224,7 +236,6 @@ class ParkController extends Controller
                 $ndt->createdDt = $temp->createdDt;
                 $ndt->updatedBy = $temp->updatedBy;
                 $ndt->updatedDt = $temp->updatedDt;
-                $ndt->yardRemarks = $dataContainer->YardRemarks;
                 $ndt->container = $this->formatData($container);
 
                 array_push($datatemparray, $ndt);
@@ -285,5 +296,10 @@ class ParkController extends Controller
         $loopdata->Driver = $datas->Driver;
         $loopdata->YardRemarks = $datas->YardRemarks;
         return $loopdata;
+    }
+
+    function broadcastRedis($data) {
+        $redis = Redis::connection();
+        $redis->publish("update-park", $data);
     }
 }

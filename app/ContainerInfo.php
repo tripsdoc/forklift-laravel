@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 //Merge with container info
 class ContainerInfo extends Model
 {
+    protected $connection = 'sqlsrv2';
     //DeliverTo column will be used when asign task to the shifter
     protected $table = "ContainerInfo";
     protected $primaryKey = "Dummy";
