@@ -43,7 +43,7 @@ class HistoryController extends Controller
         $datawarehouse = array_map('trim', explode("/", $request->warehouse));
         $result = ContainerView::
         whereNotNull('Status')
-        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', '']);
         $result->Where(function($query) use($datawarehouse, $mode)
         {
             if ($mode != 0) {
@@ -87,7 +87,7 @@ class HistoryController extends Controller
         $datawarehouse = array_map('trim', explode("/", $request->warehouse));
         $result = ContainerView::
         whereNotNull('Status')
-        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', '']);
         $result->Where(function($query) use($datawarehouse, $mode)
         {
             if ($mode != 0) {

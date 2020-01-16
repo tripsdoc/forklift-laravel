@@ -23,7 +23,10 @@ class ParkController extends Controller
 {
 
     function debug() {
-        $data = ContainerView::paginate(20);
+        $data = ContainerView::
+        whereNotNull('Status')
+        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', ''])
+        ->paginate(20);
         return response($data);
     }
 
@@ -141,7 +144,7 @@ class ParkController extends Controller
     }
 
     function changePark(Request $request) {
-        $oldpark = TemporaryPark::where('Dummy', '=', $request->Dummy)->first();
+        $oldpark = TemporaryPark::where('Dummy', '=', $request->dummy)->first();
         if (!empty($oldpark)) {
             $oldlot = $oldpark->ParkingLot;
             $oldpark->delete();

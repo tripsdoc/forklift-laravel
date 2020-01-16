@@ -78,6 +78,7 @@ Route::post('search/summary', 'API\HistoryController@getSummarySearch');
 Route::group(['prefix' => 'shifter'], function () {
   Route::post('login', 'LoginController@loginShifter');
   Route::post('assign', 'API\ParkController@assignContainerToPark');
+  Route::post('change', 'API\ParkController@changePark');
   Route::post('remove', 'API\ParkController@removeContainer');
 });
 

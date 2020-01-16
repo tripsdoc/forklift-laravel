@@ -22,7 +22,8 @@ class ContainerAPIController extends Controller
         $deliverto = ShifterUser::where('UserName', '=', $request->user)->pluck('Warehouse');
         $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
         $result = ContainerView::
-        whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        whereNotNull('Status')
+        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', '']);
         $result->whereNotNull('Driver');
         $data = $result->paginate(20);
 
@@ -46,7 +47,8 @@ class ContainerAPIController extends Controller
         $deliverto = ShifterUser::where('UserName', '=', $request->user)->pluck('Warehouse');
         $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
         $result = ContainerView::
-        whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        whereNotNull('Status')
+        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', '']);
         $result->where('Client','LIKE',"%{$search}%")
         ->orWhere('Number', 'LIKE',"%{$search}%")
         ->orWhere('Prefix', 'LIKE',"%{$search}%")
