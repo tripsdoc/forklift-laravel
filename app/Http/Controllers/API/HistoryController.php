@@ -42,8 +42,9 @@ class HistoryController extends Controller
         $mode = (empty($request->mode))? 0: $request->mode;
         $datawarehouse = array_map('trim', explode("/", $request->warehouse));
         $result = ContainerView::
-        whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
-        $result->Where(function($query) use($datawarehouse)
+        whereNotNull('Status')
+        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        $result->Where(function($query) use($datawarehouse, $mode)
         {
             if ($mode != 0) {
                 for($i=0;$i<count($datawarehouse);$i++){
@@ -85,8 +86,9 @@ class HistoryController extends Controller
         $search = $request->search;
         $datawarehouse = array_map('trim', explode("/", $request->warehouse));
         $result = ContainerView::
-        whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
-        $result->Where(function($query) use($datawarehouse)
+        whereNotNull('Status')
+        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
+        $result->Where(function($query) use($datawarehouse, $mode)
         {
             if ($mode != 0) {
                 for($i=0;$i<count($datawarehouse);$i++){
@@ -125,20 +127,21 @@ class HistoryController extends Controller
 
     function formatContainer($data) {
         $loopData = new \stdClass();
+        $loopData->Dummy = $data->Dummy;
         $loopData->Client = $data->Client;
         $loopData->Seal = $data->Seal;
         $loopData->Yard = $data->Yard;
         $loopData->Size = $data->Size . $data->Type;
         $loopData->Container = $data->Prefix . $data->Number;
         $loopData->Remarks = $data->Remarks;
-        $loopData->Chassis = $data->Chassis;
         $loopData->YardRemarks = $data->YardRemarks;
+        $loopData->Chassis = $data->Chassis;
         $loopData->IE = $data["Import/Export"];
         $ongoing = TemporaryPark::where('Dummy', '=', $data->Dummy)->first();
-        $driver = "";
         if (!empty($ongoing)) {
-            $driver = (empty($ongoing->updatedBy)) ? $ongoing->createdBy : $ongoing->updatedBy;
+            $loopData->ParkingLot = $ongoing->ParkingLot;
         }
+        $loopData->Status = $data->Status;
         $loopData->Driver = $data->Driver;
 
         $loopData->parkIn = (!empty($data->ETA)) ? date('d/m H:i', strtotime($data->ETA)) : "";

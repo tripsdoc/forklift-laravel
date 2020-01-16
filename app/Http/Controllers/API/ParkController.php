@@ -140,6 +140,32 @@ class ParkController extends Controller
         }
     }
 
+    function changePark(Request $request) {
+        $oldpark = TemporaryPark::where('Dummy', '=', $request->Dummy)->first();
+        if (!empty($oldpark)) {
+            $oldlot = $oldpark->ParkingLot;
+            $oldpark->delete();
+            $newpark = new TemporaryPark();
+            $newpark->ParkingLot = $request->park;
+            $newpark->Dummy = $request->dummy;
+            $newpark->createdBy = $request->user;
+            $newpark->updatedDt = date('Y-m-d H:i:s');
+            if($newpark->save()) {
+                $response['status'] = TRUE;
+                $response['data'] = $newpark;
+                $dataOld = "0," . $oldlot . ",0";
+                $dataRedis = "1," . $request->park . "," .  $newpark->Dummy;
+                $this->broadcastRedis($dataRedis);
+                $this->broadcastRedis($dataOld);
+                return response($response);
+            } else {
+                $response['status'] = FALSE;
+                $response['errMsg'] = "Server error, cannot asign data!";
+                return response($response);
+            }
+        }
+    }
+
     function removeContainer(Request $request) {
         date_default_timezone_set('Asia/Jakarta');
         $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
