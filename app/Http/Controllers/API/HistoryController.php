@@ -40,17 +40,18 @@ class HistoryController extends Controller
 
     function getAllSummary(Request $request) {
         $mode = (empty($request->mode))? 0: $request->mode;
-        $deliverto = ShifterUser::where('UserName', '=', $request->user)->pluck('Warehouse');
-        $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
+        $datawarehouse = array_map('trim', explode("/", $request->warehouse));
         $result = ContainerView::
         whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
         $result->Where(function($query) use($datawarehouse)
         {
-            for($i=0;$i<count($datawarehouse);$i++){
-                if($i == 0) {
-                    $query->where('DeliverTo', '=', $datawarehouse[$i]);
-                } else {
-                    $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+            if ($mode != 0) {
+                for($i=0;$i<count($datawarehouse);$i++){
+                    if($i == 0) {
+                        $query->where('DeliverTo', '=', $datawarehouse[$i]);
+                    } else {
+                        $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+                    }
                 }
             }
         });
@@ -82,17 +83,18 @@ class HistoryController extends Controller
     function getSummarySearch(Request $request) {
         $mode = $request->mode;
         $search = $request->search;
-        $deliverto = ShifterUser::where('UserName', '=', $request->user)->pluck('Warehouse');
-        $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
+        $datawarehouse = array_map('trim', explode("/", $request->warehouse));
         $result = ContainerView::
         whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
         $result->Where(function($query) use($datawarehouse)
         {
-            for($i=0;$i<count($datawarehouse);$i++){
-                if($i == 0) {
-                    $query->where('DeliverTo', '=', $datawarehouse[$i]);
-                } else {
-                    $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+            if ($mode != 0) {
+                for($i=0;$i<count($datawarehouse);$i++){
+                    if($i == 0) {
+                        $query->where('DeliverTo', '=', $datawarehouse[$i]);
+                    } else {
+                        $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+                    }
                 }
             }
         });
@@ -137,7 +139,7 @@ class HistoryController extends Controller
         if (!empty($ongoing)) {
             $driver = (empty($ongoing->updatedBy)) ? $ongoing->createdBy : $ongoing->updatedBy;
         }
-        $loopData->Driver = $driver;
+        $loopData->Driver = $data->Driver;
 
         $loopData->parkIn = (!empty($data->ETA)) ? date('d/m H:i', strtotime($data->ETA)) : "";
         $loopData->parkOut = $data["LD/POD"];

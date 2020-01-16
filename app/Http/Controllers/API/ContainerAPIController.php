@@ -23,16 +23,7 @@ class ContainerAPIController extends Controller
         $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
         $result = ContainerView::
         whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
-        $result->Where(function($query) use($datawarehouse)
-        {
-            for($i=0;$i<count($datawarehouse);$i++){
-                if($i == 0) {
-                    $query->where('DeliverTo', '=', $datawarehouse[$i]);
-                } else {
-                    $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
-                }
-            }
-        });
+        $result->whereNotNull('Driver');
         $data = $result->paginate(20);
 
         $response['status'] = !$data->isEmpty();
@@ -56,16 +47,6 @@ class ContainerAPIController extends Controller
         $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
         $result = ContainerView::
         whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED']);
-        $result->Where(function($query) use($datawarehouse)
-        {
-            for($i=0;$i<count($datawarehouse);$i++){
-                if($i == 0) {
-                    $query->where('DeliverTo', '=', $datawarehouse[$i]);
-                } else {
-                    $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
-                }
-            }
-        });
         $result->where('Client','LIKE',"%{$search}%")
         ->orWhere('Number', 'LIKE',"%{$search}%")
         ->orWhere('Prefix', 'LIKE',"%{$search}%")
@@ -73,6 +54,7 @@ class ContainerAPIController extends Controller
         ->orWhere('Seal', 'LIKE',"%{$search}%")
         ->orWhere('Client', 'LIKE',"%{$search}%")
         ->orWhere('LD/POD', 'LIKE',"%{$search}%");
+        $result->whereNotNull('Driver');
         $data = $result->paginate(20);
 
         $response['status'] = !$data->isEmpty();
