@@ -148,10 +148,14 @@ class UnstuffingController extends Controller
     function addOverlanded(Request $request)
     {
         $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test_V2.dbo.HSC_Inventory i, HSC2017Test_V2.dbo.HSC_InventoryPallet ip, HSC2017Test_V2.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $request->get('Dummy') . "' group by i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
-        // dd($request->get('Dummy'))
+        $listSequence = array();
+        foreach ($variable as $key => $value) {
+          $numberSequence = $value->SequenceNo;
+          array_push($listSequence, $numberSequence);
+        }
         $inventory         = array(
             'CntrID' => $request->get('Dummy'),
-            'SequenceNo' => count($joblist) + 1,
+            'SequenceNo' => max($listSequence) + 1,
             'HBL' => 'OVERLANDED',
             'DelStatus' => 'N'
         );
