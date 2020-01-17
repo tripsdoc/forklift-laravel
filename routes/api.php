@@ -44,17 +44,39 @@ Route::get('forklift/export/pod/', 'ExportController@getAllPortActivatedforStuff
 Route::get('forklift/export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
 
 Route::group(['prefix' => 'clerk'], function () {
+  // Authentication
+  Route::post('login', 'LoginController@loginClerk');
+
   Route::get('user', 'LoginController@getUserData');
   // Global Data
   Route::get('global/checklist', 'GlobalController@getChecklist');
 
   //Unstuffing
+  Route::get('unstuffing/currentContainer', 'UnstuffingController@getCurrentContainer');
   Route::get('unstuffing/detailimportsummary', 'UnstuffingController@getDetailImportsumary');
+  Route::get('unstuffing/listimportsummary', 'UnstuffingController@detailimportsummary');
+  Route::post('unstuffing/startjob', 'UnstuffingController@startJob');
+  Route::post('unstuffing/finishjob', 'UnstuffingController@finishJob');
   Route::get('unstuffing/joblist', 'UnstuffingController@getJobList');
+  Route::post('unstuffing/addoverlanded', 'UnstuffingController@addOverlanded');
   Route::get('unstuffing/palletbreakdown', 'UnstuffingController@getPalletBreakdown');
-
+  Route::post('unstuffing/updatebaystevedore', 'UnstuffingController@updateBaySteveDore');
+  Route::get('unstuffing/copypallet', 'UnstuffingController@copyPallet');
+  Route::get('unstuffing/deletepallet', 'UnstuffingController@deletePallet');
+  Route::get('unstuffing/addbreakdown', 'UnstuffingController@addBreakdown');
+  Route::get('unstuffing/deletebreakdown', 'UnstuffingController@deleteBreakdown');
+  Route::post('unstuffing/updatebreakdown', 'UnstuffingController@updateBreakdown');
+  Route::post('unstuffing/updatebreakdownLBH', 'UnstuffingController@updateBreakdownLBH');
+  Route::post('unstuffing/updatepallet', 'UnstuffingController@updatePallet');
+  Route::post('unstuffing/uploadphoto', 'UnstuffingController@uploadBreakdownGallery');
 
   // Locate
-  Route::get('locate/containerlist', 'LocateController@getContainerList');
-  Route::get('locate/containerlist/tag', 'LocateController@getAllTagsByCN');
+  Route::get('locate/containerList', 'LocateController@getContainerList');
+  Route::get('locate/containerList/tag', 'LocateController@getAllTagsByCN');
+
+  // Devices
+
+  // ReceivingController
+  Route::get('receiving/summary', 'ReceivingController@getSummary');
+
 });
