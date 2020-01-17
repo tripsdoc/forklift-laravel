@@ -337,7 +337,12 @@ class UnstuffingController extends Controller
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
             'DelStatus' => 'Y'
         ));
-
+        $breakdown = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
+        foreach ($breakdown as $key => $value) {
+          DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $value->BreakDownID)->update(array(
+              'DelStatus' => 'Y'
+          ));
+        }
         $data = array(
             'status' => "success"
         );
