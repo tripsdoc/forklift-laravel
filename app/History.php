@@ -1,0 +1,16 @@
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class History extends Model
+{
+    protected $connection = 'sqlsrv3';
+    protected $table = "HSC_ParkHistory";
+    protected $primaryKey = "HistoryID";
+    public $timestamps = false;
+    protected $fillable = [
+        'SetDt', 'UnSetDt', 'ParkingLot', 'Dummy', 'createdBy', 'createdDt', 'updatedBy', 'updatedDt'
+    ];
+}

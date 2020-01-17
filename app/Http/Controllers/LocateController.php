@@ -3,16 +3,52 @@
 namespace App\Http\Controllers;
 use DB;
 use Illuminate\Http\Request;
+use App\InventoryPallet;
 
 class LocateController extends Controller
 {
     function getContainerList() {
-      $container =  DB::select("SELECT CI.[Dummy], JI.[ClientID], JI.[POD], CI.[ContainerPrefix], CI.[ContainerNumber], CI.[ContainerSize], CI.[ContainerType], CI.[Status], VI.[ETA], CI.[DeliverTo] FROM VesselInfo VI, JobInfo JI, ContainerInfo CI WHERE VI.VesselID = JI.VesselID AND JI.JobNumber = CI.JobNumber AND JI.[Import/Export] = 'Export' AND CI.[DateofStuf/Unstuf] IS NULL AND CI.StartTime IS NULL AND CI.DeliverTo IN ('110','108','109') AND EXISTS (SELECT 1 FROM HSC_InventoryPallet IP WHERE IP.ExpCntrID = CI.[Dummy] AND IP.DelStatus = 'N')");
-      $data = array(
-        'status' => true,
+      $container =  DB::select("SELECT CI.[Dummy], JI.[ClientID], JI.[POD], CI.[ContainerPrefix], CI.[ContainerNumber], CI.[ContainerSize], CI.[ContainerType], CI.[Status], VI.[ETA], CI.[DeliverTo], CI.[TT] FROM HSC2012.dbo.VesselInfo VI, HSC2012.dbo.JobInfo JI, HSC2012.dbo.ContainerInfo CI WHERE VI.VesselID = JI.VesselID AND JI.JobNumber = CI.JobNumber AND JI.[Import/Export] = 'Export' AND CI.[DateofStuf/Unstuf] IS NULL AND CI.StartTime IS NULL AND CI.DeliverTo IN ('110','108','109') AND EXISTS (SELECT 1 FROM InventoryPallet IP WHERE IP.ExpCntrID = CI.[Dummy] AND IP.DelStatus = 'N') ORDER BY VI.ETA");
+      /* $data = array(
+        'status' => 'success',
         'container' => $container
-      );
-      return response($data);
+      ); */
+      $newdata = array();
+      foreach($container as $key => $datas) {
+        $loopData = array(
+          "Dummy" => $datas->Dummy,
+          "ClientID" => $datas->ClientID,
+          "POD" => $datas->POD,
+          "ContainerPrefix" => $datas->ContainerPrefix,
+          "ContainerNumber" => ($datas->ContainerNumber != null) ? $datas->ContainerNumber : "-",
+          "ContainerSize" => $datas->ContainerSize,
+          "ContainerType" => $datas->ContainerType,
+          "Status" => $datas->Status,
+          "ETA" => $datas->ETA,
+          "DeliverTo" => $datas->DeliverTo,
+          "TT" => $datas->TT
+        );
+        array_push($newdata, $loopData);
+      }
+      $response['status'] = (count($container) > 0)? TRUE : FALSE;
+      $response['container'] = $newdata;
+      return response($response);
+    }
+
+    function updateStuffing(Request $request) {
+      try {
+        $inventory = InventoryPallet::where('ExpCntrID', $request->dummy)
+        ->update([
+          'isActivityForStuffing' => $request->data
+        ]);
+        $response['status'] = TRUE;
+        $response['data'] = $inventory;
+        return response($response);
+      } catch (\Illuminate\Database\QueryException $ex) {
+        $response['status'] = TRUE;
+        $response['errmsg'] = "Cannot update data!";
+        return response($response);
+      }
     }
 
     function getAllTagsByCN(Request $request) {

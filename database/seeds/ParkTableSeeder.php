@@ -1,0 +1,216 @@
+<?php
+
+use Illuminate\Database\Seeder;
+
+class ParkTableSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        $items = [            
+            //Warehouse
+            ['name' => 'Bay 1', 'type' => 1, 'place' => '107'],
+            ['name' => 'Bay 2', 'type' => 1, 'place' => '107'],
+            ['name' => 'Bay 3', 'type' => 1, 'place' => '107'],
+            ['name' => 'Bay 4', 'type' => 1, 'place' => '107'],
+            ['name' => 'Bay 5', 'type' => 1, 'place' => '107'],
+            ['name' => 'Bay 6', 'type' => 1, 'place' => '107'],
+            ['name' => 'Bay 7', 'type' => 1, 'place' => '107'],
+            ['name' => 'Bay 8', 'type' => 1, 'place' => '107'],
+            ['name' => 'Bay 9', 'type' => 1, 'place' => '107'],
+
+            ['name' => 'Bay 1', 'type' => 1, 'place' => '108'],
+            ['name' => 'Bay 2', 'type' => 1, 'place' => '108'],
+            ['name' => 'Bay 3', 'type' => 1, 'place' => '108'],
+            ['name' => 'Bay 4', 'type' => 1, 'place' => '108'],
+            ['name' => 'Bay 5', 'type' => 1, 'place' => '108'],
+            ['name' => 'Bay 6', 'type' => 1, 'place' => '108'],
+            ['name' => 'Bay 7', 'type' => 1, 'place' => '108'],
+            ['name' => 'Bay 8', 'type' => 1, 'place' => '108'],
+            ['name' => 'Bay 9', 'type' => 1, 'place' => '108'],
+
+            ['name' => 'Bay 1', 'type' => 1, 'place' => '109'],
+            ['name' => 'Bay 2', 'type' => 1, 'place' => '109'],
+            ['name' => 'Bay 3', 'type' => 1, 'place' => '109'],
+            ['name' => 'Bay 4', 'type' => 1, 'place' => '109'],
+            ['name' => 'Bay 5', 'type' => 1, 'place' => '109'],
+            ['name' => 'Bay 6', 'type' => 1, 'place' => '109'],
+            ['name' => 'Bay 7', 'type' => 1, 'place' => '109'],
+            ['name' => 'Bay 8', 'type' => 1, 'place' => '109'],
+
+            ['name' => 'Bay 1', 'type' => 1, 'place' => '110'],
+            ['name' => 'Bay 2', 'type' => 1, 'place' => '110'],
+            ['name' => 'Bay 3', 'type' => 1, 'place' => '110'],
+            ['name' => 'Bay 4', 'type' => 1, 'place' => '110'],
+            ['name' => 'Bay 5', 'type' => 1, 'place' => '110'],
+            ['name' => 'Bay 6', 'type' => 1, 'place' => '110'],
+
+            ['name' => 'Bay 1', 'type' => 1, 'place' => '121'],
+            ['name' => 'Bay 2', 'type' => 1, 'place' => '121'],
+            ['name' => 'Bay 3', 'type' => 1, 'place' => '121'],
+            ['name' => 'Bay 4', 'type' => 1, 'place' => '121'],
+            ['name' => 'Bay 5', 'type' => 1, 'place' => '121'],
+            ['name' => 'Bay 6', 'type' => 1, 'place' => '121'],
+            ['name' => 'Bay 7', 'type' => 1, 'place' => '121'],
+            ['name' => 'Bay 8', 'type' => 1, 'place' => '121'],
+
+            ['name' => 'Bay 1', 'type' => 1, 'place' => '122'],
+            ['name' => 'Bay 2', 'type' => 1, 'place' => '122'],
+            ['name' => 'Bay 3', 'type' => 1, 'place' => '122'],
+            ['name' => 'Bay 4', 'type' => 1, 'place' => '122'],
+            ['name' => 'Bay 5', 'type' => 1, 'place' => '122'],
+            ['name' => 'Bay 6', 'type' => 1, 'place' => '122'],
+            ['name' => 'Bay 7', 'type' => 1, 'place' => '122'],
+
+            ['name' => 'Bay 1', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 2', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 3', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 4', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 5', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 6', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 7', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 8', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 9', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 10', 'type' => 1, 'place' => 'NTL'],
+            ['name' => 'Bay 11', 'type' => 1, 'place' => 'NTL'],
+
+            //Parking Lots
+            ['name' => '345', 'type' => 2, 'place' => '519'],
+            ['name' => '346', 'type' => 2, 'place' => '519'],
+            ['name' => '347', 'type' => 2, 'place' => '519'],
+            ['name' => '348', 'type' => 2, 'place' => '519'],
+            ['name' => '349', 'type' => 2, 'place' => '519'],
+            ['name' => '350', 'type' => 2, 'place' => '519'],
+            ['name' => '351', 'type' => 2, 'place' => '519'],
+            ['name' => '352', 'type' => 2, 'place' => '519'],
+            ['name' => '365', 'type' => 2, 'place' => '519'],
+            ['name' => '366', 'type' => 2, 'place' => '519'],
+            ['name' => '367', 'type' => 2, 'place' => '519'],
+            ['name' => '368', 'type' => 2, 'place' => '519'],
+            ['name' => '369', 'type' => 2, 'place' => '519'],
+            ['name' => '370', 'type' => 2, 'place' => '519'],
+            ['name' => '371', 'type' => 2, 'place' => '519'],
+            ['name' => '372', 'type' => 2, 'place' => '519'],
+            ['name' => '373', 'type' => 2, 'place' => '519'],
+            ['name' => '374(20)', 'type' => 2, 'place' => '519'],
+            ['name' => '375(20)', 'type' => 2, 'place' => '519'],
+            ['name' => '376(20)', 'type' => 2, 'place' => '519'],
+
+            ['name' => '531', 'type' => 2, 'place' => '519'],
+            ['name' => '532', 'type' => 2, 'place' => '519'],
+            ['name' => '533', 'type' => 2, 'place' => '519'],
+            ['name' => '552', 'type' => 2, 'place' => '519'],
+            ['name' => '553', 'type' => 2, 'place' => '519'],
+            ['name' => '554', 'type' => 2, 'place' => '519'],
+            ['name' => '555', 'type' => 2, 'place' => '519'],
+            ['name' => '566(20)', 'type' => 2, 'place' => '519'],
+            ['name' => '567(20)', 'type' => 2, 'place' => '519'],
+            ['name' => '568(20)', 'type' => 2, 'place' => '519'],
+            ['name' => '569', 'type' => 2, 'place' => '519'],
+            ['name' => '570', 'type' => 2, 'place' => '519'],
+            ['name' => '571', 'type' => 2, 'place' => '519'],
+            ['name' => '572', 'type' => 2, 'place' => '519'],
+            ['name' => '573', 'type' => 2, 'place' => '519'],
+            ['name' => '574', 'type' => 2, 'place' => '519'],
+            ['name' => '575', 'type' => 2, 'place' => '519'],
+
+            ['name' => '626', 'type' => 2, 'place' => '513'],
+            ['name' => '627', 'type' => 2, 'place' => '513'],
+            ['name' => '628', 'type' => 2, 'place' => '513'],
+            ['name' => '629', 'type' => 2, 'place' => '513'],
+            ['name' => '630', 'type' => 2, 'place' => '513'],
+            ['name' => '631', 'type' => 2, 'place' => '513'],
+            ['name' => '632', 'type' => 2, 'place' => '513'],
+            ['name' => '633', 'type' => 2, 'place' => '513'],
+            ['name' => '634', 'type' => 2, 'place' => '513'],
+            ['name' => '635', 'type' => 2, 'place' => '513'],
+            ['name' => '636', 'type' => 2, 'place' => '513'],
+            ['name' => '637', 'type' => 2, 'place' => '513'],
+
+            ['name' => '264', 'type' => 2, 'place' => '511'],
+            ['name' => '265', 'type' => 2, 'place' => '511'],
+            ['name' => '266', 'type' => 2, 'place' => '511'],
+            ['name' => '267', 'type' => 2, 'place' => '511'],
+            ['name' => '267A', 'type' => 2, 'place' => '511'],
+            ['name' => '267B', 'type' => 2, 'place' => '511'],
+            ['name' => '268A', 'type' => 2, 'place' => '511'],
+
+            ['name' => 'F1(20)', 'type' => 2, 'place' => '511'],
+            ['name' => 'F2(20)', 'type' => 2, 'place' => '511'],
+            ['name' => 'F3(20)', 'type' => 2, 'place' => '511'],
+            ['name' => 'F4(20)', 'type' => 2, 'place' => '511'],
+            ['name' => 'F5(20)', 'type' => 2, 'place' => '511'],
+            ['name' => 'F6(20)', 'type' => 2, 'place' => '511'],
+            ['name' => 'F7(20)', 'type' => 2, 'place' => '511'],
+
+            ['name' => 'Bay 1', 'type' => 2, 'place' => '104'],
+            ['name' => 'Bay 2', 'type' => 2, 'place' => '104'],
+            ['name' => 'Bay 3', 'type' => 2, 'place' => '104'],
+            ['name' => 'Bay 4', 'type' => 2, 'place' => '104'],
+
+            ['name' => 'Bay 1', 'type' => 2, 'place' => '113'],
+            ['name' => 'Bay 2', 'type' => 2, 'place' => '113'],
+            ['name' => 'Bay 3', 'type' => 2, 'place' => '113'],
+            ['name' => 'Bay 4', 'type' => 2, 'place' => '113'],
+            ['name' => 'Bay 5', 'type' => 2, 'place' => '113'],
+            ['name' => 'Bay 6', 'type' => 2, 'place' => '113'],
+            ['name' => 'Bay 7', 'type' => 2, 'place' => '113'],
+            ['name' => 'Bay 8', 'type' => 2, 'place' => '113'],
+
+            ['name' => 'Bay 1', 'type' => 2, 'place' => '120'],
+            ['name' => 'Bay 2', 'type' => 2, 'place' => '120'],
+            ['name' => 'Bay 3', 'type' => 2, 'place' => '120'],
+            ['name' => 'Bay 4', 'type' => 2, 'place' => '120'],
+            ['name' => 'Bay 5', 'type' => 2, 'place' => '120'],
+
+            ['name' => 'Bay 1', 'type' => 2, 'place' => '131'],
+            ['name' => 'Bay 2', 'type' => 2, 'place' => '131'],
+            ['name' => 'Bay 3', 'type' => 2, 'place' => '131'],
+            ['name' => 'Bay 4', 'type' => 2, 'place' => '131'],
+            ['name' => 'Bay 5', 'type' => 2, 'place' => '131'],
+
+            ['name' => 'Bay 1', 'type' => 2, 'place' => '111'],
+            ['name' => 'Bay 2', 'type' => 2, 'place' => '111'],
+            ['name' => 'Bay 3', 'type' => 2, 'place' => '111'],
+            ['name' => 'Bay 4', 'type' => 2, 'place' => '111'],
+            ['name' => 'Bay 5', 'type' => 2, 'place' => '111'],
+
+            ['name' => 'Bay 1', 'type' => 2, 'place' => '110'],
+            ['name' => 'Bay 2', 'type' => 2, 'place' => '110'],
+            ['name' => 'Bay 3', 'type' => 2, 'place' => '110'],
+            ['name' => 'Bay 4', 'type' => 2, 'place' => '110'],
+
+            //Temporary
+            ['name' => '195', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '196', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '197', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '198', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '199', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '200', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '201', 'type' => 3, 'place' => 'Temporary'],
+
+            ['name' => '202', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '210', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '211', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '212', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '213', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '280', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '281', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '281A', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '281B', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '282', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '282A', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '283', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '284', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '285', 'type' => 3, 'place' => 'Temporary'],
+            ['name' => '286', 'type' => 3, 'place' => 'Temporary'],
+        ];
+        foreach ($items as $item) {
+            App\Park::updateOrCreate($item);
+        }
+    }
+}
