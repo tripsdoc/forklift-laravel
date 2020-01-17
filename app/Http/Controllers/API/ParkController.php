@@ -145,9 +145,20 @@ class ParkController extends Controller
 
     function changePark(Request $request) {
         $oldpark = TemporaryPark::where('Dummy', '=', $request->dummy)->first();
+        $isParkAssign = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
         if (!empty($oldpark)) {
             $oldlot = $oldpark->ParkingLot;
             $oldpark->delete();
+            if (!empty($isParkAssign)) {
+                $isParkAssign->delete();
+                $history = new History();
+                $history->SetDt = $isParkAssign->updatedDt;
+                $history->UnSetDt = date('Y-m-d H:i:s');
+                $history->ParkingLot = $isParkAssign->ParkingLot;
+                $history->Dummy = $isParkAssign->Dummy;
+                $history->createdBy = $request->user;
+                $history->save();
+            }
             $newpark = new TemporaryPark();
             $newpark->ParkingLot = $request->park;
             $newpark->Dummy = $request->dummy;

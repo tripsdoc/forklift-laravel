@@ -62,21 +62,4 @@ class LoginController extends Controller
         }
         return response($response);
     }
-    function loginClerk(Request $request)
-    {
-        $check = DB::table('ForkliftUser')
-        ->where('UserName', $request->username)
-        ->where('Password', $request->password)->first();
-
-        if(!$check) {
-            $response['status'] = FALSE;
-            $response['error'] = 'Username or Password not correct';
-            $response['profile'] = $check;
-        }else{
-          $response['status'] = TRUE;
-          $response['error'] = '';
-          $response['profile'][0] = $check;
-          return response($response);
-        }
-    }
 }
