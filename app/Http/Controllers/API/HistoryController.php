@@ -50,10 +50,11 @@ class HistoryController extends Controller
             if ($mode != 0) {
                 for($i=0;$i<count($datawarehouse);$i++){
                     if($i == 0) {
-                        $query->where('DeliverTo', '=', $datawarehouse[$i]);
+                        $query->where('TruckTo', '=', $datawarehouse[$i]);
                     } else {
-                        $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+                        $query->orWhere('TruckTo', '=', $datawarehouse[$i]);
                     }
+                    $query->orWhere('TruckTo', '=', 'HSC');
                 }
             }
         });
@@ -94,10 +95,11 @@ class HistoryController extends Controller
             if ($mode != 0) {
                 for($i=0;$i<count($datawarehouse);$i++){
                     if($i == 0) {
-                        $query->where('DeliverTo', '=', $datawarehouse[$i]);
+                        $query->where('TruckTo', '=', $datawarehouse[$i]);
                     } else {
-                        $query->orWhere('DeliverTo', '=', $datawarehouse[$i]);
+                        $query->orWhere('TruckTo', '=', $datawarehouse[$i]);
                     }
+                    $query->orWhere('TruckTo', '=', 'HSC');
                 }
             }
         });
