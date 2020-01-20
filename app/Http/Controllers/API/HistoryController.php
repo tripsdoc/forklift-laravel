@@ -8,6 +8,7 @@ use App\History;
 use App\TemporaryPark;
 use App\ContainerView;
 use App\ContainerInfo;
+use App\Park;
 use App\ShifterUser;
 
 class HistoryController extends Controller
@@ -139,6 +140,7 @@ class HistoryController extends Controller
         $loopData->IE = $data["Import/Export"];
         $ongoing = TemporaryPark::where('Dummy', '=', $data->Dummy)->first();
         if (!empty($ongoing)) {
+            $loopData->Park = Park::find($ongoing->ParkingLot);
             $loopData->ParkingLot = $ongoing->ParkingLot;
         }
         $loopData->Status = $data->Status;
