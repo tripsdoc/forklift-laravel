@@ -72,6 +72,7 @@ Route::get('temppark/dummy', 'API\ParkController@getDummy');
 Route::post('finish', 'API\ParkController@releasePark');
 ROute::post('cancel', 'API\ParkController@cancelPark');
 
+Route::get('debug/summary', 'API\HistoryController@debug');
 Route::post('summary', 'API\HistoryController@getAllSummary');
 Route::post('search/summary', 'API\HistoryController@getSummarySearch');
 

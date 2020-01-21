@@ -13,6 +13,29 @@ use App\ShifterUser;
 
 class HistoryController extends Controller
 {
+
+    function debug() {
+        date_default_timezone_set('Asia/Singapore');
+        $result = ContainerView::
+        whereNotNull('Status')
+        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', ''])
+        ->WhereIn('Dummy', function($query) {
+            $query->select('Dummy')
+            ->from('HSC2017Test_V2.dbo.HSC_OngoingPark');
+        });
+        $data = $result->paginate(20);
+        $dataArray = array();
+        foreach($data->items() as $key => $datas) {
+            $newdata = $this->formatContainer($datas);
+            array_push($dataArray, $newdata);
+        }
+        $datapark = TemporaryPark::all();
+        $response['date'] = date('Y-m-d H:i:s');
+        $response['query'] = $result->toSql();
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+
     function getAllSummaryBak() {
         $page = (!isset($_GET['page']))? 1: $_GET['page'];
         $dataongoing = TemporaryPark::all();

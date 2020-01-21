@@ -38,7 +38,7 @@ class ParkController extends Controller
 
     // -----------------------------------------  Park List Function -----------------------------------------------------------
     function getAllPark(Request $request) {
-        date_default_timezone_set('Asia/Jakarta');
+        date_default_timezone_set('Asia/Singapore');
         $data = Park::paginate(10);
 
         $dataUser = $request->user;
@@ -96,7 +96,7 @@ class ParkController extends Controller
     // -------------------------------------------------------------------------------------------------------------------------
     
     function assignContainerToPark(Request $request) {
-        date_default_timezone_set('Asia/Jakarta');
+        date_default_timezone_set('Asia/Singapore');
         $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
         if(empty($check)) {
             $temp = new TemporaryPark();
@@ -144,6 +144,7 @@ class ParkController extends Controller
     }
 
     function changePark(Request $request) {
+        date_default_timezone_set('Asia/Singapore');
         $oldpark = TemporaryPark::where('Dummy', '=', $request->dummy)->first();
         $isParkAssign = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
         if (!empty($oldpark)) {
@@ -181,7 +182,7 @@ class ParkController extends Controller
     }
 
     function removeContainer(Request $request) {
-        date_default_timezone_set('Asia/Jakarta');
+        date_default_timezone_set('Asia/Singapore');
         $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
 
         $history = new History();
