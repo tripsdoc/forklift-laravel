@@ -109,6 +109,7 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::post('unstuffing/updatebreakdownLBH', 'UnstuffingController@updateBreakdownLBH');
   Route::post('unstuffing/updatepallet', 'UnstuffingController@updatePallet');
   Route::post('unstuffing/uploadphoto', 'UnstuffingController@uploadBreakdownGallery');
+  Route::get('unstuffing/deleteBreakdownPhoto', 'UnstuffingController@deleteBreakdownPhoto');
 
   // Locate
   Route::get('locate/containerList', 'LocateController@getContainerList');
