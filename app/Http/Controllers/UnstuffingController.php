@@ -215,11 +215,12 @@ class UnstuffingController extends Controller
             $lastFrom     = null;
             foreach ($rawBreakdown as $keyBreak => $break)
             {
-                $images   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->where('BreakDownID', $break->BreakDownID)->get();
+                $images   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->where('BreakDownID', $break->BreakDownID)->where('DelStatus', 'N')->get();
                 $lastFrom = $break->InventoryPalletID;
 
                 $flag         = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'flag')->get();
                 $flagSelected = array();
+                $flagShow = array();
                 // dd($flag);
                 $strExplode = array_map('trim', explode(',', $break->Flags));
                 if ($break->Flags)
@@ -229,6 +230,7 @@ class UnstuffingController extends Controller
                         if (in_array($fl->Value, $strExplode))
                         {
                             array_push($flagSelected, true);
+                            array_push($flagShow, $fl->Value);
                         }
                         else
                         {
@@ -259,6 +261,7 @@ class UnstuffingController extends Controller
                     "UpdatedDt" => is_null($break->UpdatedDt) ? "" : $break->UpdatedDt,
                     "DelStatus" => is_null($break->DelStatus) ? "" : $break->DelStatus,
                     "Flags" => is_null($break->Flags) ? "" : $break->Flags,
+                    "Flags_show" => is_null($flagShow) ? "" : implode (", ", $flagShow),
                     "FlagsSelected" => is_null($flagSelected) ? "" : $flagSelected,
                     "Tally" => is_null($break->Tally) ? "" : $break->Tally,
                     "Weight" => is_null($break->Weight) ? "" : $break->Weight,
@@ -344,7 +347,8 @@ class UnstuffingController extends Controller
         $breakdown = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
         foreach ($breakdown as $key => $value) {
           DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $value->BreakDownID)->update(array(
-              'DelStatus' => 'Y'
+              'DelStatus' => 'Y',
+              'UpdatedDt' => date("Y-m-d H:i:s")
           ));
         }
         $data = array(
@@ -383,7 +387,8 @@ class UnstuffingController extends Controller
     function deleteBreakdown(Request $request)
     {
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->get('BreakDownID'))->update(array(
-            'DelStatus' => 'Y'
+            'DelStatus' => 'Y',
+            'UpdatedDt' => date("Y-m-d H:i:s")
         ));
 
         $data = array(
@@ -394,7 +399,8 @@ class UnstuffingController extends Controller
     public function updateBreakdown(Request $request)
     {
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
-            $request->post('type') => $request->post('data')
+            $request->post('type') => $request->post('data'),
+            'UpdatedDt' => date("Y-m-d H:i:s")
         ));
 
         $data = array(
@@ -405,7 +411,8 @@ class UnstuffingController extends Controller
     public function updatePallet(Request $request)
     {
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
-            $request->post('type') => $request->post('data')
+            $request->post('type') => $request->post('data'),
+            'UpdatedDt' => date("Y-m-d H:i:s")
         ));
 
         $data = array(
@@ -425,7 +432,8 @@ class UnstuffingController extends Controller
             'Length' => $length,
             'Breadth' => $breadth,
             'Height' => $height,
-            'Volume' => sprintf("%.3f", ($qty * $length * $breadth * $height) / 1000000)
+            'Volume' => sprintf("%.3f", ($qty * $length * $breadth * $height) / 1000000),
+            'UpdatedDt' => date("Y-m-d H:i:s")
         );
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update($lbh);
         $data = array(
@@ -459,6 +467,17 @@ class UnstuffingController extends Controller
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->insert($dataImg);
         $data = array(
             'status' => 'success'
+        );
+        return response($data);
+    }
+    function deleteBreakdownPhoto(Request $request)
+    {
+        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->where('InventoryPhotoID', $request->post('InventoryPhotoID'))->update(array(
+            'DelStatus' => 'Y'
+        ));
+
+        $data = array(
+            'status' => "success"
         );
         return response($data);
     }

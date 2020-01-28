@@ -73,6 +73,7 @@ Route::get('temppark/dummy', 'API\ParkController@getDummy');
 Route::post('finish', 'API\ParkController@releasePark');
 ROute::post('cancel', 'API\ParkController@cancelPark');
 
+Route::get('debug/summary', 'API\HistoryController@debug');
 Route::post('summary', 'API\HistoryController@getAllSummary');
 Route::post('summaryjson', 'API\HistoryController@getSummaryJson');
 Route::post('search/summary', 'API\HistoryController@getSummarySearch');
@@ -112,6 +113,7 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::post('unstuffing/updatebreakdownLBH', 'UnstuffingController@updateBreakdownLBH');
   Route::post('unstuffing/updatepallet', 'UnstuffingController@updatePallet');
   Route::post('unstuffing/uploadphoto', 'UnstuffingController@uploadBreakdownGallery');
+  Route::get('unstuffing/deleteBreakdownPhoto', 'UnstuffingController@deleteBreakdownPhoto');
 
   // Locate
   Route::get('locate/containerList', 'LocateController@getContainerList');
