@@ -224,7 +224,7 @@ class HistoryController extends Controller
             $loopdata->Park = Park::find($ongoing->ParkingLot);
             $loopdata->ParkingLot = $ongoing->ParkingLot;
         }
-        $loopdata->Driver = 2111;//$datas->Driver;
+        $loopdata->Driver = $datas->Driver;
         $loopdata->parkIn = (!empty($datas->ETA)) ? date('d/m H:i', strtotime($datas->ETA)) : "";
         $loopdata->parkOut = $datas["LD/POD"];
         return $loopdata;
