@@ -42,7 +42,7 @@ class ShifterController extends Controller
     function store() {
         $rules = array(
             'name' => 'required',
-            'username' => 'required|unique:ShifterUser,UserName',
+            'username' => 'required|unique:sqlsrv3.ShifterUser,UserName',
             'password' => 'required'
         );
         $validator = Validator::make(Request::all(), $rules);

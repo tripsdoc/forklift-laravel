@@ -170,6 +170,8 @@ class HistoryController extends Controller
         }
         $loopData->Status = $data->Status;
         $loopData->Driver = $data->Driver;
+        $loopData->Pkg = $data->TotalPkgs;
+        $loopData->TT = $data->TT;
 
         $loopData->parkIn = (!empty($data->ETA)) ? date('d/m H:i', strtotime($data->ETA)) : "";
         $loopData->parkOut = $data["LD/POD"];
