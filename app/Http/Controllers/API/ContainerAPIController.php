@@ -24,7 +24,7 @@ class ContainerAPIController extends Controller
         $result = ContainerView::
         whereNotNull('Status')
         ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', '']);
-        $result->whereNotNull('Driver');
+        //$result->whereNotNull('Driver');
         $data = $result->paginate(20);
 
         $response['status'] = !$data->isEmpty();
@@ -56,7 +56,7 @@ class ContainerAPIController extends Controller
         ->orWhere('Seal', 'LIKE',"%{$search}%")
         ->orWhere('Client', 'LIKE',"%{$search}%")
         ->orWhere('LD/POD', 'LIKE',"%{$search}%");
-        $result->whereNotNull('Driver');
+        //$result->whereNotNull('Driver');
         $data = $result->paginate(20);
 
         $response['status'] = !$data->isEmpty();
@@ -89,7 +89,8 @@ class ContainerAPIController extends Controller
         $loopdata->Client = $datas->Client;
         $loopdata->TruckTo = $datas->TruckTo;
         $loopdata->ImportExport = $datas["Import/Export"];
-        $loopdata->IE = $datas["I/E"];
+        $loopdata->IE = $datas["Import/Export"];
+        //$loopdata->IE = $datas["I/E"];
         $loopdata->LDPOD = $datas["LD/POD"];
         $loopdata->DeliverTo = $datas->DeliverTo;
         $loopdata->Prefix = $datas->Prefix;
