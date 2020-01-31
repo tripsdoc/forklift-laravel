@@ -41,7 +41,7 @@ class ExportController extends Controller
             }
         });
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
-        $result->select('IP.Tag', 'IP.ExpCntrID', 'I.POD');
+        $result->select('IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         $data = $result->get();
         Storage::put('logs/export/GetAllTags.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
@@ -108,6 +108,7 @@ class ExportController extends Controller
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
+		->where('IP.ExpCntrID', '>', 0)
         ->where('IP.isActivityForStuffing', 1)
         ->where('JI.POD', '=', $pod);
         $result->Where(function($query) use($datawarehouse)

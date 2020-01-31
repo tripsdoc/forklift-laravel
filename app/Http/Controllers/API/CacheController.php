@@ -60,6 +60,10 @@ class CacheController extends Controller
         date_default_timezone_set('Asia/Singapore');
         $check = TemporaryPark::where('ParkingLot', '=', $park)->first();
         if(empty($check)) {
+            $checkDummy = TemporaryPark::where('Dummy', '=', $dummy)->first();
+            if(!empty($checkDummy)) {
+                $checkDummy->delete();
+            }
             $temp = new TemporaryPark();
 
             $temp->ParkingLot = $park;

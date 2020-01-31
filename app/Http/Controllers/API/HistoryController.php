@@ -10,12 +10,13 @@ use App\ContainerView;
 use App\ContainerInfo;
 use App\Park;
 use App\ShifterUser;
+use DB;
 
 class HistoryController extends Controller
 {
 
     function debug() {
-        date_default_timezone_set('Asia/Singapore');
+        /* date_default_timezone_set('Asia/Singapore');
         $result = ContainerView::
         whereNotNull('Status')
         ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', ''])
@@ -23,6 +24,7 @@ class HistoryController extends Controller
             $query->select('Dummy')
             ->from('HSC2017Test_V2.dbo.HSC_OngoingPark');
         });
+        ->where('Number', '=', '9934453');
         $data = $result->paginate(20);
         $dataArray = array();
         foreach($data->items() as $key => $datas) {
@@ -32,7 +34,26 @@ class HistoryController extends Controller
         $datapark = TemporaryPark::all();
         $response['date'] = date('Y-m-d H:i:s');
         $response['query'] = $result->toSql();
-        $response['data'] = $dataArray;
+        $response['data'] = $dataArray; */
+        $datawarehouse = array_map('trim', explode("/", "108/109/110"));
+        $result = ContainerView::whereNotNull('Status')
+        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', '']);
+        $result->Where(function($query) use($datawarehouse)
+        {
+            for($i=0;$i<count($datawarehouse);$i++){
+                if($i == 0) {
+                    $query->where('TruckTo', '=', $datawarehouse[$i]);
+                } else {
+                    $query->orWhere('TruckTo', '=', $datawarehouse[$i]);
+                }
+                $query->orWhere('TruckTo', '=', 'HSC');
+            }
+        });
+        $result->groupBy('Prefix', 'Number')
+        ->havingRaw('COUNT(*) > ?', [1]);
+        $data = $result->select('Prefix','Number', DB::raw('COUNT(*) as Duplicate'))->get();
+        $response['count'] = count($data);
+        $response['data'] = $data;
         return response($response);
     }
 
@@ -81,7 +102,10 @@ class HistoryController extends Controller
                 }
             }
         }); */
-        $result->orderBy('ETA');
+        $result->orderBy('ETA')
+        ->orderBy('Client')
+        ->orderBy('Prefix')
+        ->orderBy('Number');
         $data = $result->get();
         $dataArray = array();
         foreach($data as $key => $datas) {
@@ -223,11 +247,27 @@ class HistoryController extends Controller
         if (!empty($ongoing)) {
             $loopdata->Park = Park::find($ongoing->ParkingLot);
             $loopdata->ParkingLot = $ongoing->ParkingLot;
+        } else {
+            $checkPark = $this->getParkingLot($datas->Prefix, $datas->Number);
+            if (!empty($checkPark)) {
+                $loopdata->Park = Park::find($checkPark);
+                $loopdata->ParkingLot = $checkPark;
+            }
         }
         $loopdata->Driver = $datas->Driver;
         $loopdata->parkIn = (!empty($datas->ETA)) ? date('d/m H:i', strtotime($datas->ETA)) : "";
         $loopdata->parkOut = $datas["LD/POD"];
         return $loopdata;
+    }
+
+    function getParkingLot($prefix, $number) {
+        $result = DB::table('HSC2012.dbo.Onee AS IP')
+        ->join('HSC2017Test_V2.dbo.HSC_OngoingPark AS IB', 'IP.Dummy', '=', 'IB.Dummy')
+        ->where('Prefix', '=', $prefix)
+        ->where('Number', '=', $number)
+        ->groupBy('IP.Prefix', 'IP.Number', 'IP.Dummy', 'IB.ParkingLot')
+        ->value('IB.ParkingLot');
+        return $result;
     }
 
     function formatContainerBak($data) {
