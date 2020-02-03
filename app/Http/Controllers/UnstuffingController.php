@@ -408,6 +408,15 @@ class UnstuffingController extends Controller
         );
         return response($data);
     }
+    public function checkTag(Request $request)
+    {
+        $count = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('Tag', $request->get('Tag'))->count();
+
+        $data = array(
+            'status' => $count >= 1 ? false : true,
+        );
+        return response($data);
+    }
     public function updatePallet(Request $request)
     {
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
@@ -464,9 +473,13 @@ class UnstuffingController extends Controller
             'Emailed' => null,
             'PhotoNameSystem' => $finalName
         );
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->insert($dataImg);
+        $id = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->insertGetId($dataImg);
         $data = array(
-            'status' => 'success'
+            'status' => 'success',
+            'last_photo' => array(
+              'InventoryPhotoID' => $id,
+              'PhotoName' => $finalName
+            )
         );
         return response($data);
     }
