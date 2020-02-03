@@ -37,8 +37,25 @@ class ParkController extends Controller
     }
 
     // -----------------------------------------  Park List Function -----------------------------------------------------------
+    function getParkJson(Request $request) {
+        $data = Park::all();
+        $dataUser = $request->user;
+        $dataArray = $this->convertData($data, $dataUser);
+        $type = Park::groupBy('Type')->pluck('Type');
+        $dataPlace = array();
+        foreach ($type as $key => $datas) {
+            $park = Park::where('Type', '=', $datas)->groupBy('place')->pluck('place');
+            array_push($dataPlace, $park);
+        }
+
+        $response['status'] = !$data->isEmpty();
+        $response['place'] = $dataPlace;
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+    
     function getAllPark(Request $request) {
-        date_default_timezone_set('Asia/Jakarta');
+        date_default_timezone_set('Asia/Singapore');
         $data = Park::paginate(10);
 
         $dataUser = $request->user;
@@ -96,7 +113,7 @@ class ParkController extends Controller
     // -------------------------------------------------------------------------------------------------------------------------
     
     function assignContainerToPark(Request $request) {
-        date_default_timezone_set('Asia/Jakarta');
+        date_default_timezone_set('Asia/Singapore');
         $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
         if(empty($check)) {
             $temp = new TemporaryPark();
@@ -144,6 +161,7 @@ class ParkController extends Controller
     }
 
     function changePark(Request $request) {
+        date_default_timezone_set('Asia/Singapore');
         $oldpark = TemporaryPark::where('Dummy', '=', $request->dummy)->first();
         $isParkAssign = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
         if (!empty($oldpark)) {
@@ -181,7 +199,7 @@ class ParkController extends Controller
     }
 
     function removeContainer(Request $request) {
-        date_default_timezone_set('Asia/Jakarta');
+        date_default_timezone_set('Asia/Singapore');
         $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
 
         $history = new History();
@@ -265,20 +283,21 @@ class ParkController extends Controller
             //Get ongoing park
             $temppark = TemporaryPark::where('ParkingLot', $datas->ParkID)
             ->get();
-
             $datatemparray = array();
-            foreach($temppark as $key => $temp) {
-                $container = ContainerView::where('Dummy', '=', $temp->Dummy)->first();
-                $ndt = new \stdClass();
-                $ndt->ParkingLot = $temp->ParkingLot;
-                $ndt->Dummy = $temp->Dummy;
-                $ndt->createdBy = $temp->createdBy;
-                $ndt->createdDt = $temp->createdDt;
-                $ndt->updatedBy = $temp->updatedBy;
-                $ndt->updatedDt = $temp->updatedDt;
-                $ndt->container = $this->formatData($container);
-
-                array_push($datatemparray, $ndt);
+            if(!$temppark->isEmpty()) {
+                foreach($temppark as $key => $temp) {
+                    $container = ContainerView::where('Dummy', '=', $temp->Dummy)->first();
+                    $ndt = new \stdClass();
+                    $ndt->ParkingLot = $temp->ParkingLot;
+                    $ndt->Dummy = $temp->Dummy;
+                    $ndt->createdBy = $temp->createdBy;
+                    $ndt->createdDt = $temp->createdDt;
+                    $ndt->updatedBy = $temp->updatedBy;
+                    $ndt->updatedDt = $temp->updatedDt;
+                    $ndt->container = $this->formatData($container);
+    
+                    array_push($datatemparray, $ndt);
+                }
             }
 
             $newdata = $this->getFullData($temppark);

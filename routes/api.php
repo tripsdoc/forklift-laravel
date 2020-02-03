@@ -53,6 +53,7 @@ Route::group(['prefix' => 'forklift'], function () {
 
 //Park
 Route::post('park', 'API\ParkController@getAllPark');
+Route::post('parkjson', 'API\ParkController@getParkJson');
 Route::post('park/type/{type}', 'API\ParkController@getAllParkSpinner');
 Route::get('park/{park}', 'API\ParkController@detailPark');
 Route::post('park/place', 'API\ParkController@getPlace');
@@ -72,8 +73,12 @@ Route::get('temppark/dummy', 'API\ParkController@getDummy');
 Route::post('finish', 'API\ParkController@releasePark');
 ROute::post('cancel', 'API\ParkController@cancelPark');
 
+Route::get('debug/summary', 'API\HistoryController@debug');
 Route::post('summary', 'API\HistoryController@getAllSummary');
+Route::post('summaryjson', 'API\HistoryController@getSummaryJson');
 Route::post('search/summary', 'API\HistoryController@getSummarySearch');
+
+Route::post('cache', 'API\CacheController@retrieveFile');
 
 Route::group(['prefix' => 'shifter'], function () {
   Route::post('login', 'LoginController@loginShifter');
