@@ -104,6 +104,7 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::post('unstuffing/finishjob', 'UnstuffingController@finishJob');
   Route::get('unstuffing/joblist', 'UnstuffingController@getJobList');
   Route::post('unstuffing/addoverlanded', 'UnstuffingController@addOverlanded');
+  Route::post('unstuffing/uploadPhotoHBL', 'UnstuffingController@uploadPhotoHBL');
   Route::get('unstuffing/palletbreakdown', 'UnstuffingController@getPalletBreakdown');
   Route::post('unstuffing/updatebaystevedore', 'UnstuffingController@updateBaySteveDore');
   Route::get('unstuffing/copypallet', 'UnstuffingController@copyPallet');
