@@ -115,11 +115,12 @@ class ParkController extends Controller
     function assignContainerToPark(Request $request) {
         date_default_timezone_set('Asia/Singapore');
         $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
+        $DummyToAssign = $this->checkReUSE($request->dummy);
         if(empty($check)) {
             $temp = new TemporaryPark();
 
             $temp->ParkingLot = $request->park;
-            $temp->Dummy = $request->dummy;
+            $temp->Dummy = $DummyToAssign;
             $temp->createdBy = $request->user;
             $temp->updatedDt = date('Y-m-d H:i:s');
             if($temp->save()) {
@@ -142,7 +143,7 @@ class ParkController extends Controller
             $history->createdBy = $request->user;
 
             if($history->save()){
-                $check->Dummy = $request->dummy;
+                $check->Dummy = $DummyToAssign;
                 $check->updatedBy = $request->user;
                 $check->updatedDt = date('Y-m-d H:i:s');
 
@@ -163,6 +164,7 @@ class ParkController extends Controller
     function changePark(Request $request) {
         date_default_timezone_set('Asia/Singapore');
         $oldpark = TemporaryPark::where('Dummy', '=', $request->dummy)->first();
+        $DummyToAssign = $this->checkReUSE($request->dummy);
         $isParkAssign = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
         if (!empty($oldpark)) {
             $oldlot = $oldpark->ParkingLot;
@@ -179,7 +181,7 @@ class ParkController extends Controller
             }
             $newpark = new TemporaryPark();
             $newpark->ParkingLot = $request->park;
-            $newpark->Dummy = $request->dummy;
+            $newpark->Dummy = $DummyToAssign;
             $newpark->createdBy = $request->user;
             $newpark->updatedDt = date('Y-m-d H:i:s');
             if($newpark->save()) {
@@ -294,13 +296,15 @@ class ParkController extends Controller
                     $ndt->createdDt = $temp->createdDt;
                     $ndt->updatedBy = $temp->updatedBy;
                     $ndt->updatedDt = $temp->updatedDt;
-                    $ndt->container = $this->formatData($container);
+                    if(!empty($container)) {
+                        $ndt->container = $this->formatData($container);
+                    }
     
                     array_push($datatemparray, $ndt);
                 }
             }
 
-            $newdata = $this->getFullData($temppark);
+            //$newdata = $this->getFullData($temppark);
             $loopData = array(
                 "id" => $datas->ParkID,
                 "name" => $datas->Name,
@@ -357,8 +361,21 @@ class ParkController extends Controller
         return $loopdata;
     }
 
+    function checkReUSE($dummy) {
+        $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
+        $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
+        ->where('Number', '=', $checkDummy->Number)
+        ->where('Import/Export', '=', 'Export')
+        ->where('YardRemarks', 'like', '%RE-USE%')
+        ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
+        ->first();
+        $DummyToAssign = (!empty($newOnee) && $newOnee != $dummy) ? $newOnee->Dummy : $dummy;
+        return $DummyToAssign;
+    }
+
     function broadcastRedis($data) {
         $redis = Redis::connection();
         $redis->publish("update-park", $data);
+        return;
     }
 }

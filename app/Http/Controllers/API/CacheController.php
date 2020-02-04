@@ -58,7 +58,19 @@ class CacheController extends Controller
     function assignContainerToPark($dummy, $park, $user) {
         $textToReturn = date('Y-m-d H:i:s') . ", dummy: " . $dummy . ", park: " . $park . ", user: " . $user;
         date_default_timezone_set('Asia/Singapore');
+        $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
+        $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
+        ->where('Number', '=', $checkDummy->Number)
+        ->where('Import/Export', '=', 'Export')
+        ->where('YardRemarks', 'like', '%RE-USE%')
+        ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
+        ->first();
         $check = TemporaryPark::where('ParkingLot', '=', $park)->first();
+        if(!empty($newOnee) && $newOnee != $dummy) {
+            $DummyToAssign = $newOnee->Dummy;
+        } else {
+            $DummyToAssign = $dummy;
+        }
         if(empty($check)) {
             $checkDummy = TemporaryPark::where('Dummy', '=', $dummy)->first();
             if(!empty($checkDummy)) {
@@ -67,7 +79,7 @@ class CacheController extends Controller
             $temp = new TemporaryPark();
 
             $temp->ParkingLot = $park;
-            $temp->Dummy = $dummy;
+            $temp->Dummy = $DummyToAssign;
             $temp->createdBy = $user;
             $temp->updatedDt = date('Y-m-d H:i:s');
             if($temp->save()) {
@@ -87,7 +99,7 @@ class CacheController extends Controller
                 $history->createdBy = $user;
     
                 if($history->save()){
-                    $check->Dummy = $dummy;
+                    $check->Dummy = $DummyToAssign;
                     $check->updatedBy = $user;
                     $check->updatedDt = date('Y-m-d H:i:s');
     

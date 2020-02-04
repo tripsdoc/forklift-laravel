@@ -15,6 +15,13 @@ use DB;
 class HistoryController extends Controller
 {
 
+    function checkDummyisExist($dummy) {
+        $data = ContainerView::where('Dummy', '=', $dummy)->get();
+        $response['isExist'] = !$data->isEmpty();
+        $response['data'] = $data;
+        return response($response);
+    }
+
     function debug() {
         /* date_default_timezone_set('Asia/Singapore');
         $result = ContainerView::
@@ -239,7 +246,7 @@ class HistoryController extends Controller
         $loopdata->Chassis = $datas->Chassis;
 
         $loopdata->TT = $datas->TT;
-        $loopdata->Pkg = $datas->Pkg;
+        $loopdata->Pkg = $datas->TotalPkgs;
         $loopdata->Yard = $datas->Yard;
         $loopdata->YardRemarks = $datas->YardRemarks;
         $loopdata->IE = $datas["Import/Export"];
@@ -250,8 +257,16 @@ class HistoryController extends Controller
         } else {
             $checkPark = $this->getParkingLot($datas->Prefix, $datas->Number);
             if (!empty($checkPark)) {
-                $loopdata->Park = Park::find($checkPark);
-                $loopdata->ParkingLot = $checkPark;
+                $checkStatus = "EMPTY/CREATED/STUFFED/SHIPPED/COMPLETED/CLOSED";
+                if($datas["Import/Export"] == "Export") {
+                    if(strpos($datas->YardRemarks, "RE-USE") && strpos($checkStatus, $datas->Status)) {
+                        $loopdata->Park = Park::find($checkPark);
+                        $loopdata->ParkingLot = $checkPark;
+                    }
+                } else {
+                    $loopdata->Park = Park::find($checkPark);
+                    $loopdata->ParkingLot = $checkPark;
+                }
             }
         }
         $loopdata->Driver = $datas->Driver;

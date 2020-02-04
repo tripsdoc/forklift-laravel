@@ -33,6 +33,7 @@ Route::get('latestapk', 'TagsController@getUpdate');
 Route::post('container', 'ContainerAPIController@getAll');
 Route::get('container/{id}', 'ContainerAPIController@getOverview');
 Route::get('debug/container', 'ContainerAPIController@debug');
+Route::get('debug/dummy/{dummy}', 'API\HistoryController@checkDummyisExist');
 
 //Testing Tags Position
 Route::get('qpe/getTagPosition', 'TagsController@getTagPosition');
