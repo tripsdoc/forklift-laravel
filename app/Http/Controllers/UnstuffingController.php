@@ -494,4 +494,36 @@ class UnstuffingController extends Controller
         );
         return response($data);
     }
+    function uploadPhotoHBL(Request $request)
+    {
+        $cover     = $request->file('image');
+        $image     = $cover->getClientOriginalName();
+        $filename  = pathinfo($image, PATHINFO_FILENAME);
+        $extension = pathinfo($image, PATHINFO_EXTENSION);
+        $finalName = $filename . '_' . time() . '.' . $extension;
+        Storage::disk('public')->put('container/' . $finalName, File::get($cover));
+
+        $dataImg = array(
+            'CntrID' => $request->post('CntrID'),
+            'PhotoName' => $finalName,
+            'PhotoExt' => $extension,
+            'CreatedDt' => date("Y-m-d h:i:s"),
+            'CreatedBy' => $request->get('CreatedBy'),
+            'ModifyDt' => date("Y-m-d h:i:s"),
+            'ModifyBy' => '',
+            'DelStatus' => 'N',
+            'Ordering' => 0,
+            'Emailed' => null,
+            'PhotoNameSystem' => $finalName
+        );
+        $id = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_CntrPhoto')->insertGetId($dataImg);
+        $data = array(
+            'status' => 'success',
+            'last_photo' => array(
+              'InventoryPhotoID' => $id,
+              'PhotoName' => $finalName
+            )
+        );
+        return response($data);
+    }
 }
