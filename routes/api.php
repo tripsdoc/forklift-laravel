@@ -108,7 +108,7 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::post('unstuffing/updatebreakdown', 'UnstuffingController@updateBreakdown');
   Route::post('unstuffing/updatebreakdownLBH', 'UnstuffingController@updateBreakdownLBH');
   Route::post('unstuffing/updatepallet', 'UnstuffingController@updatePallet');
-  Route::post('unstuffing/checkTag', 'UnstuffingController@checkTag');
+  Route::get('unstuffing/checkTag', 'UnstuffingController@checkTag');
   Route::post('unstuffing/uploadphoto', 'UnstuffingController@uploadBreakdownGallery');
   Route::get('unstuffing/deleteBreakdownPhoto', 'UnstuffingController@deleteBreakdownPhoto');
 
