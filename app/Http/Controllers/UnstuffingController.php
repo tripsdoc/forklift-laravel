@@ -421,7 +421,8 @@ class UnstuffingController extends Controller
     {
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
             $request->post('type') => $request->post('data'),
-            'UpdatedDt' => date("Y-m-d H:i:s")
+            'UpdatedDt' => date("Y-m-d H:i:s"),
+            'UpdatedBy' => $request->post('UpdatedBy')
         ));
 
         $data = array(
