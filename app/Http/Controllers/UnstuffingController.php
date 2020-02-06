@@ -7,6 +7,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Intervention\Image\ImageManagerStatic as Image;
 
 class UnstuffingController extends Controller
 {
@@ -464,7 +465,21 @@ class UnstuffingController extends Controller
         $filename  = pathinfo($image, PATHINFO_FILENAME);
         $extension = pathinfo($image, PATHINFO_EXTENSION);
         $finalName = $filename . '_' . time() . '.' . $extension;
-        Storage::disk('public')->put('breakdown/' . $finalName, File::get($cover));
+        // temp folder 
+        Storage::disk('public')->put('temp/' . $finalName, File::get($cover));
+
+        $imageFix = public_path() . '/temp/' . $finalName;
+        list($width, $height) = getimagesize($imageFix);
+        if ($width > $height) 
+        {
+            $image_resize = Image::make($imageFix);              
+            $image_resize->resize(640, 480);
+            $image_resize->save(public_path('breakdown/' .$finalName));
+        }else{
+            $image_resize = Image::make($imageFix);              
+            $image_resize->resize(480, 640);
+            $image_resize->save(public_path('breakdown/' .$finalName));
+        }
 
         $dataImg = array(
             'BreakDownID' => $request->post('BreakDownID'),
@@ -507,7 +522,18 @@ class UnstuffingController extends Controller
         $filename  = pathinfo($image, PATHINFO_FILENAME);
         $extension = pathinfo($image, PATHINFO_EXTENSION);
         $finalName = $filename . '_' . time() . '.' . $extension;
-        Storage::disk('public')->put('container/' . $finalName, File::get($cover));
+        list($width, $height) = getimagesize($image);
+        if ($width > $height) 
+        {
+            $image = Image::make($image->getRealPath());              
+            $image->resize(640, 480);
+            $image->save(public_path('container/' .$image));
+        }else{
+            $image = Image::make($image->getRealPath());              
+            $image->resize(480, 640);
+            $image->save(public_path('container/' .$image));
+        }
+        // Storage::disk('public')->put('container/' . $finalName, File::get($image));
 
         $dataImg = array(
             'CntrID' => $request->post('CntrID'),
