@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Web;
 use Yaml;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
-
+use Illuminate\Support\Facades\Validator;
 class AppController extends Controller
 {
     public function index()
@@ -67,21 +68,59 @@ class AppController extends Controller
     }
     public function upload(Request $request)
     {
+        $dir = '../../fdroid/';
         $file = $request->file('file');
         $apk = new \ApkParser\Parser($file);
         $manifest = $apk->getManifest();
-        $data = array(
-            'package_name' => $manifest->getPackageName(),
-            'version' => $manifest->getVersionName(),
-            'version_code' => $manifest->getVersionCode()
-        );
-        dd($data);
-        // $imageName = $image->getClientOriginalName();
-        // $image->move(public_path('images'),$imageName);
-        
-        // $imageUpload = new ImageUpload();
-        // $imageUpload->filename = $imageName;
-        // $imageUpload->save();
-        // return response()->json(['success'=>$imageName]);
+        if ($manifest->getPackageName() == $request->post('package')) {
+            $data = array(
+                'package_name' => $manifest->getPackageName(),
+                'version' => $manifest->getVersionName(),
+                'version_code' => $manifest->getVersionCode()
+            );        
+
+            // rename file as version code
+            $temp = $_FILES["file"]["tmp_name"];
+            $finalName = $manifest->getPackageName() . '-' . $manifest->getVersionName() . '.apk';
+            move_uploaded_file($temp, public_path() . '/temp/'."\\{$finalName}");
+
+            // move file to fdroid folder
+            copy(public_path() . '/temp/'."\\{$finalName}", $dir . '/repo/' . $finalName);
+
+            //Create meta data
+            fopen($dir . 'metadata/' . $manifest->getPackageName() . '/en-US/changelogs/' . $manifest->getVersionCode() . ".txt", "w");
+
+            // Modify yml file
+            $fileYml = $dir . 'metadata/' . $manifest->getPackageName() . '.yml';
+            $yamlContents = Yaml::parse(file_get_contents($fileYml));
+            $array = [
+                'AuthorName' => $yamlContents['AuthorName'],
+                'Categories' => $yamlContents['Categories'],
+                'CurrentVersionCode' => $manifest->getVersionCode(),
+                'IssueTracker' => $yamlContents['IssueTracker'],
+                'Name' => $yamlContents['Name'],
+                'SourceCode' => $yamlContents['SourceCode'],
+                'Summary' => $yamlContents['Summary'],
+                'WebSite' => $yamlContents['WebSite'],
+            ];
+            
+            $yaml = Yaml::dump($array);
+            file_put_contents($dir . 'metadata/' . $manifest->getPackageName() .'.yml', $yaml);
+            // running command line
+            exec('fdroid update --create-metadata');
+            sleep(20);
+            exec('fdroid server update');
+            $data = array(
+                'error' => false,
+                'message' => 'Success'
+            );
+            return response()->json($data);
+        } else {
+            $data = array(
+                'error' => true,
+                'message' => 'Package name not match'
+            );
+            return response()->json($data);
+        }
     }
 }

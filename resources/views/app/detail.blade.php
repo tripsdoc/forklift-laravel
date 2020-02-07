@@ -43,6 +43,8 @@
                   <div class="chart tab-pane active" id="app-update">
                   <form method="post" action="{{url('app/upload')}}" enctype="multipart/form-data" 
                   class="dropzone" id="dropzone">@csrf
+                     <input type="hidden" name="package" value="{{$app_detail[0]['package_name']}}">
+                  </form>
                   </div>
                </div>
             </div>
