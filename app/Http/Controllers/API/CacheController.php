@@ -37,7 +37,11 @@ class CacheController extends Controller
         if($request->assign != "" && $request->assign != "[]") {
             $assignObject = json_decode($request->assign);
             foreach($assignObject as $key => $dataAssign) {
-                $returnText = $this->assignContainerToPark($dataAssign->dummy, $dataAssign->park, $dataAssign->username);
+                if($dataAssign->dummy != 0) {
+                    $returnText = $this->assignContainerToPark($dataAssign->dummy, $dataAssign->park, $dataAssign->username, null);
+                } else {
+                    $returnText = $this->assignContainerToPark($dataAssign->dummy, $dataAssign->park, $dataAssign->username, $dataAssign->trailer);
+                }
                 Storage::append('assign.log', $returnText);
             }
         }
