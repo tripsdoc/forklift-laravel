@@ -82,7 +82,7 @@ class ParkController extends Controller
 
     function getTrailerJson(Request $request) {
         $data = Trailer::all();
-        $response['status'] = $data->isEmpty();
+        $response['status'] = !$data->isEmpty();
         $response['data'] =  $data;
         return response($response);
     }
@@ -228,19 +228,21 @@ class ParkController extends Controller
             $datatemparray = array();
             if(!$temppark->isEmpty()) {
                 foreach($temppark as $key => $temp) {
-                    $container = ContainerView::where('Dummy', '=', $temp->Dummy)->first();
-                    $ndt = new \stdClass();
-                    $ndt->ParkingLot = $temp->ParkingLot;
-                    $ndt->Dummy = $temp->Dummy;
-                    $ndt->createdBy = $temp->createdBy;
-                    $ndt->createdDt = $temp->createdDt;
-                    $ndt->updatedBy = $temp->updatedBy;
-                    $ndt->updatedDt = $temp->updatedDt;
-                    if(!empty($container)) {
-                        $ndt->container = $this->formatData($container);
+                    if ($temp->Dummy != 0) {
+                        $container = ContainerView::where('Dummy', '=', $temp->Dummy)->first();
+                        $ndt = new \stdClass();
+                        $ndt->ParkingLot = $temp->ParkingLot;
+                        $ndt->Dummy = $temp->Dummy;
+                        $ndt->createdBy = $temp->createdBy;
+                        $ndt->createdDt = $temp->createdDt;
+                        $ndt->updatedBy = $temp->updatedBy;
+                        $ndt->updatedDt = $temp->updatedDt;
+                        if(!empty($container)) {
+                            $ndt->container = $this->formatData($container);
+                        }
+        
+                        array_push($datatemparray, $ndt);
                     }
-    
-                    array_push($datatemparray, $ndt);
                 }
             }
 
@@ -250,7 +252,8 @@ class ParkController extends Controller
                 "place" => $datas->Place,
                 "type" => $datas->Type,
                 "availability" => ($temppark->isEmpty())? 1 : 0,
-                "temp" => $datatemparray
+                "temp" => $datatemparray,
+                "trailer" => (!$temppark->isEmpty())? $temppark[0]->trailer : null
             );
             array_push($dataArray, $loopData);
         }
@@ -319,5 +322,76 @@ class ParkController extends Controller
         $redis = Redis::connection();
         $redis->publish("update-park", $data);
         return;
+    }
+
+    function formatContainer($datas) {
+        $loopdata = new \stdClass();
+        $loopdata->VesselID = $datas->VesselID;
+        $loopdata->VesselName = $datas->VesselName;
+        $loopdata->InVoy = $datas->InVoy;
+        $loopdata->OutVoy = $datas->OutVoy;
+        $loopdata->ETA = $datas->ETA;
+        $loopdata->COD = $datas->COD;
+        $loopdata->Berth = $datas->Berth;
+        $loopdata->ETD = $datas->ETD;
+        $loopdata->ServiceRoute = $datas->ServiceRoute;
+        $loopdata->Client = $datas->Client;
+        $loopdata->TruckTo = $datas->TruckTo;
+        $loopdata->ImportExport = $datas["Import/Export"];
+        //$loopdata->IE = $datas["I/E"];
+        $loopdata->LDPOD = $datas["LD/POD"];
+        $loopdata->DeliverTo = $datas->DeliverTo;
+        $loopdata->Prefix = $datas->Prefix;
+        $loopdata->Number = $datas->Number;
+        $loopdata->Seal = $datas->Seal;
+        $loopdata->Size = $datas->Size;
+        $loopdata->Type = $datas->Type;
+        $loopdata->Remarks = $datas->Remarks;
+        $loopdata->Status = $datas->Status;
+        $loopdata->DateOfStuffUnStuff = $datas["DateofStuf/Unstuf"];
+        $loopdata->Dummy = $datas->Dummy;
+        $loopdata->Expr1 = $datas->Expr1;
+        $loopdata->Expr2 = $datas->Expr2;
+        $loopdata->Expr3 = $datas->Expr3;
+        $loopdata->Chassis = $datas->Chassis;
+
+        $loopdata->TT = $datas->TT;
+        $loopdata->Pkg = $datas->Pkg;
+        $loopdata->Yard = $datas->Yard;
+        $loopdata->YardRemarks = $datas->YardRemarks;
+        $loopdata->IE = $datas["Import/Export"];
+        $ongoing = TemporaryPark::where('Dummy', '=', $datas->Dummy)->first();
+        if (!empty($ongoing)) {
+            $loopdata->Park = Park::find($ongoing->ParkingLot);
+            $loopdata->ParkingLot = $ongoing->ParkingLot;
+        } else {
+            $checkPark = $this->getParkingLot($datas->Prefix, $datas->Number);
+            if (!empty($checkPark)) {
+                $checkStatus = "EMPTY/CREATED/STUFFED/SHIPPED/COMPLETED/CLOSED";
+                if($datas["Import/Export"] == "Export") {
+                    if(strpos($datas->YardRemarks, "RE-USE") && strpos($checkStatus, $datas->Status)) {
+                        $loopdata->Park = Park::find($checkPark);
+                        $loopdata->ParkingLot = $checkPark;
+                    }
+                } else {
+                    $loopdata->Park = Park::find($checkPark);
+                    $loopdata->ParkingLot = $checkPark;
+                }
+            }
+        }
+        $loopdata->Driver = 2111;//$datas->Driver;
+        $loopdata->parkIn = (!empty($datas->ETA)) ? date('d/m H:i', strtotime($datas->ETA)) : "";
+        $loopdata->parkOut = $datas["LD/POD"];
+        return $loopdata;
+    }
+
+    function getParkingLot($prefix, $number) {
+        $result = DB::table('HSC2012.dbo.Onee AS IP')
+        ->join('HSC2017Test_V2.dbo.HSC_OngoingPark AS IB', 'IP.Dummy', '=', 'IB.Dummy')
+        ->where('Prefix', '=', $prefix)
+        ->where('Number', '=', $number)
+        ->groupBy('IP.Prefix', 'IP.Number', 'IP.Dummy', 'IB.ParkingLot')
+        ->value('IB.ParkingLot');
+        return $result;
     }
 }

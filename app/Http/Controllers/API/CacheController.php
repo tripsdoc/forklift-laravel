@@ -37,7 +37,11 @@ class CacheController extends Controller
         if($request->assign != "" && $request->assign != "[]") {
             $assignObject = json_decode($request->assign);
             foreach($assignObject as $key => $dataAssign) {
-                $returnText = $this->assignContainerToPark($dataAssign->dummy, $dataAssign->park, $dataAssign->username);
+                if($dataAssign->dummy != 0) {
+                    $returnText = $this->assignContainerToPark($dataAssign->dummy, $dataAssign->park, $dataAssign->username, null);
+                } else {
+                    $returnText = $this->assignContainerToPark($dataAssign->dummy, $dataAssign->park, $dataAssign->username, $dataAssign->trailer);
+                }
                 Storage::append('assign.log', $returnText);
             }
         }
@@ -64,17 +68,19 @@ class CacheController extends Controller
         return;
     }
 
-    function assignContainerToPark($dummy, $park, $user) {
+    function assignContainerToPark($dummy, $park, $user, $trailer) {
         $textToReturn = date('Y-m-d H:i:s') . ", dummy: " . $dummy . ", park: " . $park . ", user: " . $user;
         date_default_timezone_set('Asia/Singapore');
-        $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
-        //Get the export RE-USE dummy if had
-        $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
-        ->where('Number', '=', $checkDummy->Number)
-        ->where('Import/Export', '=', 'Export')
-        ->where('YardRemarks', 'like', '%RE-USE%')
-        ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
-        ->first();
+        if($dummy != 0) {
+            $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
+            //Get the export RE-USE dummy if had
+            $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
+            ->where('Number', '=', $checkDummy->Number)
+            ->where('Import/Export', '=', 'Export')
+            ->where('YardRemarks', 'like', '%RE-USE%')
+            ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
+            ->first();
+        }
         $check = TemporaryPark::where('ParkingLot', '=', $park)->first();
         if(!empty($newOnee) && $newOnee != $dummy) {
             $DummyToAssign = $newOnee->Dummy;
@@ -89,6 +95,7 @@ class CacheController extends Controller
 
             $temp->ParkingLot = $park;
             $temp->Dummy = $DummyToAssign;
+            $temp->trailer = $trailer;
             $temp->createdBy = $user;
             $temp->updatedDt = date('Y-m-d H:i:s');
             if($temp->save()) {
@@ -109,6 +116,7 @@ class CacheController extends Controller
     
                 if($history->save()){
                     $check->Dummy = $DummyToAssign;
+                    $check->trailer = $trailer;
                     $check->updatedBy = $user;
                     $check->updatedDt = date('Y-m-d H:i:s');
     
