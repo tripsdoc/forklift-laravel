@@ -228,19 +228,21 @@ class ParkController extends Controller
             $datatemparray = array();
             if(!$temppark->isEmpty()) {
                 foreach($temppark as $key => $temp) {
-                    $container = ContainerView::where('Dummy', '=', $temp->Dummy)->first();
-                    $ndt = new \stdClass();
-                    $ndt->ParkingLot = $temp->ParkingLot;
-                    $ndt->Dummy = $temp->Dummy;
-                    $ndt->createdBy = $temp->createdBy;
-                    $ndt->createdDt = $temp->createdDt;
-                    $ndt->updatedBy = $temp->updatedBy;
-                    $ndt->updatedDt = $temp->updatedDt;
-                    if(!empty($container)) {
-                        $ndt->container = $this->formatData($container);
+                    if ($temp->Dummy != 0) {
+                        $container = ContainerView::where('Dummy', '=', $temp->Dummy)->first();
+                        $ndt = new \stdClass();
+                        $ndt->ParkingLot = $temp->ParkingLot;
+                        $ndt->Dummy = $temp->Dummy;
+                        $ndt->createdBy = $temp->createdBy;
+                        $ndt->createdDt = $temp->createdDt;
+                        $ndt->updatedBy = $temp->updatedBy;
+                        $ndt->updatedDt = $temp->updatedDt;
+                        if(!empty($container)) {
+                            $ndt->container = $this->formatData($container);
+                        }
+        
+                        array_push($datatemparray, $ndt);
                     }
-    
-                    array_push($datatemparray, $ndt);
                 }
             }
 
@@ -250,7 +252,8 @@ class ParkController extends Controller
                 "place" => $datas->Place,
                 "type" => $datas->Type,
                 "availability" => ($temppark->isEmpty())? 1 : 0,
-                "temp" => $datatemparray
+                "temp" => $datatemparray,
+                "trailer" => (!$temppark->isEmpty())? $temppark[0]->trailer : null
             );
             array_push($dataArray, $loopData);
         }
