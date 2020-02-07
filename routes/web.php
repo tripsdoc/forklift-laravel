@@ -56,3 +56,7 @@ Route::post('year/history', 'Web\HistoryController@getYearHistory');
 Route::post('custom/history', 'Web\HistoryController@getCustomHistory');
 
 Route::get('register/device', 'Web\ShifterController@debug');
+
+Route::get('app/', 'Web\AppController@index');
+Route::get('app/detail/{app}', 'Web\AppController@detail');
+Route::post('app/upload', 'Web\AppController@upload');

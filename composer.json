@@ -17,6 +17,8 @@
         "laravel/tinker": "^1.0",
         "laravelcollective/html": "^6.0",
         "predis/predis": "^1.1",
+        "symfony/yaml": "^5.0",
+        "tufanbarisyildirim/php-apk-parser": "^2.0",
         "tymon/jwt-auth": "dev-develop",
         "yajra/laravel-datatables-oracle": "~9.0"
     },
