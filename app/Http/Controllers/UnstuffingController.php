@@ -7,6 +7,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Intervention\Image\ImageManagerStatic as Image;
 
 class UnstuffingController extends Controller
 {
@@ -182,7 +183,7 @@ class UnstuffingController extends Controller
     {
         $pallet    = array();
         $breakdown = array();
-        $rawPallet = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $_GET['inventoryid'])->where('DelStatus', 'N')->get();
+        $rawPallet = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $_GET['inventoryid'])->where('DelStatus', 'N')->orderBy('InventoryPalletID', 'ASC')->get();
         $i         = 1;
         foreach ($rawPallet as $key => $value)
         {
@@ -303,7 +304,7 @@ class UnstuffingController extends Controller
             "InterWhseFlag" => $copy->InterWhseFlag,
             "CurrentLocation" => $copy->CurrentLocation,
             "InterWhseTo" => $copy->InterWhseTo,
-            "Tag" => $copy->Tag,
+            "Tag" => "",
             "Location" => $copy->Location,
             "DN" => $copy->DN
         );
@@ -348,7 +349,8 @@ class UnstuffingController extends Controller
         foreach ($breakdown as $key => $value) {
           DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $value->BreakDownID)->update(array(
               'DelStatus' => 'Y',
-              'UpdatedDt' => date("Y-m-d H:i:s")
+              'UpdatedDt' => date("Y-m-d H:i:s"),
+              'UpdatedBy' => $request->get('UpdatedBy')
           ));
         }
         $data = array(
@@ -388,7 +390,8 @@ class UnstuffingController extends Controller
     {
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->get('BreakDownID'))->update(array(
             'DelStatus' => 'Y',
-            'UpdatedDt' => date("Y-m-d H:i:s")
+            'UpdatedDt' => date("Y-m-d H:i:s"),
+            'UpdatedBy' => $request->get('UpdatedBy')
         ));
 
         $data = array(
@@ -400,7 +403,8 @@ class UnstuffingController extends Controller
     {
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
             $request->post('type') => $request->post('data'),
-            'UpdatedDt' => date("Y-m-d H:i:s")
+            'UpdatedDt' => date("Y-m-d H:i:s"),
+            'UpdatedBy' => $request->get('UpdatedBy')
         ));
 
         $data = array(
@@ -421,7 +425,9 @@ class UnstuffingController extends Controller
     {
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
             $request->post('type') => $request->post('data'),
-            'UpdatedDt' => date("Y-m-d H:i:s")
+            'UpdatedDt' => date("Y-m-d H:i:s"),
+            'UpdatedBy' => $request->post('UpdatedBy'),
+            'UpdatedBy' => $request->get('UpdatedBy')
         ));
 
         $data = array(
@@ -442,7 +448,8 @@ class UnstuffingController extends Controller
             'Breadth' => $breadth,
             'Height' => $height,
             'Volume' => sprintf("%.3f", ($qty * $length * $breadth * $height) / 1000000),
-            'UpdatedDt' => date("Y-m-d H:i:s")
+            'UpdatedDt' => date("Y-m-d H:i:s"),
+            'UpdatedBy' => $request->get('UpdatedBy')
         );
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update($lbh);
         $data = array(
@@ -458,14 +465,28 @@ class UnstuffingController extends Controller
         $filename  = pathinfo($image, PATHINFO_FILENAME);
         $extension = pathinfo($image, PATHINFO_EXTENSION);
         $finalName = $filename . '_' . time() . '.' . $extension;
-        Storage::disk('public')->put('breakdown/' . $finalName, File::get($cover));
+        // temp folder 
+        Storage::disk('public')->put('temp/' . $finalName, File::get($cover));
+
+        $imageFix = public_path() . '/temp/' . $finalName;
+        list($width, $height) = getimagesize($imageFix);
+        if ($width > $height) 
+        {
+            $image_resize = Image::make($imageFix);              
+            $image_resize->resize(640, 480);
+            $image_resize->save(public_path('breakdown/' .$finalName));
+        }else{
+            $image_resize = Image::make($imageFix);              
+            $image_resize->resize(480, 640);
+            $image_resize->save(public_path('breakdown/' .$finalName));
+        }
 
         $dataImg = array(
             'BreakDownID' => $request->post('BreakDownID'),
             'PhotoName' => $finalName,
             'PhotoExt' => $extension,
             'CreatedDt' => date("Y-m-d h:i:s"),
-            'CreatedBy' => '',
+            'CreatedBy' => $request->get('CreatedBy'),
             'ModifyDt' => date("Y-m-d h:i:s"),
             'ModifyBy' => '',
             'DelStatus' => 'N',
@@ -491,6 +512,49 @@ class UnstuffingController extends Controller
 
         $data = array(
             'status' => "success"
+        );
+        return response($data);
+    }
+    function uploadPhotoHBL(Request $request)
+    {
+        $cover     = $request->file('image');
+        $image     = $cover->getClientOriginalName();
+        $filename  = pathinfo($image, PATHINFO_FILENAME);
+        $extension = pathinfo($image, PATHINFO_EXTENSION);
+        $finalName = $filename . '_' . time() . '.' . $extension;
+        list($width, $height) = getimagesize($image);
+        if ($width > $height) 
+        {
+            $image = Image::make($image->getRealPath());              
+            $image->resize(640, 480);
+            $image->save(public_path('container/' .$image));
+        }else{
+            $image = Image::make($image->getRealPath());              
+            $image->resize(480, 640);
+            $image->save(public_path('container/' .$image));
+        }
+        // Storage::disk('public')->put('container/' . $finalName, File::get($image));
+
+        $dataImg = array(
+            'CntrID' => $request->post('CntrID'),
+            'PhotoName' => $finalName,
+            'PhotoExt' => $extension,
+            'CreatedDt' => date("Y-m-d h:i:s"),
+            'CreatedBy' => $request->get('CreatedBy'),
+            'ModifyDt' => date("Y-m-d h:i:s"),
+            'ModifyBy' => '',
+            'DelStatus' => 'N',
+            'Ordering' => 0,
+            'Emailed' => null,
+            'PhotoNameSystem' => $finalName
+        );
+        $id = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_CntrPhoto')->insertGetId($dataImg);
+        $data = array(
+            'status' => 'success',
+            'last_photo' => array(
+              'InventoryPhotoID' => $id,
+              'PhotoName' => $finalName
+            )
         );
         return response($data);
     }
