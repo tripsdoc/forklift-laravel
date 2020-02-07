@@ -320,4 +320,75 @@ class ParkController extends Controller
         $redis->publish("update-park", $data);
         return;
     }
+
+    function formatContainer($datas) {
+        $loopdata = new \stdClass();
+        $loopdata->VesselID = $datas->VesselID;
+        $loopdata->VesselName = $datas->VesselName;
+        $loopdata->InVoy = $datas->InVoy;
+        $loopdata->OutVoy = $datas->OutVoy;
+        $loopdata->ETA = $datas->ETA;
+        $loopdata->COD = $datas->COD;
+        $loopdata->Berth = $datas->Berth;
+        $loopdata->ETD = $datas->ETD;
+        $loopdata->ServiceRoute = $datas->ServiceRoute;
+        $loopdata->Client = $datas->Client;
+        $loopdata->TruckTo = $datas->TruckTo;
+        $loopdata->ImportExport = $datas["Import/Export"];
+        //$loopdata->IE = $datas["I/E"];
+        $loopdata->LDPOD = $datas["LD/POD"];
+        $loopdata->DeliverTo = $datas->DeliverTo;
+        $loopdata->Prefix = $datas->Prefix;
+        $loopdata->Number = $datas->Number;
+        $loopdata->Seal = $datas->Seal;
+        $loopdata->Size = $datas->Size;
+        $loopdata->Type = $datas->Type;
+        $loopdata->Remarks = $datas->Remarks;
+        $loopdata->Status = $datas->Status;
+        $loopdata->DateOfStuffUnStuff = $datas["DateofStuf/Unstuf"];
+        $loopdata->Dummy = $datas->Dummy;
+        $loopdata->Expr1 = $datas->Expr1;
+        $loopdata->Expr2 = $datas->Expr2;
+        $loopdata->Expr3 = $datas->Expr3;
+        $loopdata->Chassis = $datas->Chassis;
+
+        $loopdata->TT = $datas->TT;
+        $loopdata->Pkg = $datas->Pkg;
+        $loopdata->Yard = $datas->Yard;
+        $loopdata->YardRemarks = $datas->YardRemarks;
+        $loopdata->IE = $datas["Import/Export"];
+        $ongoing = TemporaryPark::where('Dummy', '=', $datas->Dummy)->first();
+        if (!empty($ongoing)) {
+            $loopdata->Park = Park::find($ongoing->ParkingLot);
+            $loopdata->ParkingLot = $ongoing->ParkingLot;
+        } else {
+            $checkPark = $this->getParkingLot($datas->Prefix, $datas->Number);
+            if (!empty($checkPark)) {
+                $checkStatus = "EMPTY/CREATED/STUFFED/SHIPPED/COMPLETED/CLOSED";
+                if($datas["Import/Export"] == "Export") {
+                    if(strpos($datas->YardRemarks, "RE-USE") && strpos($checkStatus, $datas->Status)) {
+                        $loopdata->Park = Park::find($checkPark);
+                        $loopdata->ParkingLot = $checkPark;
+                    }
+                } else {
+                    $loopdata->Park = Park::find($checkPark);
+                    $loopdata->ParkingLot = $checkPark;
+                }
+            }
+        }
+        $loopdata->Driver = 2111;//$datas->Driver;
+        $loopdata->parkIn = (!empty($datas->ETA)) ? date('d/m H:i', strtotime($datas->ETA)) : "";
+        $loopdata->parkOut = $datas["LD/POD"];
+        return $loopdata;
+    }
+
+    function getParkingLot($prefix, $number) {
+        $result = DB::table('Onee AS IP')
+        ->join('HSC_OngoingPark AS IB', 'IP.Dummy', '=', 'IB.Dummy')
+        ->where('Prefix', '=', $prefix)
+        ->where('Number', '=', $number)
+        ->groupBy('IP.Prefix', 'IP.Number', 'IP.Dummy', 'IB.ParkingLot')
+        ->value('IB.ParkingLot');
+        return $result;
+    }
 }
