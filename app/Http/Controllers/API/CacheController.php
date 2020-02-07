@@ -55,10 +55,20 @@ class CacheController extends Controller
         return response($response);
     }
 
+    function removeOldDummyFromOngoing($dummy) {
+        $data = ContainerView::where('Dummy', '=', $dummy)->first();
+        $check = ContainerView::where('Prefix', '=', $data->Prefix)->where('Number', '=', $data->Number)->get();
+        foreach($check as $key => $datas) {
+            $deletedata = TemporaryPark::where('Dummy', '=', $datas->Dummy)->delete();
+        }
+        return;
+    }
+
     function assignContainerToPark($dummy, $park, $user) {
         $textToReturn = date('Y-m-d H:i:s') . ", dummy: " . $dummy . ", park: " . $park . ", user: " . $user;
         date_default_timezone_set('Asia/Singapore');
         $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
+        //Get the export RE-USE dummy if had
         $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
         ->where('Number', '=', $checkDummy->Number)
         ->where('Import/Export', '=', 'Export')
@@ -71,11 +81,10 @@ class CacheController extends Controller
         } else {
             $DummyToAssign = $dummy;
         }
+        if($DummyToAssign != 0) {
+            $this->removeOldDummyFromOngoing($DummyToAssign);
+        }
         if(empty($check)) {
-            $checkDummy = TemporaryPark::where('Dummy', '=', $dummy)->first();
-            if(!empty($checkDummy)) {
-                $checkDummy->delete();
-            }
             $temp = new TemporaryPark();
 
             $temp->ParkingLot = $park;
@@ -147,5 +156,6 @@ class CacheController extends Controller
     function broadcastRedis($data) {
         $redis = Redis::connection();
         $redis->publish("update-park", $data);
+        return;
     }
 }

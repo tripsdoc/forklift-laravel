@@ -16,29 +16,14 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::get('oneedebug', 'API\ParkController@debug');
-Route::get('user', 'LoginController@getUserData');
+
 Route::post('login', 'LoginController@login');
 
+//Needed on Forklift
 Route::get('device', 'API\DeviceController@getDeviceTag');
 Route::post('device/register', 'API\DeviceController@registerDevice');
-Route::get('version', 'TagsController@getVersion');
-Route::get('patch', 'API\DeviceController@getPatch');
-Route::get('newpatch', 'API\DeviceController@getUpdate');
-Route::get('newdiff', 'API\DeviceController@getDiff');
-Route::get('redis', 'StoreController@getRedis');
 
-Route::get('latestapk', 'TagsController@getUpdate');
-
-Route::post('container', 'ContainerAPIController@getAll');
-Route::get('container/{id}', 'ContainerAPIController@getOverview');
-Route::get('debug/container', 'ContainerAPIController@debug');
-Route::get('debug/dummy/{dummy}', 'API\HistoryController@checkDummyisExist');
-
-//Testing Tags Position
-Route::get('qpe/getTagPosition', 'TagsController@getTagPosition');
-ROute::get('qpe/alltags', 'TagsController@getAllTags');
-
+//Forklift API
 Route::group(['prefix' => 'forklift'], function () {
   //Retrieve Route
   Route::get('retrieve/deliverynotes', 'RetrieveController@getDeliveryNotes');
@@ -52,42 +37,67 @@ Route::group(['prefix' => 'forklift'], function () {
   Route::get('export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
 });
 
+//Debug
+Route::group(['prefix' => 'debug'], function () {
+  Route::get('onee', 'API\ParkController@debug');
+  Route::get('container', 'ContainerAPIController@debug');
+  Route::get('dummy/{dummy}', 'API\HistoryController@checkDummyisExist');
+  Route::get('summary', 'API\HistoryController@debug');
+});
+
+Route::get('user', 'LoginController@getUserData');
+
+Route::get('version', 'TagsController@getVersion');
+Route::get('patch', 'API\DeviceController@getPatch');
+Route::get('newpatch', 'API\DeviceController@getUpdate');
+Route::get('newdiff', 'API\DeviceController@getDiff');
+Route::get('redis', 'StoreController@getRedis');
+
+Route::get('latestapk', 'TagsController@getUpdate');
+
+Route::post('container', 'ContainerAPIController@getAll');
+Route::get('container/{id}', 'ContainerAPIController@getOverview');
+
+//Testing Tags Position
+Route::get('qpe/getTagPosition', 'TagsController@getTagPosition');
+Route::get('qpe/alltags', 'TagsController@getAllTags');
+
 //Park
-Route::post('park', 'API\ParkController@getAllPark');
-Route::post('parkjson', 'API\ParkController@getParkJson');
-Route::post('park/type/{type}', 'API\ParkController@getAllParkSpinner');
-Route::get('park/{park}', 'API\ParkController@detailPark');
-Route::post('park/place', 'API\ParkController@getPlace');
-Route::get('park/place/{place}', 'API\ParkController@getParkByPlace');
+//Route::post('park', 'API\ParkController@getAllPark');
+//Route::post('park/type/{type}', 'API\ParkController@getAllParkSpinner');
+//Route::get('park/{park}', 'API\ParkController@detailPark');
+//Route::post('park/place', 'API\ParkController@getPlace');
+//Route::get('park/place/{place}', 'API\ParkController@getParkByPlace');
 
 //Search
-Route::post('search/park', 'API\ParkController@getParkSearch');
-Route::post('search/container', 'ContainerAPIController@getContainerSearch');
+//Route::post('search/park', 'API\ParkController@getParkSearch');
 
-Route::get('temppark/today/{id}', 'API\ParkController@getCurrent');
-Route::post('temppark/update', 'API\ParkController@editContainer');
-Route::post('temppark/add', 'API\ParkController@bookPark');
+//Route::post('temppark/user', 'API\ParkController@getAllOnGoingByUser');
 
-Route::post('temppark/user', 'API\ParkController@getAllOnGoingByUser');
-Route::get('temppark/dummy', 'API\ParkController@getDummy');
+//Route::post('summary', 'API\HistoryController@getAllSummary');
 
-Route::post('finish', 'API\ParkController@releasePark');
-ROute::post('cancel', 'API\ParkController@cancelPark');
+//Route::post('search/summary', 'API\HistoryController@getSummarySearch');
+//Route::post('search/container', 'ContainerAPIController@getContainerSearch');
 
-Route::get('debug/summary', 'API\HistoryController@debug');
-Route::post('summary', 'API\HistoryController@getAllSummary');
-Route::post('summaryjson', 'API\HistoryController@getSummaryJson');
-Route::post('search/summary', 'API\HistoryController@getSummarySearch');
-
-Route::post('cache', 'API\CacheController@retrieveFile');
-
+//Shifter API
 Route::group(['prefix' => 'shifter'], function () {
   Route::post('login', 'LoginController@loginShifter');
   Route::post('assign', 'API\ParkController@assignContainerToPark');
   Route::post('change', 'API\ParkController@changePark');
   Route::post('remove', 'API\ParkController@removeContainer');
 });
+Route::get('trailerjson', 'API\ParkController@getTrailerJson');
+Route::post('parkjson', 'API\ParkController@getParkJson');
+Route::get('temppark/today/{id}', 'API\ParkController@getCurrent');
+Route::post('temppark/update', 'API\ParkController@editContainer');
+Route::post('temppark/add', 'API\ParkController@bookPark');
+Route::get('temppark/dummy', 'API\ParkController@getDummy');
+Route::post('finish', 'API\ParkController@releasePark');
+Route::post('cancel', 'API\ParkController@cancelPark');
+Route::post('summaryjson', 'API\HistoryController@getSummaryJson');
+Route::post('cache', 'API\CacheController@retrieveFile');
 
+//Clerk API
 Route::group(['prefix' => 'clerk'], function () {
   // Authentication
   Route::post('login', 'LoginController@loginClerk');
