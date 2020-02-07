@@ -82,7 +82,7 @@ class ParkController extends Controller
 
     function getTrailerJson(Request $request) {
         $data = Trailer::all();
-        $response['status'] = $data->isEmpty();
+        $response['status'] = !$data->isEmpty();
         $response['data'] =  $data;
         return response($response);
     }
