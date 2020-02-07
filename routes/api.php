@@ -86,6 +86,11 @@ Route::group(['prefix' => 'shifter'], function () {
   Route::post('change', 'API\ParkController@changePark');
   Route::post('remove', 'API\ParkController@removeContainer');
 });
+Route::group(['prefix' => 'check'], function () {
+  /* Route::post('container', 'API\ParkController@getDialogContainer');
+  Route::post('dummy', 'API\ParkController@getDialogDummy'); */
+  Route::post('number', 'API\ParkController@getLikeContainer');
+});
 Route::get('trailerjson', 'API\ParkController@getTrailerJson');
 Route::post('parkjson', 'API\ParkController@getParkJson');
 Route::get('temppark/today/{id}', 'API\ParkController@getCurrent');
