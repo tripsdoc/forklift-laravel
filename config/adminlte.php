@@ -270,6 +270,12 @@ return [
                 ],
             ],
         ],
+        ['header' => 'HSC APP'],
+        [
+            'text' => 'App',
+            'icon' => 'fab fa-android',
+            'url'  => 'app',
+        ],
     ],
 
     /*
