@@ -64,7 +64,7 @@ class CacheController extends Controller
         return;
     }
 
-    function assignContainerToPark($dummy, $park, $user) {
+    function assignContainerToPark($dummy, $park, $user, $trailer) {
         $textToReturn = date('Y-m-d H:i:s') . ", dummy: " . $dummy . ", park: " . $park . ", user: " . $user;
         date_default_timezone_set('Asia/Singapore');
         if($dummy != 0) {
@@ -91,6 +91,7 @@ class CacheController extends Controller
 
             $temp->ParkingLot = $park;
             $temp->Dummy = $DummyToAssign;
+            $temp->trailer = $trailer;
             $temp->createdBy = $user;
             $temp->updatedDt = date('Y-m-d H:i:s');
             if($temp->save()) {
@@ -111,6 +112,7 @@ class CacheController extends Controller
     
                 if($history->save()){
                     $check->Dummy = $DummyToAssign;
+                    $check->trailer = $trailer;
                     $check->updatedBy = $user;
                     $check->updatedDt = date('Y-m-d H:i:s');
     
