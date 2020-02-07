@@ -67,14 +67,16 @@ class CacheController extends Controller
     function assignContainerToPark($dummy, $park, $user) {
         $textToReturn = date('Y-m-d H:i:s') . ", dummy: " . $dummy . ", park: " . $park . ", user: " . $user;
         date_default_timezone_set('Asia/Singapore');
-        $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
-        //Get the export RE-USE dummy if had
-        $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
-        ->where('Number', '=', $checkDummy->Number)
-        ->where('Import/Export', '=', 'Export')
-        ->where('YardRemarks', 'like', '%RE-USE%')
-        ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
-        ->first();
+        if($dummy != 0) {
+            $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
+            //Get the export RE-USE dummy if had
+            $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
+            ->where('Number', '=', $checkDummy->Number)
+            ->where('Import/Export', '=', 'Export')
+            ->where('YardRemarks', 'like', '%RE-USE%')
+            ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
+            ->first();
+        }
         $check = TemporaryPark::where('ParkingLot', '=', $park)->first();
         if(!empty($newOnee) && $newOnee != $dummy) {
             $DummyToAssign = $newOnee->Dummy;
