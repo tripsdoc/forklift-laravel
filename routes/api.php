@@ -99,7 +99,7 @@ Route::post('temppark/add', 'API\ParkController@bookPark');
 Route::get('temppark/dummy', 'API\ParkController@getDummy');
 Route::post('finish', 'API\ParkController@releasePark');
 Route::post('cancel', 'API\ParkController@cancelPark');
-Route::post('summaryjson', 'API\HistoryController@getSummaryJson');
+Route::get('summaryjson', 'API\HistoryController@getSummaryJson');
 Route::post('cache', 'API\CacheController@retrieveFile');
 
 //Clerk API

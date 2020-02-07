@@ -64,9 +64,7 @@ class HistoryController extends Controller
         return response($response);
     }
 
-    function getSummaryJson(Request $request) {
-        $mode = (empty($request->mode))? 0: $request->mode;
-        $datawarehouse = array_map('trim', explode("/", $request->warehouse));
+    function getSummaryJson() {
         $result = ContainerView::
         whereNotNull('Status')
         ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', '']);
