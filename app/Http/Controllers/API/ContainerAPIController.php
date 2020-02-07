@@ -42,30 +42,6 @@ class ContainerAPIController extends Controller
         return response($response);
     }
 
-    function getContainerSearch(Request $request) {
-        $search = $request->search;
-        $deliverto = ShifterUser::where('UserName', '=', $request->user)->pluck('Warehouse');
-        $datawarehouse = array_map('trim', explode(",", $deliverto[0]));
-        $result = ContainerView::
-        whereNotNull('Status')
-        ->whereNotIn('Status', ['COMPLETED', 'PENDING', 'CLOSED', 'CANCELLED', '']);
-        $result->where('Client','LIKE',"%{$search}%")
-        ->orWhere('Number', 'LIKE',"%{$search}%")
-        ->orWhere('Prefix', 'LIKE',"%{$search}%")
-        ->orWhere('VesselName', 'LIKE',"%{$search}%")
-        ->orWhere('Seal', 'LIKE',"%{$search}%")
-        ->orWhere('Client', 'LIKE',"%{$search}%")
-        ->orWhere('LD/POD', 'LIKE',"%{$search}%");
-        //$result->whereNotNull('Driver');
-        $data = $result->paginate(20);
-
-        $response['status'] = !$data->isEmpty();
-        $response['current'] = $data->currentPage();
-        $response['last'] = $data->lastPage();
-        $response['data'] = $this->formatList($data->items());
-        return response($response);
-    }
-
     function formatList($data) {
         $newdata = array();
         foreach($data as $key => $datas) {
