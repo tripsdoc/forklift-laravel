@@ -305,7 +305,7 @@ class UnstuffingController extends Controller
             "CurrentLocation" => $copy->CurrentLocation,
             "InterWhseTo" => $copy->InterWhseTo,
             "Tag" => "",
-            "Location" => $copy->Location,
+            "Location" => "",
             "DN" => $copy->DN
         );
         $store        = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->insertGetId($pallet);
