@@ -88,8 +88,9 @@ class AppController extends Controller
             copy(public_path() . '/temp/'."\\{$finalName}", $dir . '/repo/' . $finalName);
 
             //Create meta data
-            fopen($dir . 'metadata/' . $manifest->getPackageName() . '/en-US/changelogs/' . $manifest->getVersionCode() . ".txt", "w");
-
+            $changelogFile = fopen($dir . 'metadata/' . $manifest->getPackageName() . '/en-US/changelogs/' . $manifest->getVersionCode() . ".txt", "w");
+            $txt = "*";
+            fwrite($changelogFile, $txt);
             // Modify yml file
             $fileYml = $dir . 'metadata/' . $manifest->getPackageName() . '.yml';
             $yamlContents = Yaml::parse(file_get_contents($fileYml));
@@ -107,9 +108,9 @@ class AppController extends Controller
             $yaml = Yaml::dump($array);
             file_put_contents($dir . 'metadata/' . $manifest->getPackageName() .'.yml', $yaml);
             // running command line
-            exec('fdroid update --create-metadata');
+            exec('cd /var/www/html/fdroid && fdroid update --create-metadata');
             sleep(20);
-            exec('fdroid server update');
+            exec('cd /var/www/html/fdroid && fdroid server update');
             $data = array(
                 'error' => false,
                 'message' => 'Success'
