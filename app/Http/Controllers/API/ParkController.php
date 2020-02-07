@@ -11,6 +11,7 @@ use App\TemporaryPark;
 use Carbon\Carbon;
 use DataTables;
 use Date;
+use DB;
 use View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
@@ -163,8 +164,9 @@ class ParkController extends Controller
 
     function changePark(Request $request) {
         date_default_timezone_set('Asia/Singapore');
-        $oldpark = TemporaryPark::where('Dummy', '=', $request->dummy)->first();
         $DummyToAssign = $this->checkReUSE($request->dummy);
+        $DummyOngoing = $this->getOngoingDummy($request->dummy);
+        $oldpark = TemporaryPark::where('Dummy', '=', $DummyOngoing)->first();
         $isParkAssign = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
         if (!empty($oldpark)) {
             $oldlot = $oldpark->ParkingLot;
@@ -371,6 +373,16 @@ class ParkController extends Controller
         ->first();
         $DummyToAssign = (!empty($newOnee) && $newOnee != $dummy) ? $newOnee->Dummy : $dummy;
         return $DummyToAssign;
+    }
+
+    function getOngoingDummy($dummy) {
+        $reqdummy = ContainerView::where('Dummy', '=', $dummy)->first();
+        $data = DB::table('HSC2012.dbo.Onee AS IP')
+        ->join('HSC2017Test_V2.dbo.HSC_OngoingPark AS IB', 'IP.Dummy', '=', 'IB.Dummy')
+        ->where('Prefix', '=', $reqdummy->Prefix)
+        ->where('Number', '=', $reqdummy->Number)
+        ->first();
+        return $data->Dummy;
     }
 
     function broadcastRedis($data) {
