@@ -348,8 +348,6 @@ class UnstuffingController extends Controller
             'UpdatedBy' => $request->get('UpdatedBy')
         ));
         $palletInfo = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
-
-
         $i = 1;
         $rawPallet = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $palletInfo->InventoryID)->where('DelStatus', 'N')->orderBy('InventoryPalletID', 'ASC')->get();
         foreach ($rawPallet as $key => $plt) {
