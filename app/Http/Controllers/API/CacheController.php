@@ -97,6 +97,7 @@ class CacheController extends Controller
             $temp->Dummy = $DummyToAssign;
             $temp->trailer = $trailer;
             $temp->createdBy = $user;
+            $temp->updatedBy = $user;
             $temp->updatedDt = date('Y-m-d H:i:s');
             if($temp->save()) {
                 $response['status'] = TRUE;

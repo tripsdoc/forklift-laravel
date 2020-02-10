@@ -130,6 +130,7 @@ class ParkController extends Controller
             $temp->Dummy = $DummyToAssign;
             $temp->createdBy = $request->user;
             $temp->updatedDt = date('Y-m-d H:i:s');
+            $temp->updatedBy = $request->user;
             $temp->trailer = $request->trailer;
             if($temp->save()) {
                 $response['status'] = TRUE;
@@ -196,6 +197,7 @@ class ParkController extends Controller
             $newpark->Dummy = $DummyToAssign;
             $newpark->createdBy = $request->user;
             $newpark->updatedDt = date('Y-m-d H:i:s');
+            $newpark->updatedBy = $request->user;
             if($newpark->save()) {
                 $response['status'] = TRUE;
                 $response['data'] = $newpark;
@@ -257,7 +259,6 @@ class ParkController extends Controller
                         $ndt->createdDt = $temp->createdDt;
                         $ndt->updatedBy = $temp->updatedBy;
                         $ndt->updatedDt = $temp->updatedDt;
-                        $ndt->updatedFormatDt = (!empty($temp->updatedDt)) ? date('d/m H:i', strtotime($temp->updatedDt)) : "";
                         if(!empty($container)) {
                             $ndt->container = $this->formatData($container);
                         }
@@ -274,7 +275,8 @@ class ParkController extends Controller
                 "type" => $datas->Type,
                 "availability" => ($temppark->isEmpty())? 1 : 0,
                 "temp" => $datatemparray,
-                "trailer" => (!$temppark->isEmpty())? $temppark[0]->trailer : null
+                "trailer" => (!$temppark->isEmpty())? $temppark[0]->trailer : null,
+                "textUpdated" => "Updated by " . $temppark->updatedBy . " on " . (!empty($temppark->updatedDt)) ? date('d/m H:i', strtotime($temppark->updatedDt)) : ""
             );
             array_push($dataArray, $loopData);
         }
