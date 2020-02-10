@@ -287,7 +287,7 @@ class UnstuffingController extends Controller
     function copyPallet(Request $request)
     {
         $copy          = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
-        $listAvailable = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $copy->InventoryID)->get();
+        $listAvailable = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $copy->InventoryID)->where('DelStatus', 'N')->get();
         $listSequence = array();
         foreach ($listAvailable as $key => $value) {
           $numberSequence = $value->SequenceNo;
