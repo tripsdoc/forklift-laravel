@@ -286,10 +286,16 @@ class UnstuffingController extends Controller
     }
     function copyPallet(Request $request)
     {
-        $copy         = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
+        $copy          = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
+        $listAvailable = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $copy->InventoryID)->get();
+        $listSequence = array();
+        foreach ($listAvailable as $key => $value) {
+          $numberSequence = $value->SequenceNo;
+          array_push($listSequence, $numberSequence);
+        }
         $pallet       = array(
             "InventoryID" => $copy->InventoryID,
-            "SequenceNo" => $copy->SequenceNo + 1,
+            "SequenceNo" => max($listSequence) + 1,
             "ExpCntrID" => $copy->ExpCntrID,
             "Reserved" => $copy->Reserved,
             "ReservedBy" => $copy->ReservedBy,
