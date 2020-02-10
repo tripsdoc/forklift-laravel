@@ -101,8 +101,7 @@ class ParkController extends Controller
         date_default_timezone_set('Asia/Singapore');
         $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
         if($request->trailer != null) {
-            $checkTrailer = TemporaryPark::where('trailer', '=', $request->trailer)->first();
-            $checkTrailer->delete();
+            $checkTrailer = TemporaryPark::where('trailer', '=', $request->trailer)->delete();
         }
         if($request->dummy != 0) {
             $DummyToAssign = $this->checkReUSE($request->dummy);
