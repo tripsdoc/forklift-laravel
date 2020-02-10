@@ -137,6 +137,8 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::get('unstuffing/checkTag', 'UnstuffingController@checkTag');
   Route::post('unstuffing/uploadphoto', 'UnstuffingController@uploadBreakdownGallery');
   Route::get('unstuffing/deleteBreakdownPhoto', 'UnstuffingController@deleteBreakdownPhoto');
+  Route::get('unstuffing/getPhotoHBL', 'UnstuffingController@getPhotoHBL');
+  Route::get('unstuffing/deleteHBLPhoto', 'UnstuffingController@deleteHBLPhoto');
 
   // Locate
   Route::get('locate/containerList', 'LocateController@getContainerList');
