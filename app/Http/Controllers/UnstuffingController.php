@@ -347,6 +347,23 @@ class UnstuffingController extends Controller
             'UpdatedDt' => date("Y-m-d H:i:s"),
             'UpdatedBy' => $request->get('UpdatedBy')
         ));
+        $palletInfo = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
+
+
+        $i = 1;
+        $rawPallet = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $palletInfo->InventoryID)->where('DelStatus', 'N')->orderBy('InventoryPalletID', 'ASC')->get();
+        foreach ($rawPallet as $key => $plt) {
+          DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $plt->InventoryPalletID)->update(array(
+            'SequenceNo' => $i++
+          ));
+        }
+        foreach ($rawPallet as $key => $plt) {
+          DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
+              'DelStatus' => 'Y',
+              'UpdatedDt' => date("Y-m-d H:i:s"),
+              'UpdatedBy' => $request->get('UpdatedBy')
+          ));
+        }
         $breakdown = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
         foreach ($breakdown as $key => $value) {
           DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $value->BreakDownID)->update(array(
