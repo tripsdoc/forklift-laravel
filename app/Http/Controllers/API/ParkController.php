@@ -100,6 +100,10 @@ class ParkController extends Controller
     function assignContainerToPark(Request $request) {
         date_default_timezone_set('Asia/Singapore');
         $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
+        if($request->trailer != null) {
+            $checkTrailer = TemporaryPark::where('trailer', '=', $request->trailer)->first();
+            $checkTrailer->delete();
+        }
         if($request->dummy != 0) {
             $DummyToAssign = $this->checkReUSE($request->dummy);
             $this->removeOldDummyFromOngoing($DummyToAssign);
@@ -131,6 +135,7 @@ class ParkController extends Controller
             $history->UnSetDt = date('Y-m-d H:i:s');
             $history->ParkingLot = $check->ParkingLot;
             $history->Dummy = $check->Dummy;
+            $history->trailer = $check->trailer;
             $history->createdBy = $request->user;
 
             if($history->save()){
@@ -169,6 +174,7 @@ class ParkController extends Controller
                 $history->UnSetDt = date('Y-m-d H:i:s');
                 $history->ParkingLot = $isParkAssign->ParkingLot;
                 $history->Dummy = $isParkAssign->Dummy;
+                $history->trailer = $isParkAssign->trailer;
                 $history->createdBy = $request->user;
                 $history->save();
             }
@@ -202,6 +208,7 @@ class ParkController extends Controller
         $history->UnSetDt = date('Y-m-d H:i:s');
         $history->ParkingLot = $check->ParkingLot;
         $history->Dummy = $check->Dummy;
+        $history->trailer = $check->trailer;
         $history->createdBy = $request->user;
 
         if($history->save()){
