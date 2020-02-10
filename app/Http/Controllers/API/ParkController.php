@@ -87,6 +87,20 @@ class ParkController extends Controller
         return response($response);
     }
 
+    function getContainerJson() {
+        $data = ContainerView::
+        whereNotNull('Status')
+        ->whereNotIn('Status', ['NEW', 'NOMINATED', 'PROCESSED', ''])->get();
+        $dataArray = array();
+        foreach($data as $key => $datas) {
+            $newdata = $this->formatContainer($datas);
+            array_push($dataArray, $newdata);
+        }
+        $response['status'] = !$data->isEmpty();
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+
     // -------------------------------------------------------------------------------------------------------------------------
     
     function removeOldDummyFromOngoing($dummy) {
@@ -243,6 +257,7 @@ class ParkController extends Controller
                         $ndt->createdDt = $temp->createdDt;
                         $ndt->updatedBy = $temp->updatedBy;
                         $ndt->updatedDt = $temp->updatedDt;
+                        $ndt->updatedFormatDt = (!empty($temp->updatedDt)) ? date('d/m H:i', strtotime($temp->updatedDt)) : "";
                         if(!empty($container)) {
                             $ndt->container = $this->formatData($container);
                         }
@@ -344,7 +359,6 @@ class ParkController extends Controller
         $loopdata->Client = $datas->Client;
         $loopdata->TruckTo = $datas->TruckTo;
         $loopdata->ImportExport = $datas["Import/Export"];
-        //$loopdata->IE = $datas["I/E"];
         $loopdata->LDPOD = $datas["LD/POD"];
         $loopdata->DeliverTo = $datas->DeliverTo;
         $loopdata->Prefix = $datas->Prefix;
@@ -385,7 +399,7 @@ class ParkController extends Controller
                 }
             }
         }
-        $loopdata->Driver = 2111;//$datas->Driver;
+        $loopdata->Driver = $datas->Driver;
         $loopdata->parkIn = (!empty($datas->ETA)) ? date('d/m H:i', strtotime($datas->ETA)) : "";
         $loopdata->parkOut = $datas["LD/POD"];
         return $loopdata;
