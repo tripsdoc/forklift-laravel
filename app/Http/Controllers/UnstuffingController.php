@@ -211,7 +211,7 @@ class UnstuffingController extends Controller
                 "DN" => is_null($value->DN) ? "" : $value->DN
             );
             array_push($pallet, $loopPallet);
-            $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $value->InventoryPalletID)->where('DelStatus', 'N')->get();
+            $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $value->InventoryPalletID)->where('DelStatus', 'N')->orderBy('BreakDownID', 'ASC')->get();
             $x            = 1;
             $lastFrom     = null;
             foreach ($rawBreakdown as $keyBreak => $break)
