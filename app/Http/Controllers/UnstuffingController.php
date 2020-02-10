@@ -296,10 +296,10 @@ class UnstuffingController extends Controller
             "ReservedDt" => $copy->ReservedDt,
             "ClearedDate" => $copy->ClearedDate,
             "DeliveryID" => $copy->DeliveryID,
-            "CreatedBy" => $copy->CreatedBy,
+            "CreatedBy" => $request->get('CreatedBy'),
             "CreatedDt" => date("Y-m-d h:i:s"),
-            "UpdatedBy" => $copy->UpdatedBy,
-            "UpdatedDt" => $copy->UpdatedDt,
+            "UpdatedBy" => "",
+            "UpdatedDt" => date("Y-m-d h:i:s"),
             "DelStatus" => $copy->DelStatus,
             "InterWhseFlag" => $copy->InterWhseFlag,
             "CurrentLocation" => $copy->CurrentLocation,
@@ -343,7 +343,9 @@ class UnstuffingController extends Controller
     {
 
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
-            'DelStatus' => 'Y'
+            'DelStatus' => 'Y',
+            'UpdatedDt' => date("Y-m-d H:i:s"),
+            'UpdatedBy' => $request->get('UpdatedBy')
         ));
         $breakdown = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
         foreach ($breakdown as $key => $value) {
@@ -351,6 +353,11 @@ class UnstuffingController extends Controller
               'DelStatus' => 'Y',
               'UpdatedDt' => date("Y-m-d H:i:s"),
               'UpdatedBy' => $request->get('UpdatedBy')
+          ));
+          DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->where('BreakDownID', $value->BreakDownID)->update(array(
+              'DelStatus' => 'Y',
+              'ModifyDt' => date("Y-m-d H:i:s"),
+              'ModifyBy' => $request->get('UpdatedBy')
           ));
         }
         $data = array(
@@ -371,10 +378,10 @@ class UnstuffingController extends Controller
             "Height" => (int) $breakdownRaw->Height,
             "Volume" => $breakdownRaw->Volume,
             "Remarks" => '',
-            "CreatedBy" => $breakdownRaw->CreatedBy,
-            "CreatedDt" => $breakdownRaw->CreatedDt,
-            "UpdatedBy" => $breakdownRaw->UpdatedBy,
-            "UpdatedDt" => $breakdownRaw->UpdatedDt,
+            "CreatedBy" => $request->get('CreatedBy'),
+            "CreatedDt" => date("Y-m-d H:i:s"),
+            "UpdatedBy" => "",
+            "UpdatedDt" => date("Y-m-d H:i:s"),
             "DelStatus" => $breakdownRaw->DelStatus,
             "Flags" => '',
             "Tally" => $breakdownRaw->Tally,
@@ -426,8 +433,7 @@ class UnstuffingController extends Controller
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
             $request->post('type') => $request->post('data'),
             'UpdatedDt' => date("Y-m-d H:i:s"),
-            'UpdatedBy' => $request->post('UpdatedBy'),
-            'UpdatedBy' => $request->get('UpdatedBy')
+            'UpdatedBy' => $request->post('UpdatedBy')
         ));
 
         $data = array(
@@ -507,7 +513,9 @@ class UnstuffingController extends Controller
     function deleteBreakdownPhoto(Request $request)
     {
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->where('InventoryPhotoID', $request->post('InventoryPhotoID'))->update(array(
-            'DelStatus' => 'Y'
+            'DelStatus' => 'Y',
+            'ModifyDt' => date("Y-m-d h:i:s"),
+            'ModifyBy' => $request->get('UpdatedBy'),
         ));
 
         $data = array(
@@ -563,10 +571,23 @@ class UnstuffingController extends Controller
     }
     public function getPhotoHBL(Request $request)
     {
-        $images = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_CntrPhoto')->where('CntrID', $request->get('CntrID'))->get();
+        $images = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_CntrPhoto')->where('CntrID', $request->get('CntrID'))->where('DelStatus', 'N')->get();
         $data = array(
             'status' => 'success',
             'images' => $images
+        );
+        return response($data);
+    }
+    function deleteHBLPhoto(Request $request)
+    {
+        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_CntrPhoto')->where('CntrPhotoID', $request->get('CntrPhotoID'))->update(array(
+            'DelStatus' => 'Y',
+            'ModifyDt' => date("Y-m-d H:i:s"),
+            'ModifyBy' => $request->get('UpdatedBy')
+        ));
+
+        $data = array(
+            'status' => "success"
         );
         return response($data);
     }
