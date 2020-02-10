@@ -276,7 +276,7 @@ class ParkController extends Controller
                 "availability" => ($temppark->isEmpty())? 1 : 0,
                 "temp" => $datatemparray,
                 "trailer" => (!$temppark->isEmpty())? $temppark[0]->trailer : null,
-                "textUpdated" => "Updated by " . $temppark->updatedBy . " on " . (!empty($temppark->updatedDt)) ? date('d/m H:i', strtotime($temppark->updatedDt)) : ""
+                "textUpdated" => (!$temppark->isEmpty())? "Updated by " . $temppark->updatedBy . " on " . (!empty($temppark->updatedDt)) ? date('d/m H:i', strtotime($temppark->updatedDt)) : "" : ""
             );
             array_push($dataArray, $loopData);
         }
