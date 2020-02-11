@@ -87,6 +87,20 @@ class ParkController extends Controller
         return response($response);
     }
 
+    function getContainerJson() {
+        $data = ContainerView::
+        whereNotNull('Status')
+        ->whereNotIn('Status', ['NEW', 'NOMINATED', 'PROCESSED', ''])->get();
+        $dataArray = array();
+        foreach($data as $key => $datas) {
+            $newdata = $this->formatContainer($datas);
+            array_push($dataArray, $newdata);
+        }
+        $response['status'] = !$data->isEmpty();
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+
     // -------------------------------------------------------------------------------------------------------------------------
     
     function removeOldDummyFromOngoing($dummy) {
@@ -100,6 +114,9 @@ class ParkController extends Controller
     function assignContainerToPark(Request $request) {
         date_default_timezone_set('Asia/Singapore');
         $check = TemporaryPark::where('ParkingLot', '=', $request->park)->first();
+        if($request->trailer != null) {
+            $checkTrailer = TemporaryPark::where('trailer', '=', $request->trailer)->delete();
+        }
         if($request->dummy != 0) {
             $DummyToAssign = $this->checkReUSE($request->dummy);
             $this->removeOldDummyFromOngoing($DummyToAssign);
@@ -113,6 +130,7 @@ class ParkController extends Controller
             $temp->Dummy = $DummyToAssign;
             $temp->createdBy = $request->user;
             $temp->updatedDt = date('Y-m-d H:i:s');
+            $temp->updatedBy = $request->user;
             $temp->trailer = $request->trailer;
             if($temp->save()) {
                 $response['status'] = TRUE;
@@ -131,6 +149,7 @@ class ParkController extends Controller
             $history->UnSetDt = date('Y-m-d H:i:s');
             $history->ParkingLot = $check->ParkingLot;
             $history->Dummy = $check->Dummy;
+            $history->trailer = $check->trailer;
             $history->createdBy = $request->user;
 
             if($history->save()){
@@ -169,6 +188,7 @@ class ParkController extends Controller
                 $history->UnSetDt = date('Y-m-d H:i:s');
                 $history->ParkingLot = $isParkAssign->ParkingLot;
                 $history->Dummy = $isParkAssign->Dummy;
+                $history->trailer = $isParkAssign->trailer;
                 $history->createdBy = $request->user;
                 $history->save();
             }
@@ -177,6 +197,7 @@ class ParkController extends Controller
             $newpark->Dummy = $DummyToAssign;
             $newpark->createdBy = $request->user;
             $newpark->updatedDt = date('Y-m-d H:i:s');
+            $newpark->updatedBy = $request->user;
             if($newpark->save()) {
                 $response['status'] = TRUE;
                 $response['data'] = $newpark;
@@ -202,6 +223,7 @@ class ParkController extends Controller
         $history->UnSetDt = date('Y-m-d H:i:s');
         $history->ParkingLot = $check->ParkingLot;
         $history->Dummy = $check->Dummy;
+        $history->trailer = $check->trailer;
         $history->createdBy = $request->user;
 
         if($history->save()){
@@ -253,7 +275,8 @@ class ParkController extends Controller
                 "type" => $datas->Type,
                 "availability" => ($temppark->isEmpty())? 1 : 0,
                 "temp" => $datatemparray,
-                "trailer" => (!$temppark->isEmpty())? $temppark[0]->trailer : null
+                "trailer" => (!$temppark->isEmpty())? $temppark[0]->trailer : null,
+                "textUpdated" => (!$temppark->isEmpty())? "Updated by " . $temppark[0]->updatedBy . " on " . date('d/m H:i', strtotime($temppark[0]->updatedDt)) : ""
             );
             array_push($dataArray, $loopData);
         }
@@ -338,7 +361,6 @@ class ParkController extends Controller
         $loopdata->Client = $datas->Client;
         $loopdata->TruckTo = $datas->TruckTo;
         $loopdata->ImportExport = $datas["Import/Export"];
-        //$loopdata->IE = $datas["I/E"];
         $loopdata->LDPOD = $datas["LD/POD"];
         $loopdata->DeliverTo = $datas->DeliverTo;
         $loopdata->Prefix = $datas->Prefix;
@@ -379,7 +401,7 @@ class ParkController extends Controller
                 }
             }
         }
-        $loopdata->Driver = 2111;//$datas->Driver;
+        $loopdata->Driver = $datas->Driver;
         $loopdata->parkIn = (!empty($datas->ETA)) ? date('d/m H:i', strtotime($datas->ETA)) : "";
         $loopdata->parkOut = $datas["LD/POD"];
         return $loopdata;

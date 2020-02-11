@@ -91,15 +91,20 @@ Route::group(['prefix' => 'check'], function () {
   Route::post('dummy', 'API\ParkController@getDialogDummy'); */
   Route::post('number', 'API\ParkController@getLikeContainer');
 });
-Route::get('trailerjson', 'API\ParkController@getTrailerJson');
-Route::post('parkjson', 'API\ParkController@getParkJson');
+Route::group(['prefix' => 'json'], function() {
+  Route::get('container', 'API\ParkController@getContainerJson');
+  Route::get('trailer', 'API\ParkController@getTrailerJson');
+  Route::post('park', 'API\ParkController@getParkJson');
+  Route::get('summary', 'API\HistoryController@getSummaryJson');
+});
+
 Route::get('temppark/today/{id}', 'API\ParkController@getCurrent');
 Route::post('temppark/update', 'API\ParkController@editContainer');
 Route::post('temppark/add', 'API\ParkController@bookPark');
 Route::get('temppark/dummy', 'API\ParkController@getDummy');
 Route::post('finish', 'API\ParkController@releasePark');
 Route::post('cancel', 'API\ParkController@cancelPark');
-Route::get('summaryjson', 'API\HistoryController@getSummaryJson');
+
 Route::post('cache', 'API\CacheController@retrieveFile');
 
 //Clerk API

@@ -97,6 +97,7 @@ class CacheController extends Controller
             $temp->Dummy = $DummyToAssign;
             $temp->trailer = $trailer;
             $temp->createdBy = $user;
+            $temp->updatedBy = $user;
             $temp->updatedDt = date('Y-m-d H:i:s');
             if($temp->save()) {
                 $response['status'] = TRUE;
@@ -112,6 +113,7 @@ class CacheController extends Controller
                 $history->UnSetDt = date('Y-m-d H:i:s');
                 $history->ParkingLot = $check->ParkingLot;
                 $history->Dummy = $check->Dummy;
+                $history->trailer = $check->trailer;
                 $history->createdBy = $user;
     
                 if($history->save()){
@@ -144,6 +146,7 @@ class CacheController extends Controller
             $history->UnSetDt = date('Y-m-d H:i:s');
             $history->ParkingLot = $check->ParkingLot;
             $history->Dummy = $check->Dummy;
+            $history->trailer = $check->trailer;
             $history->createdBy = $user;
     
             if($history->save()){
