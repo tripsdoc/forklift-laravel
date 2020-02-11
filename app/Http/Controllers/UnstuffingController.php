@@ -136,7 +136,7 @@ class UnstuffingController extends Controller
     }
     function getJobList(Request $request)
     {
-        $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test_V2.dbo.HSC_Inventory i, HSC2017Test_V2.dbo.HSC_InventoryPallet ip, HSC2017Test_V2.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $_GET['dummy'] . "' group by i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
+        $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.CheckStatus, i.SequenceNo, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test_V2.dbo.HSC_Inventory i, HSC2017Test_V2.dbo.HSC_InventoryPallet ip, HSC2017Test_V2.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $_GET['dummy'] . "' group by i.InventoryID, i.CheckStatus, i.SequenceNo, i.SequencePrefix, i.HBL, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
         $container = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->first();
         $data    = array(
             'count' => count($joblist),
@@ -607,6 +607,39 @@ class UnstuffingController extends Controller
             'ModifyBy' => $request->get('UpdatedBy')
         ));
 
+        $data = array(
+            'status' => "success"
+        );
+        return response($data);
+    }
+    public function checkInventory(Request $request)
+    {
+        $inventory = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->first();
+        $pallet    = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->select('InventoryPalletID', 'Tag')->where('InventoryID', $request->get('InventoryID'))->get();
+
+        $qty = 0;
+        $totalTag = 0;
+        $totalPhoto = 0;
+
+        foreach ($pallet as $key => $plt) {
+            if ($plt->Tag) {
+              $totalTag += 1;
+            }
+            $breakdown    = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->select('BreakDownID', 'Quantity')->where('InventoryPalletID', $plt->InventoryPalletID)->where('DelStatus', 'N')->get();
+            foreach ($breakdown as $key => $brk) {
+              $qty += $brk->Quantity;
+
+              $photo = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->select('InventoryPhotoID', 'DelStatus')->where('BreakDownID', $brk->BreakDownID)->where('DelStatus', 'N')->count();
+              $totalPhoto += $photo;
+            }
+        }
+
+        $MQty = (int) $inventory->MQuantity;
+        if ($MQty == $qty && $totalPhoto >= 1 && $totalTag >= 1) {
+          DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+              'CheckStatus' => 'Y'
+          ));
+        }
         $data = array(
             'status' => "success"
         );
