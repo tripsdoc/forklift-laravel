@@ -464,12 +464,14 @@ class UnstuffingController extends Controller
     }
     function updateBreakdownLBH(Request $request)
     {
+        $markings  = $request->post('Markings');
         $qty     = (int) $request->post('Qty') ? $request->post('Qty') : 0;
         $length  = (int) $request->post('L') ? $request->post('L') : 0;
         $breadth = (int) $request->post('B') ? $request->post('B') : 0;
         $height  = (int) $request->post('H') ? $request->post('H') : 0;
 
         $lbh = array(
+            'Markings' => $markings,
             'Quantity' => $qty,
             'Length' => $length,
             'Breadth' => $breadth,
