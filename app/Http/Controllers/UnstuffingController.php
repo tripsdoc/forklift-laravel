@@ -303,6 +303,7 @@ class UnstuffingController extends Controller
 
         DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
             'DelStatus' => 'Y',
+            'Tag' => '',
             'UpdatedDt' => date("Y-m-d H:i:s"),
             'UpdatedBy' => $request->get('UpdatedBy')
         ));
