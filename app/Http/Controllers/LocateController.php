@@ -62,10 +62,10 @@ class LocateController extends Controller
       } else {
           $datawarehouse = array_map('trim', explode(",", $getwarehouse));
       }
-      $result = DB::table('JobInfo AS JI')
-      ->join('ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
-      ->join('HSC_Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
-      ->join('HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+      $result = DB::table('HSC2012.dbo.JobInfo AS JI')
+      ->join('HSC2012.dbo.ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
+      ->join('Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
+      ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
       ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
       ->where('I.DelStatus', '=', 'N')
       ->where('IP.DelStatus', '=', 'N')
