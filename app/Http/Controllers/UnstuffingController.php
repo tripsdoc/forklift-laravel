@@ -111,19 +111,25 @@ class UnstuffingController extends Controller
             'SequenceNo' => max($listSequence) + 1,
             'HBL' => 'OVERLANDED',
             'DelStatus' => 'N',
-            'CheckStatus' => 'Y'
+            'CheckStatus' => 'Y',
+            'CreatedBy' => $request->get('CreatedBy'),
+            'CreatedDt' => date("Y-m-d h:i:s")
         );
         $InventoryID   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->insertGetId($inventory);
         $pallet            = array(
             'InventoryID' => $InventoryID,
             'SequenceNo' => 1,
-            'DelStatus' => 'N'
+            'DelStatus' => 'N',
+            'CreatedBy' => $request->get('CreatedBy'),
+            'CreatedDt' => date("Y-m-d h:i:s")
         );
         $inventoryPalletID   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->insertGetId($pallet);
         $breakdown            = array(
             'InventoryPalletID' => $inventoryPalletID,
             'Remarks' => 'OVERLANDED',
-            'DelStatus' => 'N'
+            'DelStatus' => 'N',
+            'CreatedBy' => $request->get('CreatedBy'),
+            'CreatedDt' => date("Y-m-d h:i:s")
         );
         $breakdownId   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->insertGetId($breakdown);
         $data    = array(
