@@ -618,6 +618,12 @@ class UnstuffingController extends Controller
                 'CheckStatus' => 'Y'
             ));
           }
+          elseif ($inventory->ToDGWhse == 1)
+          {
+            DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                'CheckStatus' => 'Y'
+            ));
+          }
           else
           {
             DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
