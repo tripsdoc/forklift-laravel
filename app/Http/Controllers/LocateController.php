@@ -70,8 +70,8 @@ class LocateController extends Controller
       ->where('I.DelStatus', '=', 'N')
       ->where('IP.DelStatus', '=', 'N')
       ->whereRaw("IP.Tag <> '' ")
-      ->where('JI.ClientID', $request->clientID)
-      ->where('CI.ContainerNumber', $request->containerNumber);
+      ->where('JI.ClientID', $_GET['clientID'])
+      ->where('CI.ContainerNumber', $_GET['containerNumber']);
       $result->Where(function($query) use($datawarehouse)
       {
           for($i=0;$i<count($datawarehouse);$i++){
@@ -87,5 +87,42 @@ class LocateController extends Controller
       $response['status'] = (count($data) > 0)? TRUE : FALSE;
       $response['data'] = $data;
       return response($response);
+  }
+
+  function debug() {
+    /* $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+    $getwarehouse = $_GET['warehouse'];
+    if($getwarehouse == "fullmap") {
+        $datawarehouse = ['108', '109', '110'];
+    }
+    else if ($getwarehouse == "full_12x") {
+        $datawarehouse = ['121', '122'];
+    } else {
+        $datawarehouse = array_map('trim', explode(",", $getwarehouse));
+    } */
+    $result = DB::table('HSC2012.dbo.JobInfo AS JI')
+    ->join('HSC2012.dbo.ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
+    ->join('Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
+    ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+    ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
+    ->where('I.DelStatus', '=', 'N')
+    ->where('IP.DelStatus', '=', 'N')
+    ->whereRaw("IP.Tag <> '' ")
+    ->where('CI.ContainerNumber', $_GET['containerNumber']);;
+    /* $result->Where(function($query) use($datawarehouse)
+    {
+        for($i=0;$i<count($datawarehouse);$i++){
+            if($i == 0) {
+                $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+            } else {
+                $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+            }
+        }
+    }); */
+    $result->select('IP.Tag', 'CI.ContainerNumber', 'JI.ClientID', 'TL.Zones', DB::raw("CASE WHEN I.StorageDate IS NOT NULL THEN 'EXPORT' WHEN ISNULL(I.POD,'') <> '' THEN 'TRANSHIPMENT' ELSE 'IMPORT' END TagColor"));
+    $data = $result->get();
+    $response['status'] = (count($data) > 0)? TRUE : FALSE;
+    $response['data'] = $data;
+    return response($response);
   }
 }
