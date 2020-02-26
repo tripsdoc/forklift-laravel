@@ -15,16 +15,6 @@ use Storage;
 use Validator;
 use View;
 
-/*
--- Create (Done)
--- Update (Done)
--- View (Done) Show with dialog(iframe) ?
--- Select data with checkbox (Edit and Cancel or Finish)
-    -- Show dialog with note are same
-    -- Show dialog with different note
--- Finish and Cancel (Done)
-*/
-
 class TemporaryParkController extends Controller
 {
     function index() {

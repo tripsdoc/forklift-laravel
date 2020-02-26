@@ -74,7 +74,6 @@ class ContainerController extends Controller
                 $nestedData['ContainerSize'] = $post->ContainerSize;
                 $nestedData['JobNumber'] = $post->JobNumber;
                 $nestedData['Action'] = "<a href='container/$post->Dummy' class='edit btn btn-primary btn-sm'>View</a>
-                                         <a href='container/$post->Dummy/edit' class='edit btn btn-warning btn-sm'>Edit</a>
                                          <form id='form-delete-$post->Dummy' style='display: inline-block;' class='pull-left' action='../container/$post->Dummy' method='POST'>
                                          ".csrf_field()."
                                             <input type='hidden' name='_method' value='DELETE'>

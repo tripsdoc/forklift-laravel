@@ -32,18 +32,19 @@ class HistoryController extends Controller
 
             $newdata = array();
             foreach($data as $key => $datas) {
-                $dataOnee = ContainerView::where('Dummy', '=', $datas->Dummy)->first();
-                $dataContainer = ContainerInfo::find($datas->Dummy);
                 $loopData = new \stdClass();
                 $loopData->id = $datas->HistoryID;
-                $loopData->containerNumber = $dataOnee->Prefix . $dataOnee->Number;
-                $loopData->size = (!empty($dataOnee->Type)) ? $dataOnee->Size . $dataOnee->Type : $dataOnee->Size;
-                $loopData->yard = $dataContainer->Yard;
-                $loopData->seal = $dataOnee->Seal;
-                $loopData->clientId = $dataOnee->Client;
+                $dataOnee = ContainerView::where('Dummy', '=', $datas->Dummy)->first();
+                $dataContainer = ContainerInfo::find($datas->Dummy);
+                $loopData->containerNumber = (!empty($dataOnee)) ? $dataOnee->Prefix . $dataOnee->Number : "";
+                $loopData->size = (!empty($dataOnee)) ? ((!empty($dataOnee->Type)) ? $dataOnee->Size . $dataOnee->Type : $dataOnee->Size) : "";
+                $loopData->seal = (!empty($dataOnee)) ? $dataOnee->Seal : "";
+                $loopData->clientId = (!empty($dataOnee)) ? $dataOnee->Client : "";
+                $loopData->yard = (!empty($dataContainer)) ? $dataContainer->Yard : "";
+                $loopData->estwt = (!empty($dataContainer->EstWt))? $dataContainer->EstWt : "";
                 $loopData->parkIn = date('d/m H:i', strtotime($datas->SetDt));
                 $loopData->parkOut = date('d/m', strtotime($datas->UnSetDt));
-                $loopData->estwt = (!empty($dataContainer->EstWt))? $dataContainer->EstWt : "";
+                $loopData->trailer = (!empty($datas->trailer)) ? $datas->trailer : "";
                 array_push($newdata, $loopData);
             }
             return DataTables::of($newdata)

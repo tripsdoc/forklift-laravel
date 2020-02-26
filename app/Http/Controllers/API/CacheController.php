@@ -68,27 +68,27 @@ class CacheController extends Controller
         return;
     }
 
+    function checkReUSE($dummy) {
+        $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
+        $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
+        ->where('Number', '=', $checkDummy->Number)
+        ->where('Import/Export', '=', 'Export')
+        ->where('YardRemarks', 'like', '%RE-USE%')
+        ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
+        ->first();
+        $DummyToAssign = (!empty($newOnee) && $newOnee != $dummy) ? $newOnee->Dummy : $dummy;
+        return $DummyToAssign;
+    }
+
     function assignContainerToPark($dummy, $park, $user, $trailer) {
         $textToReturn = date('Y-m-d H:i:s') . ", dummy: " . $dummy . ", park: " . $park . ", user: " . $user;
         date_default_timezone_set('Asia/Singapore');
-        if($dummy != 0) {
-            $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
-            //Get the export RE-USE dummy if had
-            $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
-            ->where('Number', '=', $checkDummy->Number)
-            ->where('Import/Export', '=', 'Export')
-            ->where('YardRemarks', 'like', '%RE-USE%')
-            ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
-            ->first();
-        }
         $check = TemporaryPark::where('ParkingLot', '=', $park)->first();
-        if(!empty($newOnee) && $newOnee != $dummy) {
-            $DummyToAssign = $newOnee->Dummy;
-        } else {
-            $DummyToAssign = $dummy;
-        }
-        if($DummyToAssign != 0) {
+        if($dummy != 0) {
+            $DummyToAssign = $this->checkReUSE($dummy);
             $this->removeOldDummyFromOngoing($DummyToAssign);
+        } else {
+            $DummyToAssign = 0;
         }
         if(empty($check)) {
             $temp = new TemporaryPark();

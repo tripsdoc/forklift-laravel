@@ -15,7 +15,9 @@ class LocateController extends Controller
       ); */
       $newdata = array();
       foreach($container as $key => $datas) {
+        $isActivityForStuffing = InventoryPallet::where('ExpCntrID', $datas->Dummy)->pluck('isActivityForStuffing')->first();
         $loopData = array(
+          "isActivityForStuffing" => $isActivityForStuffing,
           "Dummy" => $datas->Dummy,
           "ClientID" => $datas->ClientID,
           "POD" => $datas->POD,
