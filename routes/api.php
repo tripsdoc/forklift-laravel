@@ -139,10 +139,13 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::get('unstuffing/deleteBreakdownPhoto', 'UnstuffingController@deleteBreakdownPhoto');
   Route::get('unstuffing/getPhotoHBL', 'UnstuffingController@getPhotoHBL');
   Route::get('unstuffing/deleteHBLPhoto', 'UnstuffingController@deleteHBLPhoto');
+  Route::get('unstuffing/checkInventory', 'UnstuffingController@checkInventory');
 
   // Locate
   Route::get('locate/containerList', 'LocateController@getContainerList');
   Route::get('locate/containerList/tag', 'LocateController@getAllTagsByCN');
+  Route::post('locate/containerList/update', 'LocateController@updateStuffing');
+  Route::get('locate/debug', 'LocateController@debug');
 
   // Devices
 
