@@ -12,16 +12,16 @@
       <div class="card-body">
         {{ Html::ul($errors->all()) }}
 
-        {{ Form::model($data, array('route' => array('park.update', $data->id), 'method' => 'PUT')) }}
+        {{ Form::model($data, array('route' => array('park.update', $data->ParkID), 'method' => 'PUT')) }}
 
             <div class="form-group">
                 {{ Form::label('name', 'Park Name') }}
-                {{ Form::text('name', $data->name, array('class' => 'form-control')) }}
+                {{ Form::text('name', $data->Name, array('class' => 'form-control')) }}
             </div>
 
             <div class="form-group">
                 {{ Form::label('detail', 'Detail') }}
-                {{ Form::text('detail', $data->detail, array('class' => 'form-control')) }}
+                {{ Form::text('detail', $data->Detail, array('class' => 'form-control')) }}
             </div>
 
             {{ Form::submit('Update', array('class' => 'btn btn-primary')) }}
