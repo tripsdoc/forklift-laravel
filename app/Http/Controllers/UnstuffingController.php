@@ -65,7 +65,8 @@ class UnstuffingController extends Controller
             'StartTime' => date("Y-m-d H:i:s"),
             'NTunstuffingstatus' => "PROCESSING",
         ));
-
+        // mkdir("test");
+        // exec('cd /var/www/html/api/public/ && mkdir ' . $request->get('dummy'));
         $data = array(
             'status' => "success"
         );
@@ -449,11 +450,14 @@ class UnstuffingController extends Controller
     }
     function uploadBreakdownGallery(Request $request)
     {
+        $maxId = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->max('InventoryPhotoID');
         $cover     = $request->file('image');
         $image     = $cover->getClientOriginalName();
         $filename  = pathinfo($image, PATHINFO_FILENAME);
         $extension = pathinfo($image, PATHINFO_EXTENSION);
-        $finalName = $filename . '_' . time() . '.' . $extension;
+        // $finalName = $filename . '_' . time() . '.' . $extension;
+        $finalName = 'inventoryPhoto_' . $maxId . '.' . $extension;
+
         // temp folder
         Storage::disk('public')->put('temp/' . $finalName, File::get($cover));
 
@@ -508,11 +512,13 @@ class UnstuffingController extends Controller
     }
     function uploadPhotoHBL(Request $request)
     {
+        $maxId = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_CntrPhoto')->max('CntrPhotoID');
         $cover     = $request->file('image');
         $image     = $cover->getClientOriginalName();
         $filename  = pathinfo($image, PATHINFO_FILENAME);
         $extension = pathinfo($image, PATHINFO_EXTENSION);
-        $finalName = $filename . '_' . time() . '.' . $extension;
+        // $finalName = $filename . '_' . time() . '.' . $extension;
+        $finalName = 'cntrPhoto_' . $maxId . '.' . $extension;
         // temp folder
         Storage::disk('public')->put('temp/' . $finalName, File::get($cover));
 
