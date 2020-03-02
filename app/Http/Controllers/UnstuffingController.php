@@ -13,8 +13,8 @@ class UnstuffingController extends Controller
 {
     function getCurrentContainer(Request $request)
     {
-        $counter = DB::connection("sqlsrv3")->table('Testdb.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING')->first();
-        $count   = DB::connection("sqlsrv3")->table('Testdb.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING')->count();
+        $counter = DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING')->first();
+        $count   = DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING')->count();
         $data    = array(
             'dummy' => $counter ? $counter->Dummy : "",
             'counter' => $count
@@ -23,7 +23,7 @@ class UnstuffingController extends Controller
     }
     function getDetailImportsumary()
     {
-        $detail  = DB::connection("sqlsrv3")->select("select ji.ClientID, ci.SealNumber, ci.ContainerPrefix, ci.ContainerNumber,ci.ContainerSize, ci.ContainerType, ji.POD, ci.Bay, ci.Stevedore from Testdb.dbo.JobInfo ji, Testdb.dbo.ContainerInfo ci where ji.JobNumber = ci.JobNumber and ci.Dummy =  '" . $_GET['dummy'] . "'");
+        $detail  = DB::connection("sqlsrv3")->select("select ji.ClientID, ci.SealNumber, ci.ContainerPrefix, ci.ContainerNumber,ci.ContainerSize, ci.ContainerType, ji.POD, ci.Bay, ci.Stevedore from TestDB.dbo.JobInfo ji, TestDB.dbo.ContainerInfo ci where ji.JobNumber = ci.JobNumber and ci.Dummy =  '" . $_GET['dummy'] . "'");
         $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.CheckStatus, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test.dbo.HSC_Inventory i, HSC2017Test.dbo.HSC_InventoryPallet ip, HSC2017Test.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $_GET['dummy'] . "' group by i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.CheckStatus, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
         $check   = array();
         foreach ($joblist as $key => $value)
@@ -49,7 +49,7 @@ class UnstuffingController extends Controller
     }
     function updateBaySteveDore(Request $request)
     {
-        DB::connection("sqlsrv3")->table('Testdb.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+        DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
             $request->get('type') => $request->get('data')
         ));
 
@@ -60,7 +60,7 @@ class UnstuffingController extends Controller
     }
     function startJob(Request $request)
     {
-        DB::connection("sqlsrv3")->table('Testdb.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+        DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
             'TallyBy' => $request->get('TallyBy'),
             'StartTime' => date("Y-m-d H:i:s"),
             'NTunstuffingstatus' => "PROCESSING",
@@ -74,7 +74,7 @@ class UnstuffingController extends Controller
     }
     function finishJob(Request $request)
     {
-        DB::connection("sqlsrv3")->table('Testdb.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+        DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
             'TallyBy' => $request->get('TallyBy'),
             'Status' => 'EMPTY',
             'EndTime' => date("Y-m-d H:i:s"),
@@ -90,7 +90,7 @@ class UnstuffingController extends Controller
     function getJobList(Request $request)
     {
         $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.CheckStatus, i.SequenceNo, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test.dbo.HSC_Inventory i, HSC2017Test.dbo.HSC_InventoryPallet ip, HSC2017Test.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $_GET['dummy'] . "' group by i.InventoryID, i.CheckStatus, i.SequenceNo, i.SequencePrefix, i.HBL, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
-        $container = DB::connection("sqlsrv3")->table('Testdb.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->first();
+        $container = DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->first();
         $data    = array(
             'count' => count($joblist),
             'status' => "success",
