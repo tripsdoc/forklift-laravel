@@ -168,7 +168,6 @@ class UnstuffingController extends Controller
                 "InterWhseTo" => is_null($value->InterWhseTo) ? "" : $value->InterWhseTo,
                 "Tag" => is_null($value->Tag) ? "" : $value->Tag,
                 "Location" => is_null($value->Location) ? "" : $value->Location,
-                "DN" => is_null($value->DN) ? "" : $value->DN
             );
             array_push($pallet, $loopPallet);
             $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $value->InventoryPalletID)->where('DelStatus', 'N')->orderBy('BreakDownID', 'ASC')->get();
@@ -271,8 +270,7 @@ class UnstuffingController extends Controller
             "CurrentLocation" => $copy->CurrentLocation,
             "InterWhseTo" => $copy->InterWhseTo,
             "Tag" => "",
-            "Location" => "",
-            "DN" => $copy->DN
+            "Location" => ""
         );
         $store        = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->insertGetId($pallet);
         $breakdownRaw = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
