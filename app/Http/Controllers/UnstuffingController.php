@@ -41,7 +41,7 @@ class UnstuffingController extends Controller
     }
     public function detailimportsummary()
     {
-        $query = DB::connection("sqlsrv3")->select("select SequenceNo, SequencePrefix, HBL, POD, Note, MQuantity, Status from HSC2017.dbo.HSC_Inventory where CntrID ='" . $_GET['dummy'] . "' and Delstatus = 'N'");
+        $query = DB::connection("sqlsrv3")->select("select SequenceNo, SequencePrefix, HBL, POD, Note, MQuantity, Status from HSC2017.dbo.HSC_Inventory where CntrID ='" . $_GET['dummy'] . "' and Delstatus = 'N' ORDER BY SequenceNo ASC");
         $data  = array(
             'data' => $query
         );
