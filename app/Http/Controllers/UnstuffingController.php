@@ -213,7 +213,7 @@ class UnstuffingController extends Controller
                 "CurrentLocation" => is_null($value->CurrentLocation) ? "" : $value->CurrentLocation,
                 "InterWhseTo" => is_null($value->InterWhseTo) ? "" : $value->InterWhseTo,
                 "Tag" => is_null($value->Tag) ? "" : $value->Tag,
-                "Location" => is_null($value->Location) ? "" : $value->Location,
+                "Location" => is_null($value->Location) ? "" : $value->Location
             );
             array_push($DeliveryID, is_null($value->DeliveryID) ? 0 : 1);
             array_push($pallet, $loopPallet);
