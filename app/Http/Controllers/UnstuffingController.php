@@ -13,8 +13,8 @@ class UnstuffingController extends Controller
 {
     function getCurrentContainer(Request $request)
     {
-        $counter = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING')->first();
-        $count   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING')->count();
+        $counter = DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING')->first();
+        $count   = DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING')->count();
         $data    = array(
             'dummy' => $counter ? $counter->Dummy : "",
             'counter' => $count
@@ -23,8 +23,8 @@ class UnstuffingController extends Controller
     }
     function getDetailImportsumary()
     {
-        $detail  = DB::connection("sqlsrv3")->select("select ji.ClientID, ci.SealNumber, ci.ContainerPrefix, ci.ContainerNumber,ci.ContainerSize, ci.ContainerType, ji.POD, ci.Bay, ci.Stevedore from HSC2017Test_V2.dbo.JobInfo ji, HSC2017Test_V2.dbo.ContainerInfo ci where ji.JobNumber = ci.JobNumber and ci.Dummy =  '" . $_GET['dummy'] . "'");
-        $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.CheckStatus, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test_V2.dbo.HSC_Inventory i, HSC2017Test_V2.dbo.HSC_InventoryPallet ip, HSC2017Test_V2.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $_GET['dummy'] . "' group by i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.CheckStatus, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
+        $detail  = DB::connection("sqlsrv3")->select("select ji.ClientID, ci.SealNumber, ci.ContainerPrefix, ci.ContainerNumber,ci.ContainerSize, ci.ContainerType, ji.POD, ci.Bay, ci.Stevedore from TestDB.dbo.JobInfo ji, TestDB.dbo.ContainerInfo ci where ji.JobNumber = ci.JobNumber and ci.Dummy =  '" . $_GET['dummy'] . "'");
+        $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.CheckStatus, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test.dbo.HSC_Inventory i, HSC2017Test.dbo.HSC_InventoryPallet ip, HSC2017Test.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $_GET['dummy'] . "' group by i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.CheckStatus, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
         $check   = array();
         foreach ($joblist as $key => $value)
         {
@@ -41,7 +41,7 @@ class UnstuffingController extends Controller
     }
     public function detailimportsummary()
     {
-        $query = DB::connection("sqlsrv3")->select("select SequenceNo, SequencePrefix, HBL, POD, Note, MQuantity, Status from HSC2017Test_V2.dbo.HSC_Inventory where CntrID ='" . $_GET['dummy'] . "' and Delstatus = 'N'");
+        $query = DB::connection("sqlsrv3")->select("select SequenceNo, SequencePrefix, HBL, POD, Note, MQuantity, Status from HSC2017Test.dbo.HSC_Inventory where CntrID ='" . $_GET['dummy'] . "' and Delstatus = 'N' ORDER BY SequenceNo ASC");
         $data  = array(
             'data' => $query
         );
@@ -49,7 +49,7 @@ class UnstuffingController extends Controller
     }
     function updateBaySteveDore(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+        DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
             $request->get('type') => $request->get('data')
         ));
 
@@ -60,12 +60,13 @@ class UnstuffingController extends Controller
     }
     function startJob(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+        DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
             'TallyBy' => $request->get('TallyBy'),
             'StartTime' => date("Y-m-d H:i:s"),
             'NTunstuffingstatus' => "PROCESSING",
         ));
-
+        // mkdir("test");
+        // exec('cd /var/www/html/api/public/ && mkdir ' . $request->get('dummy'));
         $data = array(
             'status' => "success"
         );
@@ -73,7 +74,7 @@ class UnstuffingController extends Controller
     }
     function finishJob(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+        DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
             'TallyBy' => $request->get('TallyBy'),
             'Status' => 'EMPTY',
             'EndTime' => date("Y-m-d H:i:s"),
@@ -88,8 +89,8 @@ class UnstuffingController extends Controller
     }
     function getJobList(Request $request)
     {
-        $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.CheckStatus, i.SequenceNo, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test_V2.dbo.HSC_Inventory i, HSC2017Test_V2.dbo.HSC_InventoryPallet ip, HSC2017Test_V2.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $_GET['dummy'] . "' group by i.InventoryID, i.CheckStatus, i.SequenceNo, i.SequencePrefix, i.HBL, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
-        $container = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->first();
+        $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.CheckStatus, i.SequenceNo, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test.dbo.HSC_Inventory i, HSC2017Test.dbo.HSC_InventoryPallet ip, HSC2017Test.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $_GET['dummy'] . "' group by i.InventoryID, i.CheckStatus, i.SequenceNo, i.SequencePrefix, i.HBL, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
+        $container = DB::connection("sqlsrv3")->table('TestDB.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->first();
         $data    = array(
             'count' => count($joblist),
             'status' => "success",
@@ -100,7 +101,7 @@ class UnstuffingController extends Controller
     }
     function addOverlanded(Request $request)
     {
-        $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test_V2.dbo.HSC_Inventory i, HSC2017Test_V2.dbo.HSC_InventoryPallet ip, HSC2017Test_V2.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $request->get('Dummy') . "' group by i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
+        $joblist = DB::connection("sqlsrv3")->select("select i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) Quantity, i.MQuantity, i.MVolume, i.Status, i.MWeight, i.POD, max(ib.Remarks) Remarks from HSC2017Test.dbo.HSC_Inventory i, HSC2017Test.dbo.HSC_InventoryPallet ip, HSC2017Test.dbo.HSC_InventoryBreakdown ib where i.InventoryID = ip.InventoryID and ip.InventoryPalletID = ib.InventoryPalletID and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' and i.CntrID = '" . $request->get('Dummy') . "' group by i.InventoryID, i.SequenceNo, i.SequencePrefix, i.HBL, i.MQuantity, i.MVolume, i.MWeight, i.Status, i.POD");
         $listSequence = array();
         foreach ($joblist as $key => $value) {
           $numberSequence = $value->SequenceNo;
@@ -115,7 +116,7 @@ class UnstuffingController extends Controller
             'CreatedBy' => $request->get('CreatedBy'),
             'CreatedDt' => date("Y-m-d h:i:s")
         );
-        $InventoryID   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->insertGetId($inventory);
+        $InventoryID   = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_Inventory')->insertGetId($inventory);
         $pallet            = array(
             'InventoryID' => $InventoryID,
             'SequenceNo' => 1,
@@ -123,7 +124,7 @@ class UnstuffingController extends Controller
             'CreatedBy' => $request->get('CreatedBy'),
             'CreatedDt' => date("Y-m-d h:i:s")
         );
-        $inventoryPalletID   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->insertGetId($pallet);
+        $inventoryPalletID   = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->insertGetId($pallet);
         $breakdown            = array(
             'InventoryPalletID' => $inventoryPalletID,
             'Remarks' => 'OVERLANDED',
@@ -131,7 +132,7 @@ class UnstuffingController extends Controller
             'CreatedBy' => $request->get('CreatedBy'),
             'CreatedDt' => date("Y-m-d h:i:s")
         );
-        $breakdownId   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->insertGetId($breakdown);
+        $breakdownId   = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->insertGetId($breakdown);
         $data    = array(
             'status' => "success",
             'data' => $inventory
@@ -142,7 +143,7 @@ class UnstuffingController extends Controller
     {
         $pallet    = array();
         $breakdown = array();
-        $rawPallet = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $_GET['inventoryid'])->where('DelStatus', 'N')->orderBy('InventoryPalletID', 'ASC')->get();
+        $rawPallet = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('InventoryID', $_GET['inventoryid'])->where('DelStatus', 'N')->orderBy('InventoryPalletID', 'ASC')->get();
         $i         = 1;
         foreach ($rawPallet as $key => $value)
         {
@@ -166,19 +167,18 @@ class UnstuffingController extends Controller
                 "CurrentLocation" => is_null($value->CurrentLocation) ? "" : $value->CurrentLocation,
                 "InterWhseTo" => is_null($value->InterWhseTo) ? "" : $value->InterWhseTo,
                 "Tag" => is_null($value->Tag) ? "" : $value->Tag,
-                "Location" => is_null($value->Location) ? "" : $value->Location,
-                "DN" => is_null($value->DN) ? "" : $value->DN
+                "Location" => is_null($value->Location) ? "" : $value->Location
             );
             array_push($pallet, $loopPallet);
-            $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $value->InventoryPalletID)->where('DelStatus', 'N')->orderBy('BreakDownID', 'ASC')->get();
+            $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $value->InventoryPalletID)->where('DelStatus', 'N')->orderBy('BreakDownID', 'ASC')->get();
             $x            = 1;
             $lastFrom     = null;
             foreach ($rawBreakdown as $keyBreak => $break)
             {
-                $images   = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->where('BreakDownID', $break->BreakDownID)->where('DelStatus', 'N')->get();
+                $images   = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPhoto')->where('BreakDownID', $break->BreakDownID)->where('DelStatus', 'N')->get();
                 $lastFrom = $break->InventoryPalletID;
 
-                $flag         = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'flag')->get();
+                $flag         = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.Checklist')->where('Category', 'flag')->get();
                 $flagSelected = array();
                 $flagShow = array();
                 // dd($flag);
@@ -230,9 +230,9 @@ class UnstuffingController extends Controller
                 array_push($breakdown, $loopBreakdown);
             }
         }
-        $typeChecklist  = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'type')->get();
-        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'flag')->get();
-        $locations      = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'location')->get();
+        $typeChecklist  = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.Checklist')->where('Category', 'type')->get();
+        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.Checklist')->where('Category', 'flag')->get();
+        $locations      = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.Checklist')->where('Category', 'location')->get();
         $data           = array(
             'status' => "success",
             'pallet' => $pallet,
@@ -245,8 +245,8 @@ class UnstuffingController extends Controller
     }
     function copyPallet(Request $request)
     {
-        $copy          = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
-        $listAvailable = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $copy->InventoryID)->where('DelStatus', 'N')->get();
+        $copy          = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
+        $listAvailable = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('InventoryID', $copy->InventoryID)->where('DelStatus', 'N')->get();
         $listSequence = array();
         foreach ($listAvailable as $key => $value) {
           $numberSequence = $value->SequenceNo;
@@ -270,11 +270,10 @@ class UnstuffingController extends Controller
             "CurrentLocation" => $copy->CurrentLocation,
             "InterWhseTo" => $copy->InterWhseTo,
             "Tag" => "",
-            "Location" => "",
-            "DN" => $copy->DN
+            "Location" => ""
         );
-        $store        = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->insertGetId($pallet);
-        $breakdownRaw = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
+        $store        = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->insertGetId($pallet);
+        $breakdownRaw = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
         // dd($breakdownRaw);
         foreach ($breakdownRaw as $key => $valueBreakdown)
         {
@@ -297,7 +296,7 @@ class UnstuffingController extends Controller
                 "Tally" => $valueBreakdown->Tally,
                 "Weight" => $valueBreakdown->Weight
             );
-            DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->insert($breakdown);
+            DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->insert($breakdown);
         }
         $data = array(
             'status' => "success"
@@ -307,35 +306,35 @@ class UnstuffingController extends Controller
     function deletePallet(Request $request)
     {
 
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
+        DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
             'DelStatus' => 'Y',
             'Tag' => '',
             'UpdatedDt' => date("Y-m-d H:i:s"),
             'UpdatedBy' => $request->get('UpdatedBy')
         ));
-        $palletInfo = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
+        $palletInfo = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
         $i = 1;
-        $rawPallet = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryID', $palletInfo->InventoryID)->where('DelStatus', 'N')->orderBy('InventoryPalletID', 'ASC')->get();
+        $rawPallet = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('InventoryID', $palletInfo->InventoryID)->where('DelStatus', 'N')->orderBy('InventoryPalletID', 'ASC')->get();
         foreach ($rawPallet as $key => $plt) {
-          DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $plt->InventoryPalletID)->update(array(
+          DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $plt->InventoryPalletID)->update(array(
             'SequenceNo' => $i++
           ));
         }
         foreach ($rawPallet as $key => $plt) {
-          DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
+          DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
               'DelStatus' => 'Y',
               'UpdatedDt' => date("Y-m-d H:i:s"),
               'UpdatedBy' => $request->get('UpdatedBy')
           ));
         }
-        $breakdown = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
+        $breakdown = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
         foreach ($breakdown as $key => $value) {
-          DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $value->BreakDownID)->update(array(
+          DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $value->BreakDownID)->update(array(
               'DelStatus' => 'Y',
               'UpdatedDt' => date("Y-m-d H:i:s"),
               'UpdatedBy' => $request->get('UpdatedBy')
           ));
-          DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->where('BreakDownID', $value->BreakDownID)->update(array(
+          DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPhoto')->where('BreakDownID', $value->BreakDownID)->update(array(
               'DelStatus' => 'Y',
               'ModifyDt' => date("Y-m-d H:i:s"),
               'ModifyBy' => $request->get('UpdatedBy')
@@ -348,7 +347,7 @@ class UnstuffingController extends Controller
     }
     function addBreakdown(Request $request)
     {
-        $breakdownRaw = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
+        $breakdownRaw = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
         $breakdown    = array(
             "InventoryPalletID" => (int) $breakdownRaw->InventoryPalletID,
             "Markings" => $breakdownRaw->Markings,
@@ -368,7 +367,7 @@ class UnstuffingController extends Controller
             "Tally" => $breakdownRaw->Tally,
             "Weight" => $breakdownRaw->Weight
         );
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->insert($breakdown);
+        DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->insert($breakdown);
         $data = array(
             'status' => "success"
         );
@@ -376,7 +375,7 @@ class UnstuffingController extends Controller
     }
     function deleteBreakdown(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->get('BreakDownID'))->update(array(
+        DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->get('BreakDownID'))->update(array(
             'DelStatus' => 'Y',
             'UpdatedDt' => date("Y-m-d H:i:s"),
             'UpdatedBy' => $request->get('UpdatedBy')
@@ -389,7 +388,7 @@ class UnstuffingController extends Controller
     }
     public function updateBreakdown(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
+        DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
             $request->post('type') => $request->post('data'),
             'UpdatedDt' => date("Y-m-d H:i:s"),
             'UpdatedBy' => $request->get('UpdatedBy')
@@ -402,7 +401,7 @@ class UnstuffingController extends Controller
     }
     public function checkTag(Request $request)
     {
-        $count = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('Tag', $request->get('Tag'))->count();
+        $count = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('Tag', $request->get('Tag'))->count();
 
         $data = array(
             'status' => $count >= 1 ? false : true,
@@ -411,7 +410,7 @@ class UnstuffingController extends Controller
     }
     public function updatePallet(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
+        DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
             $request->post('type') => $request->post('data'),
             'UpdatedDt' => date("Y-m-d H:i:s"),
             'UpdatedBy' => $request->post('UpdatedBy')
@@ -440,7 +439,7 @@ class UnstuffingController extends Controller
             'UpdatedDt' => date("Y-m-d H:i:s"),
             'UpdatedBy' => $request->get('UpdatedBy')
         );
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update($lbh);
+        DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update($lbh);
         $data = array(
             'status' => "success",
             'volume' => sprintf("%.3f", ($qty * $length * $breadth * $height) / 1000000)
@@ -449,11 +448,14 @@ class UnstuffingController extends Controller
     }
     function uploadBreakdownGallery(Request $request)
     {
+        $maxId = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPhoto')->max('InventoryPhotoID');
         $cover     = $request->file('image');
         $image     = $cover->getClientOriginalName();
         $filename  = pathinfo($image, PATHINFO_FILENAME);
         $extension = pathinfo($image, PATHINFO_EXTENSION);
-        $finalName = $filename . '_' . time() . '.' . $extension;
+        // $finalName = $filename . '_' . time() . '.' . $extension;
+        $finalName = 'inventoryPhoto_' . $maxId . '.' . $extension;
+
         // temp folder
         Storage::disk('public')->put('temp/' . $finalName, File::get($cover));
 
@@ -483,7 +485,7 @@ class UnstuffingController extends Controller
             'Emailed' => null,
             'PhotoNameSystem' => $finalName
         );
-        $id = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->insertGetId($dataImg);
+        $id = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPhoto')->insertGetId($dataImg);
         $data = array(
             'status' => 'success',
             'last_photo' => array(
@@ -495,7 +497,7 @@ class UnstuffingController extends Controller
     }
     function deleteBreakdownPhoto(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->where('InventoryPhotoID', $request->post('InventoryPhotoID'))->update(array(
+        DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPhoto')->where('InventoryPhotoID', $request->post('InventoryPhotoID'))->update(array(
             'DelStatus' => 'Y',
             'ModifyDt' => date("Y-m-d h:i:s"),
             'ModifyBy' => $request->get('UpdatedBy'),
@@ -508,11 +510,13 @@ class UnstuffingController extends Controller
     }
     function uploadPhotoHBL(Request $request)
     {
+        $maxId = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_CntrPhoto')->max('CntrPhotoID');
         $cover     = $request->file('image');
         $image     = $cover->getClientOriginalName();
         $filename  = pathinfo($image, PATHINFO_FILENAME);
         $extension = pathinfo($image, PATHINFO_EXTENSION);
-        $finalName = $filename . '_' . time() . '.' . $extension;
+        // $finalName = $filename . '_' . time() . '.' . $extension;
+        $finalName = 'cntrPhoto_' . $maxId . '.' . $extension;
         // temp folder
         Storage::disk('public')->put('temp/' . $finalName, File::get($cover));
 
@@ -542,7 +546,7 @@ class UnstuffingController extends Controller
             'Emailed' => null,
             'PhotoNameSystem' => $finalName
         );
-        $id = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_CntrPhoto')->insertGetId($dataImg);
+        $id = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_CntrPhoto')->insertGetId($dataImg);
         $data = array(
             'status' => 'success',
             'last_photo' => array(
@@ -554,7 +558,7 @@ class UnstuffingController extends Controller
     }
     public function getPhotoHBL(Request $request)
     {
-        $images = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_CntrPhoto')->where('CntrID', $request->get('CntrID'))->where('DelStatus', 'N')->get();
+        $images = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_CntrPhoto')->where('CntrID', $request->get('CntrID'))->where('DelStatus', 'N')->get();
         $data = array(
             'status' => 'success',
             'images' => $images
@@ -563,7 +567,7 @@ class UnstuffingController extends Controller
     }
     function deleteHBLPhoto(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_CntrPhoto')->where('CntrPhotoID', $request->get('CntrPhotoID'))->update(array(
+        DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_CntrPhoto')->where('CntrPhotoID', $request->get('CntrPhotoID'))->update(array(
             'DelStatus' => 'Y',
             'ModifyDt' => date("Y-m-d H:i:s"),
             'ModifyBy' => $request->get('UpdatedBy')
@@ -576,8 +580,8 @@ class UnstuffingController extends Controller
     }
     public function checkInventory(Request $request)
     {
-        $inventory = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->first();
-        $pallet    = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPallet')->select('InventoryPalletID', 'Tag')->where('InventoryID', $request->get('InventoryID'))->get();
+        $inventory = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->first();
+        $pallet    = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPallet')->select('InventoryPalletID', 'Tag')->where('InventoryID', $request->get('InventoryID'))->get();
         if ($inventory->HBL == 'OVERLANDED') {
           $data = array(
               'status' => "success"
@@ -592,11 +596,11 @@ class UnstuffingController extends Controller
               if ($plt->Tag) {
                 $totalTag += 1;
               }
-              $breakdown    = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryBreakdown')->select('BreakDownID', 'Quantity', 'Flags')->where('InventoryPalletID', $plt->InventoryPalletID)->where('DelStatus', 'N')->get();
+              $breakdown    = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryBreakdown')->select('BreakDownID', 'Quantity', 'Flags')->where('InventoryPalletID', $plt->InventoryPalletID)->where('DelStatus', 'N')->get();
               foreach ($breakdown as $key => $brk) {
                 $qty += $brk->Quantity;
 
-                $photo = DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_InventoryPhoto')->select('InventoryPhotoID', 'DelStatus')->where('BreakDownID', $brk->BreakDownID)->where('DelStatus', 'N')->count();
+                $photo = DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_InventoryPhoto')->select('InventoryPhotoID', 'DelStatus')->where('BreakDownID', $brk->BreakDownID)->where('DelStatus', 'N')->count();
                 $totalPhoto += $photo;
                 if (in_array('SHORTLANDED', str_replace(' ', '', explode(',', $brk->Flags))))
                 {
@@ -608,25 +612,25 @@ class UnstuffingController extends Controller
           $MQty = (int) $inventory->MQuantity;
           if (in_array('yes', $check))
           {
-            DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+            DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
                 'CheckStatus' => 'Y'
             ));
           }
           else if($MQty == $qty && $totalPhoto >= 1 && $totalTag >= 1)
           {
-            DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+            DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
                 'CheckStatus' => 'Y'
             ));
           }
           elseif ($inventory->ToDGWhse == 1)
           {
-            DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+            DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
                 'CheckStatus' => 'Y'
             ));
           }
           else
           {
-            DB::connection("sqlsrv3")->table('HSC2017Test_V2.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+            DB::connection("sqlsrv3")->table('HSC2017Test.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
                 'CheckStatus' => 'N'
             ));
           }
