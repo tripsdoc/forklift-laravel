@@ -48,6 +48,17 @@ class DeviceController extends Controller
         return $response;
     }
 
+    function clerkCheckDevice(Request $request) {
+        $serial = $request->get('serial_number');
+        $result = DeviceInfo::where('SerialNumber', '=', $serial)->first();
+        $data    = array(
+            'status' => $result ? true : false,
+            'warehouses' => $result ? $result->WareHouses : 0,
+            'isActive' => $result ? $result->IsActive == 1 ? true : false : false,
+        );
+        return response($data);
+    }
+
     function getUpdate() {
         //return response()->file(public_path('latest.apk'));
         return Storage::download('out.apatch', 'out.apatch', ['Connection' => 'keep-alive']);

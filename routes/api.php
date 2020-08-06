@@ -112,6 +112,7 @@ Route::post('cache', 'API\CacheController@retrieveFile');
 Route::group(['prefix' => 'clerk'], function () {
   // Authentication
   Route::post('login', 'LoginController@loginClerk');
+  Route::get('checkDevice', 'API\DeviceController@clerkCheckDevice');
 
   Route::get('user', 'LoginController@getUserData');
   // Global Data
@@ -124,6 +125,9 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::post('unstuffing/startjob', 'UnstuffingController@startJob');
   Route::post('unstuffing/finishjob', 'UnstuffingController@finishJob');
   Route::get('unstuffing/joblist', 'UnstuffingController@getJobList');
+  Route::get('unstuffing/checkLockedInventory', 'UnstuffingController@checkLockedInventory');
+  
+  Route::post('unstuffing/updateLockedInventory', 'UnstuffingController@updateLockedInventory');
   Route::post('unstuffing/addoverlanded', 'UnstuffingController@addOverlanded');
   Route::post('unstuffing/uploadPhotoHBL', 'UnstuffingController@uploadPhotoHBL');
   Route::get('unstuffing/palletbreakdown', 'UnstuffingController@getPalletBreakdown');
@@ -141,16 +145,54 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::get('unstuffing/getPhotoHBL', 'UnstuffingController@getPhotoHBL');
   Route::get('unstuffing/deleteHBLPhoto', 'UnstuffingController@deleteHBLPhoto');
   Route::get('unstuffing/checkInventory', 'UnstuffingController@checkInventory');
+  Route::get('unstuffing/testSmb', 'UnstuffingController@testSmb');
 
   // Locate
   Route::get('locate/containerList', 'LocateController@getContainerList');
   Route::get('locate/containerList/tag', 'LocateController@getAllTagsByCN');
   Route::post('locate/containerList/update', 'LocateController@updateStuffing');
   Route::get('locate/debug', 'LocateController@debug');
+  Route::get('locate/debugdummy', 'LocateController@getByDummy');
 
   // Devices
 
   // ReceivingController
+  Route::get('receiving/checkLockedInventory', 'ReceivingController@checkLockedInventory');
+  Route::post('receiving/updateLockedInventory', 'ReceivingController@updateLockedInventory');
   Route::get('receiving/summary', 'ReceivingController@getSummary');
+  Route::get('receiving/list', 'ReceivingController@getReceivingList');
+  Route::get('receiving/palletbreakdown', 'ReceivingController@getPalletBreakdown');
+  Route::get('receiving/copypallet', 'ReceivingController@copyPallet');
+  Route::get('receiving/deletepallet', 'ReceivingController@deletePallet');
+  Route::get('receiving/addbreakdown', 'ReceivingController@addBreakdown');
+  Route::get('receiving/deletebreakdown', 'ReceivingController@deleteBreakdown');
+  Route::post('receiving/updatebreakdown', 'ReceivingController@updateBreakdown');
+  Route::post('receiving/updatebreakdownLBH', 'ReceivingController@updateBreakdownLBH');
+  Route::post('receiving/updatepallet', 'ReceivingController@updatePallet');
+  Route::get('receiving/checkTag', 'ReceivingController@checkTag');
+  Route::post('receiving/uploadphoto', 'ReceivingController@uploadBreakdownGallery');
+  Route::get('receiving/deleteBreakdownPhoto', 'ReceivingController@deleteBreakdownPhoto');
+  Route::get('receiving/getPhotoHBL', 'ReceivingController@getPhotoHBL');
+  Route::get('receiving/deleteHBLPhoto', 'ReceivingController@deleteHBLPhoto');
+  Route::get('receiving/checkInventory', 'ReceivingController@checkInventory');
+  
+  // Release
+  Route::get('release/getClient', 'ReleaseController@getClient');
+  Route::get('release/checkHBL', 'ReleaseController@checkHBL');
+  Route::get('release/searchhbl', 'ReleaseController@searchHBL');
+  Route::post('release/uploadphoto', 'ReleaseController@uploadBreakdownGallery');
+  Route::get('release/unTick', 'ReleaseController@unTick');
 
+  //Stuffing
+  Route::get('stuffing/exportSummary', 'StuffingController@exportSummary');
+  Route::get('stuffing/detailExport', 'StuffingController@detailExport');
+  Route::get('stuffing/currentContainer', 'StuffingController@getCurrentContainer');
+  Route::post('stuffing/updateContainerInfo', 'StuffingController@updateContainerInfo');
+  Route::post('stuffing/startjob', 'StuffingController@startJob');
+  Route::post('stuffing/finishJob', 'StuffingController@finishJob');
+  
+  Route::get('stuffing/inventorylist', 'StuffingController@InventoryList');
+  Route::post('stuffing/updateShutout', 'StuffingController@updateShutout');
+  Route::get('stuffing/palletbreakdown', 'StuffingController@getPalletBreakdown');
+  
 });

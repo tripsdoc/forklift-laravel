@@ -32,7 +32,7 @@ class LoginController extends Controller
     }
     function loginClerk(Request $request)
     {
-        $check = DB::table('ForkliftUser')
+        $check = DB::connection("sqlsrv3")->table('HSC_IPS.dbo.IpsUser')
         ->where('UserName', $request->username)
         ->where('Password', $request->password)->first();
 
