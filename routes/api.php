@@ -26,6 +26,7 @@ Route::post('device/register', 'API\DeviceController@registerDevice');
 //Forklift API
 Route::group(['prefix' => 'forklift'], function () {
   //Retrieve Route
+  Route::get('retrieve/debug', 'RetrieveController@debugTag');
   Route::get('retrieve/deliverynotes', 'RetrieveController@getDeliveryNotes');
   Route::get('retrieve', 'RetrieveController@getTags');
   //Store Route

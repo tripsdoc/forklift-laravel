@@ -12,6 +12,32 @@ use App\InventoryBreakdown;
 
 class RetrieveController extends Controller
 {
+    function debugTag() {
+        /* $result = DB::table('InventoryPallet AS IP')
+        ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        ->whereExists(function($query) {
+            $query->select(DB::raw(1))
+                ->from('InventoryPallet AS IP1')
+                ->join('TagLocationLatest AS TL', 'IP1.Tag', '=', 'TL.Id')
+                ->where('IP1.DelStatus', '=', 'N')
+                ->where('IP1.DN', '>', 0)
+                ->whereRaw("IP1.Tag <> ''")
+                ->where('TL.Zones', 'like', '%"name": "' . $_GET['warehouse'] . '%')
+                ->whereColumn('IP1.DeliveryID', 'IP.DeliveryID');
+        })
+        ->where('IP.DN', 341)->get(); */
+        $result = DB::table('InventoryPallet AS IP1')
+        ->join('TagLocationLatest AS TL', 'IP1.Tag', '=', 'TL.Id')
+        ->where('IP1.DelStatus', '=', 'N')
+        ->where('IP1.DN', '>', 0)
+        ->whereRaw("IP1.Tag <> ''")
+        ->where('TL.Zones', 'like', '%"name": "' . $_GET['warehouse'] . '"%')
+        ->get();
+        /* $result = DB::table('TagLocationLatest')
+        ->where('Id', '=', '192399c60764')->get(); */
+        $response['data'] = $result;
+        return response($response);
+    }
     function getDeliveryNotes() {
         $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         //Get delivery notes by selected warehouse
@@ -26,7 +52,7 @@ class RetrieveController extends Controller
                 ->where('IP1.DelStatus', '=', 'N')
                 ->where('IP1.DN', '>', 0)
                 ->whereRaw("IP1.Tag <> ''")
-                ->where('TL.Zones', 'like', '%"name": "' . $_GET['warehouse'] . '"%')
+                ->where('TL.Zones','like', '%"name": "' . $_GET['warehouse'] . '%')
                 ->whereColumn('IP1.DeliveryID', 'IP.DeliveryID');
             })
             ->whereNotNull('IP.DN')
@@ -47,12 +73,12 @@ class RetrieveController extends Controller
                 ->where('IP1.DN', '>', 0)
                 ->whereRaw("IP1.Tag <> ''")
                 ->where(function($query){
-                    $query->where('TL1.Zones', 'like', '%"name": "110"%')
-                    ->orWhere('TL1.Zones', 'like', '%"name": "108"%')
-                    ->orWhere('TL1.Zones', 'like', '%"name": "109"%')
-                    ->orWhere('TL1.Zones', 'like', '%"name": "107"%')
-                    ->orWhere('TL1.Zones', 'like', '%"name": "121"%')
-                    ->orWhere('TL1.Zones', 'like', '%"name": "122"%');
+                    $query->where('TL1.Zones', 'like', '%"name": "110%')
+                    ->orWhere('TL1.Zones', 'like', '%"name": "108%')
+                    ->orWhere('TL1.Zones', 'like', '%"name": "109%')
+                    ->orWhere('TL1.Zones', 'like', '%"name": "107%')
+                    ->orWhere('TL1.Zones', 'like', '%"name": "121%')
+                    ->orWhere('TL1.Zones', 'like', '%"name": "122%');
                 })
                 ->whereColumn('IP1.DeliveryID', 'IP.DeliveryID');
             })
@@ -96,9 +122,9 @@ class RetrieveController extends Controller
             {
                 for($i=0;$i<count($datawarehouse);$i++){
                     if($i == 0) {
-                        $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                        $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
                     } else {
-                        $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '"%');
+                        $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
                     }
                 }
             });
