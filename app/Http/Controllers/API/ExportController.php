@@ -34,11 +34,9 @@ class ExportController extends Controller
         {
             for($i=0;$i<count($datawarehouse);$i++){
                 if($i == 0) {
-                    $query->where('TL.CoordinateSystemName', 'like', '%' . $datawarehouse[$i] . '%');
-                    //$query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
                 } else {
-                    $query->orWhere('TL.CoordinateSystemName', 'like', '%' . $datawarehouse[$i] . '%');
-                    //$query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
                 }
             }
         });
@@ -75,11 +73,9 @@ class ExportController extends Controller
         {
             for($i=0;$i<count($datawarehouse);$i++){
                 if($i == 0) {
-                    $query->where('TL.CoordinateSystemName', 'like', '%' . $datawarehouse[$i] . '%');
-                    //$query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
                 } else {
-                    $query->orWhere('TL.CoordinateSystemName', 'like', '%' . $datawarehouse[$i] . '%');
-                    //$query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
                 }
             }
         });
@@ -119,11 +115,9 @@ class ExportController extends Controller
         {
             for($i=0;$i<count($datawarehouse);$i++){
                 if($i == 0) {
-                    $query->where('TL.CoordinateSystemName', 'like', '%' . $datawarehouse[$i] . '%');
-                    //$query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
+                    $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
                 } else {
-                    $query->orWhere('TL.CoordinateSystemName', 'like', '%' . $datawarehouse[$i] . '%');
-                    //$query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
+                    $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
                 }
             }
         });
