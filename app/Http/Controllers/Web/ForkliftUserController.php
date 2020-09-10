@@ -79,6 +79,7 @@ class ForkliftUserController extends Controller
         $cryptData = new \stdClass();
         $cryptData->UserId = Crypt::encrypt($data->UserId);
         $cryptData->UserName = $data->UserName;
+        $cryptData->isSupervisor = $data->isSupervisor;
         return View::make('forklift.edit')
         ->with('data', $cryptData);
     }
