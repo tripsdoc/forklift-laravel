@@ -34,7 +34,7 @@ class ReleaseController extends Controller
         CntrInfo.ExpCntrPrefix, CntrInfo.ExpCntrNo, CntrInfo.TotalPlt, CntrInfo.TotalTag, ip1.SequenceNo PltNo,
         IB1.Markings, IB1.Quantity, IB1.Type, ib1.Length, IB1.Breadth, IB1.Height, ib1.Volume, IP1.Tag, IP1.InventoryPalletID,
         IB1.BreakDownID, CntrInfo.WhseLoc, rtrim(ltrim(ISNULL(IB1.Remarks, '') + ' ' + ISNULL(IB1.Flags, ''))) Remarks,
-        IP1.DeliveryID, TLL.Zones
+        IP1.DeliveryID, TLL.CoordinateSystemName
  from
  (
  select CI.Dummy, CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, JI.ClientID,
@@ -71,7 +71,7 @@ class ReleaseController extends Controller
    HSC_IPS.dbo.TagLocationLatest TLL on IP1.Tag = TLL.Id
  where ip1.DelStatus = 'N'
    and ib1.DelStatus = 'N' ORDER BY InventoryPalletID ASC ");
-
+    // dd($rawPallet);
 //   dd($a);
           $x         = 1;
           foreach ($rawPallet as $key => $value) {
@@ -79,11 +79,20 @@ class ReleaseController extends Controller
             if ($value->Tag == $request->get('TAG')) {
                 $selected = $key;
             }
-            $d =  str_replace("[", "", $value->Zones);
-            $a = str_replace("]", "", $d);
-            $replace = str_replace('"name":', ',"name":', $a);
-            $zone = $replace ? json_decode($replace) : false;
-            // dd($replace);
+            if($value->CoordinateSystemName)
+            {
+                $exp = explode("-",$value->CoordinateSystemName);
+                if (strpos($value->CoordinateSystemName, "107")) {
+                    $zone = "107";
+                }
+                elseif (strpos($value->CoordinateSystemName, "108")) {
+                    $zone = "108,109,110";
+                }
+            }
+            else{
+                $zone = false;
+            }
+
             $loopPallet = array(
                 "number" => $x++,
               "Dummy" => $value->Dummy ? $value->Dummy : "",
@@ -104,10 +113,17 @@ class ReleaseController extends Controller
               "PltNo" => $value->PltNo ? $value->PltNo : "",
               "Tag" => $value->Tag ? $value->Tag : "",
               "InventoryPalletID" => $value->InventoryPalletID ? $value->InventoryPalletID : "",
-              "WhseLoc" => $zone ? $zone->name : "",
+              "WhseLoc" => $zone ? $zone : "",
+              "WhseLocPallet" => $value->WhseLoc ? $value->WhseLoc : "",
               "DeliveryID" => $value->DeliveryID ? $value->DeliveryID : ""
             );
-            array_push($pallet, $loopPallet);
+            $ids = array_map(function($pallet) {
+                return $pallet['InventoryPalletID'];
+            }, $pallet);
+            if (!in_array($value->InventoryPalletID, $ids))
+            {
+                array_push($pallet, $loopPallet);
+            }
           }
         $rawBreakdown = DB::connection("sqlsrv3")->select("select CntrInfo.ContainerPrefix, CntrInfo.ContainerNumber, CntrInfo.ContainerSize, CntrInfo.ContainerType, CntrInfo.ClientID,
         CntrInfo.SequenceNo, CntrInfo.Ref, CntrInfo.InvStatus, CntrInfo.POD, CntrInfo.StorageDate,
@@ -156,21 +172,50 @@ case when i.StorageDate is not null then 'Export' when isnull(I.TranshipmentRef,
 
             foreach($images as $gallery)
             {
-                $loadImage = str_replace("//server-db/Files/Photo","http://192.168.14.70:9030/", $gallery->PhotoNameSystem);
-                $loadPath = str_replace("//server-db/Files/Photo","",$gallery->PhotoNameSystem);
-                $file = '../../../photos' . $loadPath;
-                // dd($file);
-                if (file_exists($file) && $file != "../../../photos") {
-                    list($width, $height) = getimagesize($loadImage);
-                    $imageGallery = array(
-                        'width' => $width,
-                        'CreatedDt' => date("Y-m-d", strtotime($gallery->CreatedDt)),
-                        'InventoryPhotoID' => $gallery->InventoryPhotoID,
-                        'PhotoName' => $gallery->PhotoName,
-                        'PhotoExt' => $gallery->PhotoExt,
-                        'PhotoNameSystem' => $loadImage
-                    );
-                    array_push($galleries, $imageGallery);
+                if ($gallery->PhotoNameSystem) {
+                    $loadImage = str_replace("//server-db/Files/Photo", "http://192.168.14.70:9030/", $gallery->PhotoNameSystem);
+                    $loadPath  = str_replace("//server-db/Files/Photo", "", $gallery->PhotoNameSystem);
+                    $file      = '\\\\SERVER-DB\\Files\\Photo\\' . $loadPath;
+                    // dd($file);
+                    // if (file_exists($file)) {}
+                    if (file_exists($file) && $file != "\\\\SERVER-DB\\Files\\Photo\\")
+                    {
+                        // dd($loadImage);
+                        // dd("OK);
+                        if (getimagesize($loadImage)) {
+                            list($width, $height) = getimagesize($loadImage);
+                            $imageGallery = array(
+                                'width' => $width,
+                                'InventoryPhotoID' => $gallery->InventoryPhotoID,
+                                'PhotoName' => $gallery->PhotoName,
+                                'PhotoExt' => $gallery->PhotoExt,
+                                'PhotoNameSystem' => $loadImage
+                            );
+                            array_push($galleries, $imageGallery);
+                        }
+                    }
+                }
+                else if($gallery->Photo) {
+                    $image = imagecreatefromstring($gallery->Photo); 
+                        $fileName = $gallery->InventoryPhotoID ."-" .$gallery->BreakDownID .".". $gallery->PhotoExt;
+                        $loadImage = "http://192.168.14.70:9133/temp/" . $fileName;
+                        ob_start();
+                        imagejpeg($image, null, 480);
+                        $data = ob_get_contents();
+                        ob_end_clean();
+                        $fnl = "data:image/jpg;base64," .  base64_encode($data);
+                        list($type, $fnl) = explode(';', $fnl);
+                        list(, $fnl)      = explode(',', $fnl);
+                        $fnl = base64_decode($fnl);
+                        Storage::disk('public')->put('temp/' . $fileName, $fnl);
+                        $imageGallery = array(
+                            'is_base_64' => true,
+                            'InventoryPhotoID' => $gallery->InventoryPhotoID,
+                            'PhotoName' => $gallery->PhotoName,
+                            'PhotoExt' => $gallery->PhotoExt,
+                            'PhotoNameSystem' => $loadImage
+                        );
+                        array_push($galleries, $imageGallery);
                 }
             }
             $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flag')->get();
@@ -255,44 +300,48 @@ case when i.StorageDate is not null then 'Export' when isnull(I.TranshipmentRef,
             $parseTag = $parseTag . ",'" . $value . "'";
         }
         $tagging = substr($parseTag, 1);
-        $list = DB::connection("sqlsrv3")->select("select CntrInfo.ContainerPrefix, CntrInfo.ContainerNumber, CntrInfo.ContainerSize, CntrInfo.ContainerType, CntrInfo.ClientID,
+        $list = DB::connection("sqlsrv3")->select("select CntrInfo.Dummy, CntrInfo.ContainerPrefix, CntrInfo.ContainerNumber, CntrInfo.ContainerSize, CntrInfo.ContainerType, CntrInfo.ClientID,
         CntrInfo.SequenceNo, CntrInfo.Ref, CntrInfo.InvStatus, CntrInfo.POD, CntrInfo.StorageDate,
         CntrInfo.ExpCntrPrefix, CntrInfo.ExpCntrNo, CntrInfo.TotalPlt, CntrInfo.TotalTag, ip1.SequenceNo PltNo,
-        IB1.Markings, IB1.Quantity,IB1.Flags, IB1.Type, ib1.Length, IB1.Breadth, IB1.Height, ib1.Volume, IP1.Tag, IP1.InventoryPalletID,
-        IB1.BreakDownID, CntrInfo.WhseLoc
+        IB1.Markings, IB1.Quantity, IB1.Type, ib1.Length, IB1.Breadth, IB1.Height, ib1.Volume, IP1.Tag, IP1.InventoryPalletID,
+        IB1.BreakDownID, CntrInfo.WhseLoc, rtrim(ltrim(ISNULL(IB1.Remarks, '') + ' ' + ISNULL(IB1.Flags, ''))) Remarks,
+        IP1.DeliveryID, TLL.CoordinateSystemName
  from
  (
- select CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, JI.ClientID,
+ select CI.Dummy, CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, JI.ClientID,
         min(I.SequenceNo) SequenceNo,
         case when i.StorageDate is not null or isnull(I.TranshipmentRef, '') <> '' then I.TranshipmentRef else I.HBL end Ref,
-   	   case when i.StorageDate is not null then 'Export' when isnull(I.TranshipmentRef, '') <> '' then 'Transhipment' else 'Local' end InvStatus,
+        case when i.StorageDate is not null then 'Export' when isnull(I.TranshipmentRef, '') <> '' then 'Transhipment' else 'Local' end InvStatus,
         case when i.StorageDate is not null then I.StorageDate else CI.[DateofStuf/Unstuf] end StorageDate,
         I.POD, CIExp.ContainerPrefix ExpCntrPrefix, CIExp.ContainerNumber ExpCntrNo, I.InventoryID,
+        --count(distinct IP.InventoryPalletID) TotalPlt,
+        --count(distinct case when IP.Tag = '' then null else IP.Tag end) TotalTag,
         count(IP.InventoryPalletID) TotalPlt,
-count(case when IP.Tag = '' then null else IP.Tag end) TotalTag,
+        count(case when IP.Tag = '' then null else IP.Tag end) TotalTag,
         case when i.StorageDate is not null then IP.CurrentLocation else CI.DeliverTo end WhseLoc
- from hsc2012.dbo.JobInfo JI inner join
-      hsc2012.dbo.ContainerInfo CI on JI.JobNumber = CI.JobNumber inner join
+ from HSC2012.dbo.JobInfo JI inner join
+      HSC2012.dbo.ContainerInfo CI on JI.JobNumber = CI.JobNumber inner join
          HSC2017.dbo.HSC_Inventory I on CI.Dummy = I.CntrID inner join
          HSC2017.dbo.HSC_InventoryPallet IP on I.InventoryID = IP.InventoryID left join
-         hsc2012.dbo.ContainerInfo CIExp on IP.ExpCntrID = CIExp.Dummy
+         HSC2012.dbo.ContainerInfo CIExp on IP.ExpCntrID = CIExp.Dummy
  where I.DelStatus = 'N'
      and IP.DelStatus = 'N'
      --and isnull(IP.Tag, '') <> ''
      --and (IP.ExpCntrID > 0 or IP.DeliveryID > 0)
-     and (CI.DeliverTo IN (" . $tagging . ") OR IP.CurrentLocation IN (" . $tagging . "))
-     and ((JI.ClientID = '" . $request->get('ClientID') ."' and (I.HBL = '". $request->get('HBL') ."' OR I.TranshipmentRef = '". $request->get('HBL') ."')) OR (IP.Tag = '". $request->get('TAG') ."' AND IP.Tag <> ''))
- group by CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, JI.ClientID,
- case when i.StorageDate is not null or isnull(I.TranshipmentRef, '') <> '' then I.TranshipmentRef else I.HBL end,
-case when i.StorageDate is not null then 'Export' when isnull(I.TranshipmentRef, '') <> '' then 'Transhipment' else 'Local' end,
+      and (CI.DeliverTo IN (" . $tagging . ") OR IP.CurrentLocation IN (" . $tagging . "))
+      and ((JI.ClientID = '" . $request->get('ClientID') ."' and (I.HBL = '". $request->get('HBL') ."' OR I.TranshipmentRef = '". $request->get('HBL') ."')) OR (IP.Tag = '". $request->get('TAG') ."' AND IP.Tag <> ''))
+ group by CI.Dummy, CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, JI.ClientID,
+        case when i.StorageDate is not null or isnull(I.TranshipmentRef, '') <> '' then I.TranshipmentRef else I.HBL end,
+        case when i.StorageDate is not null then 'Export' when isnull(I.TranshipmentRef, '') <> '' then 'Transhipment' else 'Local' end,
         case when i.StorageDate is not null then I.StorageDate else CI.[DateofStuf/Unstuf] end,
         I.POD, CI.[DateofStuf/Unstuf], CIExp.ContainerPrefix, CIExp.ContainerNumber, I.InventoryID,
         case when i.StorageDate is not null then IP.CurrentLocation else CI.DeliverTo end
- ) CntrInfo, HSC2017.dbo.HSC_InventoryPallet IP1, HSC2017.dbo.HSC_InventoryBreakdown IB1
- where CntrInfo.InventoryID = ip1.InventoryID
-   and ip1.InventoryPalletID = ib1.InventoryPalletID
-   and ip1.DelStatus = 'N'
-   and ib1.DelStatus = 'N'");
+ ) CntrInfo inner join
+   HSC2017.dbo.HSC_InventoryPallet IP1 on CntrInfo.InventoryID = ip1.InventoryID inner join
+   HSC2017.dbo.HSC_InventoryBreakdown IB1 on ip1.InventoryPalletID = ib1.InventoryPalletID left join
+   HSC_IPS.dbo.TagLocationLatest TLL on IP1.Tag = TLL.Id
+ where ip1.DelStatus = 'N'
+   and ib1.DelStatus = 'N' ORDER BY InventoryPalletID ASC");
         $data = array(
             'is_exist' => count($list) > 0 ? true : false
         );
@@ -318,7 +367,7 @@ case when i.StorageDate is not null then 'Export' when isnull(I.TranshipmentRef,
         Storage::disk('public')->put('temp/' . $finalName, File::get($cover));
 
         $imageFix = public_path() . '/temp/' . $finalName;
-        $dir   = '../../../photos/';
+        $dir   = '\\\\SERVER-DB\\Files\\Photo\\';
         $year  = date("Y");
         $month = date("m");
 

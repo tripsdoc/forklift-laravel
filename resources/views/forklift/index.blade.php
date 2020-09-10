@@ -23,6 +23,7 @@
             <th> UserId</th>
             <th> UserName</th>
             <th> Password  </th>
+            <th> isSupervisor  </th>
             <th > Action  </th>
           </tr>
         </thead>
@@ -45,6 +46,7 @@ $(function () {
             { data: 'UserId', name: 'UserId' },
             { data: 'UserName', name: 'UserName' },
             { data: 'Password', name: 'Password' },
+            { data: 'isSupervisor', name: 'isSupervisor' },
             { data: 'action', name: 'action', orderable: false, searchable: false },
         ]
     });

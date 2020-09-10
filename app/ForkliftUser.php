@@ -10,6 +10,6 @@ class ForkliftUser extends Model
     protected $primaryKey = 'UserId';
     public $timestamps = false;
     protected $fillable = [
-        'UserName', 'Password'
+        'UserName', 'Password', 'isSupervisor'
     ];
 }

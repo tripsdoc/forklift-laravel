@@ -194,5 +194,5 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::get('stuffing/inventorylist', 'StuffingController@InventoryList');
   Route::post('stuffing/updateShutout', 'StuffingController@updateShutout');
   Route::get('stuffing/palletbreakdown', 'StuffingController@getPalletBreakdown');
-  
+  Route::get('dev/test', 'ReceivingController@test');
 });

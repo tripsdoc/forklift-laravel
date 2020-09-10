@@ -63,6 +63,7 @@ class ForkliftUserController extends Controller
             $forklift = new ForkliftUser;
             $forklift->username = Request::get('username');
             $forklift->password = Request::get('password');
+            $forklift->isSupervisor = Request::get('isSupervisor');
             $forklift->save();
 
             return Redirect::to('forklift');
@@ -98,6 +99,7 @@ class ForkliftUserController extends Controller
             $forklift = ForkliftUser::find($decryptId);
             //$forklift->username = Request::get('username');
             $forklift->password = Request::get('password');
+            $forklift->isSupervisor = Request::get('isSupervisor');
             $forklift->save();
 
             Session::flash('message', 'Successfully updated Forklift User!');
