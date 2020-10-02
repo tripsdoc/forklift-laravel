@@ -25,6 +25,7 @@ class ExportController extends Controller
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
+        ->join('InventoryBreakdown as IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
@@ -40,8 +41,9 @@ class ExportController extends Controller
                 }
             }
         });
+        $result->groupBy('IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
-        $result->select('IP.Tag', 'IP.ExpCntrID', 'JI.POD');
+        $result->select(DB::raw('SUM(IB.Quantity) AS Qty'), 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         $data = $result->get();
         Storage::put('logs/export/GetAllTags.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
@@ -105,6 +107,7 @@ class ExportController extends Controller
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
+        ->join('InventoryBreakdown as IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
@@ -121,6 +124,7 @@ class ExportController extends Controller
                 }
             }
         });
+        $result->groupBy(DB::raw('SUM(IB.Quantity) AS Qty'), 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
         $response['pod'] = $pod;
         $result->select('IP.Tag', 'IP.ExpCntrID', 'JI.POD');

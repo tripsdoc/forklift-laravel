@@ -222,7 +222,7 @@ class ReceivingController extends Controller
                 }
                 $lastFrom = $break->InventoryPalletID;
 
-                $flag         = DB::connection("sqlsrv3")->table('HSC_IPS.dbo.Checklist')->where('Category', 'flag')->get();
+                $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flag')->get();
                 $flagSelected = array();
                 $flagShow     = array();
                 // dd($flag);
@@ -277,7 +277,7 @@ class ReceivingController extends Controller
             }
         }
         $typeChecklist  = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'type')->get();
-        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC_IPS.dbo.Checklist')->where('Category', 'flag')->get();
+        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flag')->get();
         $locations      = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'location')->get();
         // dd($DeliveryID);
         $data           = array(
@@ -288,24 +288,18 @@ class ReceivingController extends Controller
             'flags' => $flagsChecklist,
             'locations' => $locations,
             'DeliveryID' => in_array(1, $DeliveryID)
-            // 'DeliveryID' => false
         );
         return response($data);
     }
     function copyPallet(Request $request)
     {
         $copy          = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
-        //   $listAvailable = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryID', $copy->InventoryID)->where('DelStatus', 'N')->get();
         $InventoryPalletID = 0;
         $type = "copy";
         $CreatedBy = '"' . $request->get('CreatedBy') .' "';
         DB::connection("sqlsrv3")->update("SET NOCOUNT ON;SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;SET ARITHABORT ON;exec HSC2017.dbo.InventoryPallet_Insert " . $InventoryPalletID . ", "  . $copy->InventoryID . ", " .  $request->get('InventoryPalletID') . ", " . $type . ", " . $CreatedBy . "");
         
-        // $inventoryID = "736191";
-        // $InventoryPalletCopyID = "1943256";
-        // $UserID = "Raja";
-        // DB::connection("sqlsrv3")->update("SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;exec HSC2017.dbo.InventoryPallet_Insert " . $InventoryPalletID . ", "  . $inventoryID . ", " .  $InventoryPalletCopyID . ", " . $type . ", " . $UserID . "");
-        
+
         $data = array(
             'status' => "success"
         );
@@ -320,43 +314,7 @@ class ReceivingController extends Controller
     //   dd($inventory->HBL);
       $UpdatedBy = '"' . $request->get('UpdatedBy') .' "';
       DB::connection("sqlsrv3")->statement("SET ARITHABORT ON;exec HSC2017.dbo.InventoryPallet_Delete " . $palletInfo->InventoryID . ", " .  $request->get('InventoryPalletID') . ", " . '" "'. ", " . $UpdatedBy . "");
-        // DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
-        //     'DelStatus' => 'Y',
-        //     'Tag' => '',
-        //     'UpdatedDt' => date("Y-m-d H:i:s"),
-        //     'UpdatedBy' => $request->get('UpdatedBy')
-        // ));
-        // $palletInfo = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
-        // $i          = 1;
-        // $rawPallet  = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryID', $palletInfo->InventoryID)->where('DelStatus', 'N')->orderBy('InventoryPalletID', 'ASC')->get();
-        // foreach ($rawPallet as $key => $plt)
-        // {
-        //     DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $plt->InventoryPalletID)->update(array(
-        //         'SequenceNo' => $i++
-        //     ));
-        // }
-        // foreach ($rawPallet as $key => $plt)
-        // {
-        //     DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->update(array(
-        //         'DelStatus' => 'Y',
-        //         'UpdatedDt' => date("Y-m-d H:i:s"),
-        //         'UpdatedBy' => $request->get('UpdatedBy')
-        //     ));
-        // }
-        // $breakdown = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->get();
-        // foreach ($breakdown as $key => $value)
-        // {
-        //     DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $value->BreakDownID)->update(array(
-        //         'DelStatus' => 'Y',
-        //         'UpdatedDt' => date("Y-m-d H:i:s"),
-        //         'UpdatedBy' => $request->get('UpdatedBy')
-        //     ));
-        //     DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPhoto')->where('BreakDownID', $value->BreakDownID)->update(array(
-        //         'DelStatus' => 'Y',
-        //         'ModifyDt' => date("Y-m-d H:i:s"),
-        //         'ModifyBy' => $request->get('UpdatedBy')
-        //     ));
-        // }
+        
         $data = array(
             'status' => "success"
         );
@@ -364,30 +322,6 @@ class ReceivingController extends Controller
     }
     function addBreakdown(Request $request)
     {
-        // $breakdownRaw = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
-        // $breakdown    = array(
-        //     "InventoryPalletID" => (int) $breakdownRaw->InventoryPalletID,
-        //     "Markings" => $breakdownRaw->Markings,
-        //     "Quantity" => (int) $breakdownRaw->Quantity,
-        //     "Type" => $breakdownRaw->Type,
-        //     "Length" => (int) $breakdownRaw->Length,
-        //     "Breadth" => (int) $breakdownRaw->Breadth,
-        //     "Height" => (int) $breakdownRaw->Height,
-        //     "Volume" => $breakdownRaw->Volume,
-        //     "Remarks" => '',
-        //     "CreatedBy" => $request->get('CreatedBy'),
-        //     "CreatedDt" => date("Y-m-d H:i:s"),
-        //     "UpdatedBy" => null,
-        //     "UpdatedDt" => null,
-        //     "DelStatus" => $breakdownRaw->DelStatus,
-        //     "Flags" => '',
-        //     "Tally" => $breakdownRaw->Tally,
-        //     "Weight" => $breakdownRaw->Weight
-        // );
-        // DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->insert($breakdown);
-        // $data = array(
-        //     'status' => "success"
-        // );
         $breakdownRaw = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
 
         $returnBreakdownID = 0;
@@ -468,17 +402,17 @@ class ReceivingController extends Controller
     {
         Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN PROC');
         Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN PROC TRY - REMARKS with data ' . $request->post('r'));
-        $markings = is_null($request->post('Markings')) ? '" "' : '" ' . trim($request->post('Markings')) .' "';
-        $type = '"' . trim($request->post('T')) .' "';
+        $markings = is_null($request->post('Markings')) ? '" "' : '"' . trim($request->post('Markings')) .'"';
+        $type = '"' . trim($request->post('T')) .'"';
         $qty      = (int) $request->post('Qty') ? $request->post('Qty') : 0;
         $length   = (int) $request->post('L') ? $request->post('L') : 0;
         $breadth  = (int) $request->post('B') ? $request->post('B') : 0;
         $height   = (int) $request->post('H') ? $request->post('H') : 0;
         $volume   = sprintf("%.3f", ($qty * $length * $breadth * $height) / 1000000);
-        $remarks  = is_null($request->post('R')) ? '" "' : '" ' . $request->post('R') .' "';
-        $flags    = is_null($request->post('F')) ? '" "' : '" ' . $request->post('F') .' "';
-        $UpdatedBy = '"' . $request->get('UpdatedBy') .' "';
-        $parse = DB::connection("sqlsrv3")->statement("SET NOCOUNT ON;SET ARITHABORT ON;exec HSC2017.dbo.InventoryBreakdown_InsertUpdate " . $request->post('BreakDownID') . ", " . '"-"'. ", " . $markings . ", " . $qty . ", " . $type . ", " . $length . ", " . $breadth . ", " . $height . ", " . $volume . ", " . $remarks . ", " . $UpdatedBy . ", " . $flags . "");
+        $remarks  = is_null($request->post('R')) ? '" "' : '"' . $request->post('R') .'"';
+        $flags    = is_null($request->post('F')) ? '" "' : '"' . $request->post('F') .'"';
+        $UpdatedBy = '"' . $request->get('UpdatedBy') .'"';
+        $parse = DB::connection("sqlsrv3")->statement("SET NOCOUNT ON;SET ARITHABORT ON;SET QUOTED_IDENTIFIER OFF;SET ANSI_NULLS ON;exec HSC2017.dbo.InventoryBreakdown_InsertUpdate " . $request->post('BreakDownID') . ", " . '"-"'. ", " . $markings . ", " . $qty . ", " . $type . ", " . $length . ", " . $breadth . ", " . $height . ", " . $volume . ", " . $remarks . ", " . $UpdatedBy . ", " . $flags . "");
 
         $data = array(
             'status' => "success",
@@ -781,47 +715,5 @@ class ReceivingController extends Controller
             );
             return response($data);
         }
-    }
-    function test()
-    {
-        // public_path('image/container/HSC-1581302045134_1581302040.jpeg');
-
-        copy(public_path('image/container/HSC-1581302045134_1581302040.jpeg'), "\\\\SERVER-DB\\Files\\Photo\\HSC-test.jpeg");
-        // $dir   = '\\\\SERVER-DB\\Files\\Photo\\';
-        // $year  = date("Y");
-        // $month = date("m");
-        // $cntrID = "65432";
-
-        // if (is_dir($dir))
-        // {
-        //     Log::debug('yea is a dir');
-        //     if (!file_exists($dir . $cntrID))
-        //     {
-        //         Log::debug('yea is a exist');
-        //         mkdir($dir . $cntrID, 0775);
-        //     }
-        //     if ($dh = opendir($dir))
-        //     {
-        //         Log::debug('yea is a opened');
-        //         $uold      = umask(0);
-        //         $filename  = $dir . $cntrID . "/" . $year;
-        //         $filename2 = $dir . $cntrID . "/" . $year . "/" . $month;
-        //         if (file_exists($filename))
-        //         {
-        //             Log::debug('year already');
-        //             if (!file_exists($filename2))
-        //             {
-        //                 Log::debug('creating month folder');
-        //                 mkdir($filename2, 0775);
-        //             }
-        //         }
-        //         else
-        //         {
-        //             mkdir($filename, 0775);
-        //             mkdir($filename2, 0775);
-        //         }
-        //         umask($uold);
-        //     }
-        // }
     }
 }

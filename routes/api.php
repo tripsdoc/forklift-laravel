@@ -123,6 +123,7 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::get('unstuffing/detailimportsummary', 'UnstuffingController@getDetailImportsumary');
   Route::get('unstuffing/listimportsummary', 'UnstuffingController@detailimportsummary');
   Route::post('unstuffing/startjob', 'UnstuffingController@startJob');
+  Route::post('unstuffing/revertJob', 'UnstuffingController@revertJob');
   Route::post('unstuffing/finishjob', 'UnstuffingController@finishJob');
   Route::get('unstuffing/joblist', 'UnstuffingController@getJobList');
   Route::get('unstuffing/checkLockedInventory', 'UnstuffingController@checkLockedInventory');
