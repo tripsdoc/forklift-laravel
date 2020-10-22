@@ -2,15 +2,45 @@
 
 namespace App\Http\Controllers;
 
+date_default_timezone_set('Asia/Singapore');
 use DB;
 use Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Intervention\Image\ImageManagerStatic as Image;
 
 class StuffingController extends Controller
 {
+    protected $mode;
+    protected $db2017;
+    protected $db2012;
+    protected $dbhsc;
+    public function __construct()
+    {
+        $this->mode = "dev";
+        switch ($this->mode) {
+            case 'dev':
+                $this->db2017 = "HSC2017";
+                $this->db2012 = "HSC2012";
+                $this->dbhsc = "HSC_IPSTest";
+                break;
+            case 'prod':
+                $this->db2017 = "HSC2017";
+                $this->db2012 = "HSC2012";
+                $this->dbhsc = "HSC_IPS";
+                break;
+            default:
+                $this->db2017 = "HSC2017";
+                $this->db2012 = "HSC2012";
+                $this->dbhsc = "HSC_IPSTest";
+                break;
+        }
+    }
     public function exportSummary(Request $request)
     {
-        $query = DB::connection("sqlsrv3")->select("SELECT CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, CI.Dummy, CI.NTunstuffingstatus, CI.TallyBy, JI.ClientID, JI.POD, SUM(IB.Quantity) Qty FROM HSC2017.dbo.HSC_InventoryPallet IP, HSC2012.dbo.ContainerInfo CI, HSC2012.dbo.JobInfo JI, HSC2017.dbo.HSC_InventoryBreakdown IB WHERE IP.ExpCntrID = CI.Dummy AND CI.JobNumber = JI.JobNumber AND IP.InventoryPalletID = IB.InventoryPalletID AND IP.DelStatus = 'N' AND IB.DelStatus = 'N' AND CI.Status <> 'CANCELLED' AND CI.[DateofStuf/Unstuf] IS NULL GROUP BY CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, CI.NTunstuffingstatus, CI.TallyBy, JI.ClientID, JI.POD, CI.Dummy");
+        $query = DB::connection("sqlsrv3")->select("SELECT CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, CI.Dummy, CI.NTunstuffingstatus, CI.TallyBy, JI.ClientID, JI.POD, SUM(IB.Quantity) Qty FROM HSC2017.dbo.HSC_InventoryPallet IP, HSC2012.dbo.ContainerInfo CI, HSC2012.dbo.JobInfo JI, HSC2017.dbo.HSC_InventoryBreakdown IB WHERE IP.ExpCntrID = CI.Dummy AND CI.JobNumber = JI.JobNumber AND IP.InventoryPalletID = IB.InventoryPalletID AND IP.DelStatus = 'N' AND IB.DelStatus = 'N' AND CI.Status not in ('NEW','COMPLETED','PRINTED','PENDING','INVOICED','CLOSED','CANCELLED') AND CI.[DateofStuf/Unstuf] IS NULL GROUP BY CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, CI.NTunstuffingstatus, CI.TallyBy, JI.ClientID, JI.POD, CI.Dummy");
         $data  = array(
             'data' => $query
         );
@@ -20,9 +50,9 @@ class StuffingController extends Controller
     public function detailExport(Request $request)
     {
         $query = DB::connection("sqlsrv3")->select("select ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, ci.SealNumber, ci.BkRef, ci.YardRemarks, sum(ib.Quantity) TotalQty, sum(ib.Volume) TotalVolume, count(distinct case when ip.Tag = '' then null else ip.Tag end) TotalTag, count(distinct ip.InventoryPalletID) TotalPallet, ci.Bay, ci.Stevedore, HSC2017.dbo.fn_GetDGClass(ip.ExpCntrID, '', 'TEMP_EXP_PLANNING') DgClass, rtrim(ltrim(max(ExpRemarks.Remarks))) ExportRemarks, ci.SevenPoints from HSC2017.dbo.HSC_Inventory I inner join HSC2017.dbo.HSC_InventoryPallet IP on I.InventoryID = IP.InventoryID inner join HSC2012.dbo.ContainerInfo CI on CI.Dummy = IP.ExpCntrID inner join HSC2012.dbo.JobInfo JI on ji.JobNumber = ci.JobNumber inner join HSC2017.dbo.HSC_InventoryBreakdown IB on IP.InventoryPalletID = IB.InventoryPalletID left join HSC2017.dbo.HSC_TempExpPlanRemarks ExpRemarks on ip.ExpCntrID = ExpRemarks.CntrIDExp and ExpRemarks.DelStatus = 'N' where ip.ExpCntrID = '" . $request->get("CntrID") . "' and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' group by ip.ExpCntrID, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, ci.SealNumber, ci.BkRef, ci.YardRemarks, ci.Bay, ci.Stevedore, ci.SevenPoints");
-        $checklistBay = DB::table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'Bay')->get();
-        $checklistStevedore = DB::table('HSC2017Test_V2.dbo.Checklist')->where('Category', 'Stevedore')->get();
-        $checklist7P = DB::table('HSC2017Test_V2.dbo.Checklist')->where('Category', '7p')->get();
+        $checklistBay = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'Bay')->get();
+        $checklistStevedore = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'Stevedore')->get();
+        $checklist7P = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', '7p')->get();
         $InventoryList = DB::connection("sqlsrv3")->select("select ci.Dummy, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, i.InventoryID, i.SequenceNo, i.Status, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) TotalQty, i.MQuantity, i.MWeight, i.MVolume, count(distinct case when ip.Tag = '' then null else ip.Tag end) TotalTag, TagList = STUFF((
             SELECT ', '+ ISNULL(IP1.Tag,'') AS [text()]
             FROM HSC2017.dbo.HSC_InventoryPallet IP1
@@ -91,8 +121,8 @@ class StuffingController extends Controller
     }
     function getCurrentContainer(Request $request)
     {
-        $counter = DB::connection("sqlsrv3")->table('HSC2012.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING_STUFFING')->first();
-        $count   = DB::connection("sqlsrv3")->table('HSC2012.dbo.ContainerInfo')->where('TallyBy', $request->get('username'))->where('NTunstuffingstatus', 'PROCESSING_STUFFING')->count();
+        $counter = DB::connection("sqlsrv3")->table( $this->db2012 . '.dbo.ContainerInfo')->where('NTunstuffingstatus', "PROCESSING " . $request->get('username'))->first();
+        $count   = DB::connection("sqlsrv3")->table( $this->db2012 . '.dbo.ContainerInfo')->where('NTunstuffingstatus', "PROCESSING " . $request->get('username'))->count();
         $data    = array(
             'dummy' => $counter ? $counter->Dummy : "",
             'counter' => $count
@@ -101,20 +131,36 @@ class StuffingController extends Controller
     }
     public function startJob(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2012.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
-            'TallyBy' => $request->get('TallyBy'),
+        DB::connection("sqlsrv3")->table( $this->db2012 . '.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
             'StartTime' => date("Y-m-d H:i:s"),
-            'NTunstuffingstatus' => "PROCESSING_STUFFING",
+            'NTunstuffingstatus' => "PROCESSING " . $request->get('TallyBy')
         ));
-        // $dir = '../../../photos/';
+        DB::connection("sqlsrv3")->table($this->dbhsc . '.dbo.ContainerInfo')->where('Id', $request->get('dummy'))->update(array(
+            'StartTime' => date("Y-m-d H:i:s")
+        ));
+        $dir = '\\\\SERVER-DB\\Files\\Photo\\';
 
-        // if (is_dir($dir)) {
-        //     if ($dh = opendir($dir)) {
-        //         $uold     = umask(0);
-        //         mkdir($dir . $request->get('dummy'), 0775);
-        //         umask($uold);
-        //     }
-        // }
+        if (is_dir($dir)) {
+            if ($dh = opendir($dir)) {
+                $uold     = umask(0);
+                mkdir($dir . $request->get('dummy'), 0775);
+                umask($uold);
+            }
+        }
+        $data = array(
+            'status' => "success"
+        );
+        return response($data);
+    }
+    public function revertJob(Request $request)
+    {
+        DB::connection("sqlsrv3")->table($this->db2012 .'.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+            'StartTime' => null,
+            'NTunstuffingstatus' => "EMPTY"
+        ));
+        DB::connection("sqlsrv3")->table($this->dbhsc .'.dbo.ContainerInfo')->where('Id', $request->get('dummy'))->update(array(
+            'StartTime' => null,
+        ));
         $data = array(
             'status' => "success"
         );
@@ -122,12 +168,18 @@ class StuffingController extends Controller
     }
     function finishJob(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC2012.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+        DB::connection("sqlsrv3")->table($this->db2012 . '.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
             'TallyBy' => $request->get('TallyBy'),
             'Status' => 'EMPTY',
             'EndTime' => date("Y-m-d H:i:s"),
             'DateofStuf/Unstuf' => date("Y-m-d H:i:s"),
             'NTunstuffingstatus' => "COMPLETED",
+        ));
+        DB::connection("sqlsrv3")->table($this->dbhsc . '.dbo.ContainerInfo')->where('Id', $request->get('dummy'))->update(array(
+            'TallyBy' => $request->get('TallyBy'),
+            'Status' => 'EMPTY',
+            'EndTime' => date("Y-m-d H:i:s"),
+            'DateofStuf' => date("Y-m-d H:i:s"),
         ));
 
         $data = array(
@@ -197,11 +249,11 @@ class StuffingController extends Controller
                 "Tag" => is_null($value->Tag) ? "" : $value->Tag,
                 "Location" => is_null($value->Location) ? "" : $value->Location,
             );
-            array_push($DeliveryID, is_null($value->DeliveryID) ? 0 : 1);
+            array_push($DeliveryID, $value->DeliveryID >= 1 ? 1 : 0);
             array_push($pallet, $loopPallet);
-            $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown AS IB')->join('HSC2017.dbo.HSC_TempExpPlan AS ExpPlan', 'ExpPlan.BreakDownIDImp', '=', 'IB.BreakDownID')->where('IB.InventoryPalletID', $value->InventoryPalletID)->where('IB.DelStatus', 'N')->where('ExpPlan.DelStatus', 'N')->select('IB.*', DB::raw("rtrim(ltrim(case when isnull(ExpPlan.DNS, 0) = 1 then '*Do Not Stack' else '' end + ' ' +
-            case when isnull(ExpPlan.TakePhoto, 0) = 1 then '*Take Photo' else '' end + ' ' + ExpPlan.Others)) SpecialInstruction"))->orderBy('IB.BreakDownID', 'ASC')->get();
-            // $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $value->InventoryPalletID)->where('DelStatus', 'N')->orderBy('BreakDownID', 'ASC')->get();
+            // $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown AS IB')->join('HSC2017.dbo.HSC_TempExpPlan AS ExpPlan', 'ExpPlan.BreakDownIDImp', '=', 'IB.BreakDownID')->where('IB.InventoryPalletID', $value->InventoryPalletID)->where('IB.DelStatus', 'N')->where('ExpPlan.DelStatus', 'N')->select('IB.*', DB::raw("rtrim(ltrim(case when isnull(ExpPlan.DNS, 0) = 1 then '*Do Not Stack' else '' end + ' ' +
+            // case when isnull(ExpPlan.TakePhoto, 0) = 1 then '*Take Photo' else '' end + ' ' + ExpPlan.Others)) SpecialInstruction"))->orderBy('IB.BreakDownID', 'ASC')->get();
+            $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $value->InventoryPalletID)->where('DelStatus', 'N')->orderBy('BreakDownID', 'ASC')->get();
             // dd($rawBreakdown);
             $x            = 1;
             $lastFrom     = null;
@@ -211,24 +263,54 @@ class StuffingController extends Controller
                 $images   = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPhoto')->where('BreakDownID', $break->BreakDownID)->where('DelStatus', 'N')->get();
                 foreach($images as $gallery)
                 {
-                    $loadImage = str_replace("//server-db/Files/Photo","http://192.168.14.70:9030/",$gallery->PhotoNameSystem);
-                    $loadPath = str_replace("//server-db/Files/Photo","",$gallery->PhotoNameSystem);
-                    $file = '../../../photos' . $loadPath;
-                    if (file_exists($file)) {
-                        list($width, $height) = getimagesize($loadImage);
-                        $imageGallery = array(
-                            'width' => $width,
-                            'InventoryPhotoID' => $gallery->InventoryPhotoID,
-                            'PhotoName' => $gallery->PhotoName,
-                            'PhotoExt' => $gallery->PhotoExt,
-                            'PhotoNameSystem' => $loadImage
-                        );
-                        array_push($galleries, $imageGallery);
+                    if ($gallery->PhotoNameSystem)
+                    {
+                        $loadImage = str_replace("//server-db/Files/Photo", "http://192.168.14.70:9030/", $gallery->PhotoNameSystem);
+                        $loadPath  = str_replace("//server-db/Files/Photo", "", $gallery->PhotoNameSystem);
+                        $file      = '\\\\SERVER-DB\\Files\\Photo\\' . $loadPath;
+    
+                            if (file_exists($file))
+                            {
+                                if (@getimagesize($loadImage)) {
+                                    list($width, $height) = getimagesize($loadImage);
+                                    $imageGallery = array(
+                                        'width' => $width,
+                                        'InventoryPhotoID' => $gallery->InventoryPhotoID,
+                                        'PhotoName' => $gallery->PhotoName,
+                                        'PhotoExt' => $gallery->PhotoExt,
+                                        'PhotoNameSystem' => $loadImage
+                                    );
+                                    array_push($galleries, $imageGallery);
+                                }
+                            }
+                    }
+                    else if($gallery->Photo) 
+                    {
+                        $image = imagecreatefromstring($gallery->Photo); 
+                            $fileName = $gallery->InventoryPhotoID ."-" .$gallery->BreakDownID .".". $gallery->PhotoExt;
+                            $loadImage = "http://192.168.14.70:9133/temp/" . $fileName;
+                            ob_start();
+                            imagejpeg($image, null, 480);
+                            $data = ob_get_contents();
+                            ob_end_clean();
+                            $fnl = "data:image/jpg;base64," .  base64_encode($data);
+                            list($type, $fnl) = explode(';', $fnl);
+                            list(, $fnl)      = explode(',', $fnl);
+                            $fnl = base64_decode($fnl);
+                            Storage::disk('public')->put('temp/' . $fileName, $fnl);
+                            $imageGallery = array(
+                                'is_base_64' => true,
+                                'InventoryPhotoID' => $gallery->InventoryPhotoID,
+                                'PhotoName' => $gallery->PhotoName,
+                                'PhotoExt' => $gallery->PhotoExt,
+                                'PhotoNameSystem' => $loadImage
+                            );
+                            array_push($galleries, $imageGallery);
                     }
                 }
                 $lastFrom = $break->InventoryPalletID;
 
-                $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flag')->get();
+                $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flagExp')->get();
                 $flagSelected = array();
                 $flagShow = array();
                 // dd($flag);
@@ -283,7 +365,7 @@ class StuffingController extends Controller
             }
         }
         $typeChecklist  = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'type')->get();
-        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flag')->get();
+        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flagExp')->get();
         $locations      = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'location')->get();
         // dd($DeliveryID);
         $data           = array(

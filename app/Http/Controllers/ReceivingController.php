@@ -164,7 +164,8 @@ class ReceivingController extends Controller
                 "Tag" => is_null($value->Tag) ? "" : $value->Tag,
                 "Location" => is_null($value->Location) ? "" : $value->Location
             );
-            array_push($DeliveryID, is_null($value->DeliveryID) || $value->DeliveryID == 0 ? 0 : 1);
+            // array_push($DeliveryID, is_null($value->DeliveryID) || $value->DeliveryID == 0 ? 0 : 1);
+            array_push($DeliveryID, $value->DeliveryID >= 1 ? 1 : 0);
             array_push($pallet, $loopPallet);
             $rawBreakdown = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $value->InventoryPalletID)->where('DelStatus', 'N')->orderBy('BreakDownID', 'ASC')->get();
             $x            = 1;
@@ -222,7 +223,7 @@ class ReceivingController extends Controller
                 }
                 $lastFrom = $break->InventoryPalletID;
 
-                $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flag')->get();
+                $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flagImp')->get();
                 $flagSelected = array();
                 $flagShow     = array();
                 // dd($flag);
@@ -277,7 +278,7 @@ class ReceivingController extends Controller
             }
         }
         $typeChecklist  = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'type')->get();
-        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flag')->get();
+        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flagImp')->get();
         $locations      = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'location')->get();
         // dd($DeliveryID);
         $data           = array(
@@ -379,20 +380,115 @@ class ReceivingController extends Controller
     public function updatePallet(Request $request)
     {
 
-        Log::debug('DEBUG QUERY -  UPDATE PALLET');
-        Log::debug('DEBUG QUERY -  UPDATE PALLET TRY - '. $request->post('type') . ' with data ' . $request->post('data'));
-        DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
-            $request->post('type') => $request->post('data'),
-            'UpdatedDt' => date("Y-m-d H:i:s"),
-            'UpdatedBy' => $request->post('UpdatedBy')
-        ));
+        if ($request->post('type') == "Tag") {
+            $check = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->first();
 
-        DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
-            $request->post('type') => $request->post('data'),
-            'UpdatedDt' => date("Y-m-d H:i:s"),
-            'UpdatedBy' => $request->post('UpdatedBy')
-        ));
+            if ((isset($check->Tag) || trim($check->Tag) != '')) {
+                $curl = curl_init();
+    
+                curl_setopt_array($curl, array(
+                  CURLOPT_URL => "http://192.168.14.5:8080/qpe/getTagPosition?version=2&tag=" . $request->post('data') . "&maxAge=900000&humanReadable=true",
+                  CURLOPT_RETURNTRANSFER => true,
+                  CURLOPT_ENCODING => "",
+                  CURLOPT_MAXREDIRS => 10,
+                  CURLOPT_TIMEOUT => 0,
+                  CURLOPT_FOLLOWLOCATION => true,
+                  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                  CURLOPT_CUSTOMREQUEST => "GET",
+                ));
+                
+                $response = curl_exec($curl);
+                
+                curl_close($curl);
+                $parse = json_decode($response);
+                $checkTAG = DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ForkLiftJobsFilter')->where('TagID', $request->post('data'))->first();
+                if (isset($parse->tags[0])) {
+                    if (isset($parse->tags[0]->smoothedPosition)) {
+                        if ($checkTAG) 
+                        {
+                            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ForkLiftJobsFilter')->where('TagID', $request->post('data'))->update(array(
+                                'x' => $parse->tags[0]->smoothedPosition[0],
+                                'y' => $parse->tags[0]->smoothedPosition[1],
+                                'mode' => 0
+                            ));
+                        }
+                        else
+                        {
+                            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ForkLiftJobsFilter')->insert(array(
+                                'TagID' => $request->post('data'),
+                                'x' => $parse->tags[0]->smoothedPosition[0],
+                                'y' => $parse->tags[0]->smoothedPosition[1],
+                                'mode' => 0
+                            ));
+                        }
+                    }
+                }
+            }
+            else{
+                $curl = curl_init();
+    
+                curl_setopt_array($curl, array(
+                  CURLOPT_URL => "http://192.168.14.5:8080/qpe/getTagPosition?version=2&tag=" . $request->post('data') . "&maxAge=900000&humanReadable=true",
+                  CURLOPT_RETURNTRANSFER => true,
+                  CURLOPT_ENCODING => "",
+                  CURLOPT_MAXREDIRS => 10,
+                  CURLOPT_TIMEOUT => 0,
+                  CURLOPT_FOLLOWLOCATION => true,
+                  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                  CURLOPT_CUSTOMREQUEST => "GET",
+                ));
+                
+                $response = curl_exec($curl);
+                
+                curl_close($curl);
+                $parse = json_decode($response);
+                $checkTAG = DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ForkLiftJobsFilter')->where('TagID', $request->post('data'))->first();
+                if (isset($parse->tags[0])) {
+                    if (isset($parse->tags[0]->smoothedPosition)) {
+                        if ($checkTAG) 
+                        {
+                            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ForkLiftJobsFilter')->where('TagID', $request->post('data'))->update(array(
+                                'x' => $parse->tags[0]->smoothedPosition[0],
+                                'y' => $parse->tags[0]->smoothedPosition[1],
+                                'mode' => 0
+                            ));
+                        }
+                        else
+                        {
+                            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ForkLiftJobsFilter')->insert(array(
+                                'TagID' => $request->post('data'),
+                                'x' => $parse->tags[0]->smoothedPosition[0],
+                                'y' => $parse->tags[0]->smoothedPosition[1],
+                                'mode' => 0
+                            ));
+                        }
+                    }
+                }
+            }
+            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
+                $request->post('type') => $request->post('data'),
+                'UpdatedDt' => date("Y-m-d H:i:s"),
+                'UpdatedBy' => $request->post('UpdatedBy')
+            ));
 
+            DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
+                $request->post('type') => $request->post('data'),
+                'UpdatedDt' => date("Y-m-d H:i:s"),
+                'UpdatedBy' => $request->post('UpdatedBy')
+            ));
+        }else{
+            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
+                $request->post('type') => $request->post('data'),
+                'UpdatedDt' => date("Y-m-d H:i:s"),
+                'UpdatedBy' => $request->post('UpdatedBy')
+            ));
+
+            DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
+                $request->post('type') => $request->post('data'),
+                'UpdatedDt' => date("Y-m-d H:i:s"),
+                'UpdatedBy' => $request->post('UpdatedBy')
+            ));
+        }
         $data = array(
             'status' => "success"
         );
@@ -651,7 +747,7 @@ class ReceivingController extends Controller
     public function checkInventory(Request $request)
     {
         $inventory     = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->first();
-        $pallet        = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->select('InventoryPalletID', 'Tag')->where('InventoryID', $request->get('InventoryID'))->get();
+        $pallet        = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->select('InventoryPalletID', 'Tag', 'CurrentLocation', 'DeliveryID')->where('InventoryID', $request->get('InventoryID'))->get();
         $ContainerInfo = DB::connection("sqlsrv3")->table('HSC2012.dbo.ContainerInfo')->where('Dummy', $inventory->CntrID)->first();
         $jobInfo       = DB::connection("sqlsrv3")->table('HSC2012.dbo.JobInfo')->where('JobNumber', $ContainerInfo->JobNumber)->first();
         if ($inventory->HBL == 'OVERLANDED')
@@ -668,11 +764,21 @@ class ReceivingController extends Controller
             $totalTag   = 0;
             $totalPhoto = 0;
             $check      = array();
+            $checkPalletDelivery =  array();
+            $checkPalletLocation =  array();
             foreach ($pallet as $key => $plt)
             {
                 if ($plt->Tag)
                 {
                     $totalTag += 1;
+                }
+                if($plt->DeliveryID > 0)
+                {
+                  array_push($checkPalletDelivery, 'have_delivery');
+                }
+                if ($plt->CurrentLocation == "HSC" || $plt->CurrentLocation == "122") 
+                {
+                    array_push($checkPalletLocation, 'have_location');
                 }
                 $breakdown = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->select('BreakDownID', 'Quantity', 'Flags')->where('InventoryPalletID', $plt->InventoryPalletID)->where('DelStatus', 'N')->get();
                 foreach ($breakdown as $key => $brk)
@@ -685,13 +791,54 @@ class ReceivingController extends Controller
                     {
                         array_push($check, 'yes');
                     }
+                    else if(in_array('CONNECTING', str_replace(' ', '', explode(',', $brk->Flags)))) {
+                        array_push($check, 'connecting');
+                    }
                 }
             }
 
             $MQty = (int) $inventory->MQuantity;
             if ($MQty == $qty)
             {
-                if ($totalPhoto >= 1 && $totalTag >= 1)
+                if(in_array('have_location', $checkPalletLocation))
+                {
+                    if ($totalPhoto >= 1)
+                    {
+                        DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                            'CheckStatus' => 'Y'
+                        ));
+                    }
+                    else if ($totalPhoto >= 1 && $totalTag >= 1)
+                    {
+                        DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                            'CheckStatus' => 'Y'
+                        ));
+                    }
+                    else{
+                        DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                            'CheckStatus' => 'N'
+                        ));
+                    }
+                }
+                else if(in_array('have_delivery', $checkPalletDelivery)) 
+                {
+                    DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                        'CheckStatus' => 'Y'
+                    ));
+                }
+                else if ($totalPhoto >= 1 && $totalTag >= 1)
+                {
+                    DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                        'CheckStatus' => 'Y'
+                    ));
+                }
+                else if ($jobInfo->ClientID == 'VANGUARD' && $totalPhoto >= 1)
+                {
+                    DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                        'CheckStatus' => 'Y'
+                    ));
+                }
+                else if(in_array('connecting', $check) && $totalPhoto >= 1)
                 {
                     DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
                         'CheckStatus' => 'Y'
@@ -711,7 +858,8 @@ class ReceivingController extends Controller
                 ));
             }
             $data = array(
-                'status' => "success"
+                'status' => "success",
+                'location' => $checkPalletLocation
             );
             return response($data);
         }

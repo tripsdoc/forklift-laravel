@@ -124,10 +124,10 @@ class ExportController extends Controller
                 }
             }
         });
-        $result->groupBy(DB::raw('SUM(IB.Quantity) AS Qty'), 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
+        $result->groupBy('IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
         $response['pod'] = $pod;
-        $result->select('IP.Tag', 'IP.ExpCntrID', 'JI.POD');
+        $result->select(DB::raw('SUM(IB.Quantity) AS Qty'), 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         $data = $result->get();
         Storage::put('logs/export/GetTagsByPort.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;

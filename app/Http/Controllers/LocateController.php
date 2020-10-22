@@ -48,6 +48,9 @@ class LocateController extends Controller
 
     function updateStuffing(Request $request) {
       try {
+        #$inventory2017 = DB::table('HSC2017.dbo.InventoryPallet')
+        #->where('ExpCntrID', $request->dummy)
+        #->update(['isActivityForStuffing' => $request->data]);
         $inventory = InventoryPallet::where('ExpCntrID', $request->dummy)
         ->update([
           'isActivityForStuffing' => $request->data
@@ -56,6 +59,7 @@ class LocateController extends Controller
         $response['data'] = $inventory;
         return response($response);
       } catch (\Illuminate\Database\QueryException $ex) {
+        Storage::append('logs/locate/error.txt', $ex);
         $response['status'] = TRUE;
         $response['errmsg'] = $ex;
         return response($response);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\DeviceInfo;
 use Storage;
 
@@ -50,7 +51,15 @@ class DeviceController extends Controller
 
     function clerkCheckDevice(Request $request) {
         $serial = $request->get('serial_number');
+        Log::debug('DEBUG QUERY -  SERIAL: ' . $request->get('serial_number'));
         $result = DeviceInfo::where('SerialNumber', '=', $serial)->first();
+        if ($request->get('lockedId')) {
+            DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('lockedId'))->update(array(
+                'LockedBy' => '',
+                'LockedDt' => null,
+                'LockedPC' => '',
+            ));
+        }
         $data    = array(
             'status' => $result ? true : false,
             'warehouses' => $result ? $result->WareHouses : 0,
@@ -58,7 +67,6 @@ class DeviceController extends Controller
         );
         return response($data);
     }
-
     function getUpdate() {
         //return response()->file(public_path('latest.apk'));
         return Storage::download('out.apatch', 'out.apatch', ['Connection' => 'keep-alive']);

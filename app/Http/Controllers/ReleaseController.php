@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Intervention\Image\ImageManagerStatic as Image;
+use Illuminate\Support\Facades\Log;
 date_default_timezone_set("Asia/Singapore");
 class ReleaseController extends Controller
 {
@@ -113,7 +114,7 @@ where ip1.DelStatus = 'N'
             }
 
             $loopPallet = array(
-                "number" => $x++,
+                "number" => count($pallet) + 1,
                 "Dummy" => $value->Dummy ? $value->Dummy : "",
                 "ContainerPrefix" => $value->ContainerPrefix ? $value->ContainerPrefix : "",
                 "ContainerNumber" => $value->ContainerNumber ? $value->ContainerNumber : "",
@@ -433,25 +434,32 @@ where ip1.DelStatus = 'N'
         Storage::disk('public')->put('temp/' . $finalName, File::get($cover));
 
         $imageFix = public_path() . '/temp/' . $finalName;
-        $dir = '\\\\SERVER-DB\\Files\\Photo\\';
-        $year = date("Y");
+        
+        $dir   = '\\\\SERVER-DB\\Files\\Photo\\';
+        $year  = date("Y");
         $month = date("m");
 
         if (is_dir($dir))
         {
-            if (!file_exists($dir . $request->get('CntrID')))
+            Log::debug('yea is a dir');
+            Log::debug($cntr->CntrID . " is CntrID");
+            if (!file_exists($dir . $cntr->CntrID))
             {
-                mkdir($dir . $request->get('CntrID') , 0775);
+                Log::debug('yea is a exist');
+                mkdir($dir . $cntr->CntrID, 0775);
             }
             if ($dh = opendir($dir))
             {
-                $uold = umask(0);
-                $filename = $dir . $request->get('CntrID') . "/" . $year;
-                $filename2 = $dir . $request->get('CntrID') . "/" . $year . "/" . $month;
+                Log::debug('yea is a opened');
+                $uold      = umask(0);
+                $filename  = $dir . $cntr->CntrID . "/" . $year;
+                $filename2 = $dir . $cntr->CntrID . "/" . $year . "/" . $month;
                 if (file_exists($filename))
                 {
+                    Log::debug('year already');
                     if (!file_exists($filename2))
                     {
+                        Log::debug('creating month folder');
                         mkdir($filename2, 0775);
                     }
                 }
@@ -462,15 +470,11 @@ where ip1.DelStatus = 'N'
                 }
                 umask($uold);
             }
-        }
+        }else{
 
-        // if (is_dir($dir))
-        // {
-        //     if (!file_exists($dir . $cntr->CntrID))
-        //     {
-        //       mkdir($dir . $cntr->CntrID, 0775);
-        //     }
-        // }
+            Log::debug('yea is a dir');
+        }
+ 
         list($width, $height) = getimagesize($imageFix);
         if ($width > $height)
         {
@@ -504,6 +508,7 @@ where ip1.DelStatus = 'N'
             $image_resize->save(public_path('image/breakdown/' . $finalName));
         }
         // copy(public_path('image/breakdown/' . $finalName), $dir . $cntr->CntrID . '/' . $finalName);
+        // copy(public_path('image/breakdown/' . $finalName), $dir . $request->get('CntrID') . "/" . $year . "/" . $month . '/' . $finalName);
         copy(public_path('image/breakdown/' . $finalName) , $dir . $cntr->CntrID . "/" . $year . "/" . $month . '/' . $finalName);
         $dataImg = array(
             'BreakDownID' => $request->post('BreakDownID') ,
@@ -521,6 +526,7 @@ where ip1.DelStatus = 'N'
         $id = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPhoto')
             ->insertGetId($dataImg);
         unlink(public_path('image/breakdown/' . $finalName));
+        Log::debug('DEBUG PHOTO RELEASE -  ' .  $finalName);
         $data = array(
             'status' => 'success',
             'last_photo' => array(
