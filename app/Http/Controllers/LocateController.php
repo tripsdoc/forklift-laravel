@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Storage;
 use DB;
 use Illuminate\Http\Request;
 use App\InventoryPallet;
@@ -48,9 +49,9 @@ class LocateController extends Controller
 
     function updateStuffing(Request $request) {
       try {
-        #$inventory2017 = DB::table('HSC2017.dbo.InventoryPallet')
-        #->where('ExpCntrID', $request->dummy)
-        #->update(['isActivityForStuffing' => $request->data]);
+        $inventory2017 = DB::table('HSC2017.dbo.HSC_InventoryPallet')
+        ->where('ExpCntrID', $request->dummy)
+        ->update(['isActivityForStuffing' => $request->data]);
         $inventory = InventoryPallet::where('ExpCntrID', $request->dummy)
         ->update([
           'isActivityForStuffing' => $request->data
