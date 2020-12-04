@@ -39,12 +39,13 @@ class RetrieveController extends Controller
         return response($response);
     }
     function getDeliveryNotes() {
+        $mode = "";
         $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         //Get delivery notes by selected warehouse
         if(isset($_GET['warehouse'])) {
+            $mode = "warehouse";
             $result = DB::table('InventoryPallet AS IP')
             ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
-            ->select(DB::raw('ROW_NUMBER() OVER(ORDER BY IP.DN) AS SN, IP.DN, SUM(IB.Quantity) Qty, IP.DeliveryID'))
             ->whereExists(function($query) {
                 $query->select(DB::raw(1))
                 ->from('InventoryPallet AS IP1')
@@ -57,11 +58,14 @@ class RetrieveController extends Controller
             })
             ->whereNotNull('IP.DN')
             ->where('IP.DelStatus', '=', 'N')
-            ->where('IB.DelStatus', '=', 'N')
-            ->groupBy('IP.DN', 'IP.DeliveryID')
+            ->where('IB.DelStatus', '=', 'N');
+            $iddata = $result->pluck('IP.InventoryID');
+            $data = $result->groupBy('IP.DN', 'IP.DeliveryID')
+            ->select(DB::raw('ROW_NUMBER() OVER(ORDER BY IP.DN) AS SN, IP.DN, SUM(IB.Quantity) Qty, IP.DeliveryID'))
             ->get();
         } else {
         //Get all delivery notes
+            $mode = "all";
             $result = DB::table('InventoryPallet AS IP')
             ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
             ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
@@ -92,14 +96,23 @@ class RetrieveController extends Controller
             })
             ->whereNotNull('IP.DN')
             ->where('IP.DelStatus', '=', 'N')
-            ->where('IB.DelStatus', '=', 'N')
-            ->groupBy('IP.DN', 'IP.DeliveryID', 'IP.CurrentLocation', 'TL.CoordinateSystemName', 'TL.Zones')
+            ->where('IB.DelStatus', '=', 'N');
+            $iddata = $result->pluck('IP.InventoryID');
+            $data = $result->groupBy('IP.DN', 'IP.DeliveryID', 'IP.CurrentLocation', 'TL.CoordinateSystemName', 'TL.Zones')
             ->select(DB::raw('ROW_NUMBER() OVER(ORDER BY IP.DN) as SN'), 'IP.DN', DB::raw('SUM(IB.Quantity) Qty'), 'IP.DeliveryID', 'IP.CurrentLocation', 'TL.CoordinateSystemName', 'TL.Zones')->get();
         }
         Storage::put('logs/retrieve/GetDeliveryNotes.txt', $url);
-        $response['status'] = (count($result) > 0)? TRUE : FALSE;
-        $response['total'] = count($result);
-        $response['data'] = $result;
+        
+        $dataArray = array();
+        $dataQty = $this->getSequence($iddata);
+        foreach($data as $key => $datas) {
+            $newdata = $this->formatData($datas, $dataQty, $mode);
+            array_push($dataArray, $newdata);
+        }
+        
+        $response['status'] = (count($data) > 0)? TRUE : FALSE;
+        $response['total'] = count($data);
+        $response['data'] = $dataArray;
         return response($response);
     }
 
@@ -144,5 +157,33 @@ class RetrieveController extends Controller
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
         $response['data'] = $data;
         return response($response);
+    }
+
+    function getSequence($ids) {
+        $result = DB::table('Inventory AS I')
+        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        ->where('I.DelStatus', '=', 'N')
+        ->where('IP.DelStatus', '=', 'N')
+        ->where('IB.DelStatus', '=', 'N')
+        ->whereIn('I.InventoryID',$ids)
+        ->select('IP.DN','IB.Quantity')
+        ->get();
+        return $result;
+    }
+
+    function formatData($datas, $dataQty, $mode) {
+        $Qty = $dataQty->where('DN', $datas->DN)->flatten();
+        $loopdata = new \stdClass();
+        $loopdata->DN = $datas->DN;
+        $loopdata->DeliveryID = $datas->DeliveryID;
+        $loopdata->Qty = $datas->Qty;
+        if($mode == "all") {
+            $loopdata->CurrentLocation = $datas->CurrentLocation;
+            $loopdata->CoordinateSystemName = $datas->CoordinateSystemName;
+            $loopdata->Zones = $datas->Zones;
+        }
+        $loopdata->Sequence = $Qty;
+        return $loopdata;
     }
 }

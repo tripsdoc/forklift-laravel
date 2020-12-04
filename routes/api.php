@@ -36,6 +36,7 @@ Route::group(['prefix' => 'forklift'], function () {
   Route::get('export/', 'ExportController@getAllTagsActivatedforStuffing');
   Route::get('export/pod/', 'ExportController@getAllPortActivatedforStuffing');
   Route::get('export/pod/{pod}', 'ExportController@getActivatedTagsByPort');
+  Route::get('export/mqty', 'ExportController@getMQuantity');
 });
 
 //Debug

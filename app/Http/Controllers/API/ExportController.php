@@ -49,7 +49,7 @@ class ExportController extends Controller
         $dataArray = array();
         $dataQty = $this->getQuantity($iddata);
         foreach($data as $key => $datas) {
-            $newdata = $this->formatData($datas, $dataQty);
+            $newdata = $this->formatDataTag($datas, $dataQty);
             array_push($dataArray, $newdata);
         }
 
@@ -99,7 +99,7 @@ class ExportController extends Controller
         return response($response);
     }
 
-    function formatData($datas, $dataQty) {
+    function formatDataTag($datas, $dataQty) {
         $newQty = $dataQty->where('InventoryID', $datas->InventoryID)->pluck('Qty')->first();
         $loopdata = new \stdClass();
         $loopdata->InventoryID = $datas->InventoryID;
@@ -174,5 +174,58 @@ class ExportController extends Controller
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
         $response['data'] = $dataArray;
         return response($response);
+    }
+
+    function getMQuantity() {
+        $pod = $_GET['pod'];
+        $result = DB::table('Inventory AS I')
+        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
+        ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
+        ->where('I.DelStatus', '=', 'N')
+        ->where('IP.DelStatus', '=', 'N')
+        ->where('IB.DelStatus', '=', 'N')
+        ->whereRaw("IP.Tag <> ''")
+        ->where('JI.POD', '=', $pod);
+        $iddata = $result->pluck('IP.InventoryID');
+        
+        $data = $result->groupBy('I.InventoryID', 'I.MQuantity')
+        ->select('I.InventoryID','I.MQuantity')
+        ->get();
+
+        $dataArray = array();
+        $dataQty = $this->getSequence($iddata);
+        foreach($data as $key => $datas) {
+            $newdata = $this->formatData($datas, $dataQty);
+            array_push($dataArray, $newdata);
+        }
+
+        $response['status'] = (count($data) > 0)? TRUE : FALSE;
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+
+    function getSequence($ids) {
+        $result = DB::table('Inventory AS I')
+        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
+        ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
+        ->where('I.DelStatus', '=', 'N')
+        ->where('IP.DelStatus', '=', 'N')
+        ->where('IB.DelStatus', '=', 'N')
+        ->whereIn('I.InventoryID',$ids)
+        ->select('I.InventoryID','IB.Quantity')
+        ->get();
+        return $result;
+    }
+
+    function formatData($datas, $dataQty) {
+        $Qty = $dataQty->where('InventoryID', $datas->InventoryID)->pluck('Quantity');
+        $loopdata = new \stdClass();
+        $loopdata->Count = count($Qty);
+        $loopdata->Sequence = $Qty;
+        return $loopdata;
     }
 }
