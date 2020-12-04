@@ -25,7 +25,6 @@ class ExportController extends Controller
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
-        ->join('InventoryBreakdown as IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
@@ -41,13 +40,22 @@ class ExportController extends Controller
                 }
             }
         });
-        $result->groupBy('IP.Tag', 'IP.ExpCntrID', 'JI.POD');
+        $iddata = $result->pluck('IP.InventoryID');
+        $result->groupBy('IP.InventoryID', 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
-        $result->select(DB::raw('SUM(IB.Quantity) AS Qty'), 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
+        $result->select('IP.InventoryID', 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         $data = $result->get();
+
+        $dataArray = array();
+        $dataQty = $this->getQuantity($iddata);
+        foreach($data as $key => $datas) {
+            $newdata = $this->formatData($datas, $dataQty);
+            array_push($dataArray, $newdata);
+        }
+
         Storage::put('logs/export/GetAllTags.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
-        $response['data'] = $data;
+        $response['data'] = $dataArray;
         return response($response);
     }
 
@@ -90,6 +98,31 @@ class ExportController extends Controller
         $response['data'] = $data;
         return response($response);
     }
+
+    function formatData($datas, $dataQty) {
+        $newQty = $dataQty->where('InventoryID', $datas->InventoryID)->pluck('Qty')->first();
+        $loopdata = new \stdClass();
+        $loopdata->InventoryID = $datas->InventoryID;
+        $loopdata->Tag = $datas->Tag;
+        $loopdata->ExpCntrID = $datas->ExpCntrID;
+        $loopdata->POD = $datas->POD;
+        $loopdata->Qty = $newQty;
+        return $loopdata;
+    }
+
+    function getQuantity($ids) {
+        $result = DB::table('Inventory AS I')
+        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        ->where('I.DelStatus', '=', 'N')
+        ->where('IP.DelStatus', '=', 'N')
+        ->where('IB.DelStatus', '=', 'N')
+        ->whereIn('I.InventoryID',$ids)
+        ->groupBy('I.InventoryID')
+        ->select('I.InventoryID', DB::raw('SUM(IB.Quantity) AS Qty'))
+        ->get();
+        return $result;
+    }
     
     function getActivatedTagsByPort($pod) {
         $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
@@ -107,7 +140,6 @@ class ExportController extends Controller
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
-        ->join('InventoryBreakdown as IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
@@ -124,14 +156,23 @@ class ExportController extends Controller
                 }
             }
         });
-        $result->groupBy('IP.Tag', 'IP.ExpCntrID', 'JI.POD');
+        $iddata = $result->pluck('IP.InventoryID');
+        $result->groupBy('IP.InventoryID', 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         //$result->whereIn('IP.CurrentLocation', $datawarehouse)
         $response['pod'] = $pod;
-        $result->select(DB::raw('SUM(IB.Quantity) AS Qty'), 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
+        $result->select('IP.InventoryID', 'IP.Tag', 'IP.ExpCntrID', 'JI.POD');
         $data = $result->get();
+
+        $dataArray = array();
+        $dataQty = $this->getQuantity($iddata);
+        foreach($data as $key => $datas) {
+            $newdata = $this->formatData($datas, $dataQty);
+            array_push($dataArray, $newdata);
+        }
+
         Storage::put('logs/export/GetTagsByPort.txt', $url);
         $response['status'] = (count($data) > 0)? TRUE : FALSE;
-        $response['data'] = $data;
+        $response['data'] = $dataArray;
         return response($response);
     }
 }

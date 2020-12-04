@@ -61,6 +61,11 @@ class UnstuffingController extends Controller
           if ($value->CheckStatus == 'Y') {
             array_push($check, 'yes');
           }
+            DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $value->InventoryID)->update(array(
+                'LockedBy' => "" ,
+                'LockedDt' => null,
+                'LockedPC' => "" ,
+            ));
         }
         $data = array(
             'status' => 'success',
@@ -96,9 +101,10 @@ class UnstuffingController extends Controller
     }
     function startJob(Request $request)
     {
+        $check = DB::connection("sqlsrv3")->table('HSC_IPS.dbo.IpsUser')->where('UserName', 'like', '%' .  $request->get('TallyBy') . '%')->first();
         DB::connection("sqlsrv3")->table( $this->db2012 . '.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
             'StartTime' => date("Y-m-d H:i:s"),
-            'NTunstuffingstatus' => "PROCESSING " . $request->get('TallyBy')
+            'NTunstuffingstatus' => "PROCESSING " . $check->UserName
         ));
         DB::connection("sqlsrv3")->table($this->dbhsc . '.dbo.ContainerInfo')->where('Id', $request->get('dummy'))->update(array(
             'StartTime' => date("Y-m-d H:i:s")
@@ -133,19 +139,37 @@ class UnstuffingController extends Controller
     }
     function finishJob(Request $request)
     {
-        DB::connection("sqlsrv3")->table($this->db2012 . '.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
-            'TallyBy' => $request->get('TallyBy'),
-            'Status' => 'EMPTY',
-            'EndTime' => date("Y-m-d H:i:s"),
-            'DateofStuf/Unstuf' => date("Y-m-d H:i:s"),
-            'NTunstuffingstatus' => "COMPLETED",
-        ));
-        DB::connection("sqlsrv3")->table($this->dbhsc . '.dbo.ContainerInfo')->where('Id', $request->get('dummy'))->update(array(
-            'TallyBy' => $request->get('TallyBy'),
-            'Status' => 'EMPTY',
-            'EndTime' => date("Y-m-d H:i:s"),
-            'DateofStuf' => date("Y-m-d H:i:s"),
-        ));
+        $check = DB::connection("sqlsrv3")->table($this->db2012 . '.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->get();
+        if ($check[0]->Status == "DELIVERED")
+        {
+            DB::connection("sqlsrv3")->table($this->db2012 . '.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+                'TallyBy' => $request->get('TallyBy'),
+                'Status' => 'EMPTY',
+                'EndTime' => date("Y-m-d H:i:s"),
+                'DateofStuf/Unstuf' => date("Y-m-d H:i:s"),
+                'NTunstuffingstatus' => "COMPLETED",
+            ));
+            DB::connection("sqlsrv3")->table($this->dbhsc . '.dbo.ContainerInfo')->where('Id', $request->get('dummy'))->update(array(
+                'TallyBy' => $request->get('TallyBy'),
+                'Status' => 'EMPTY',
+                'EndTime' => date("Y-m-d H:i:s"),
+                'DateofStuf' => date("Y-m-d H:i:s"),
+            ));
+        }
+        else
+        {
+            DB::connection("sqlsrv3")->table($this->db2012 . '.dbo.ContainerInfo')->where('Dummy', $request->get('dummy'))->update(array(
+                'TallyBy' => $request->get('TallyBy'),
+                'EndTime' => date("Y-m-d H:i:s"),
+                'DateofStuf/Unstuf' => date("Y-m-d H:i:s"),
+                'NTunstuffingstatus' => "COMPLETED",
+            ));
+            DB::connection("sqlsrv3")->table($this->dbhsc . '.dbo.ContainerInfo')->where('Id', $request->get('dummy'))->update(array(
+                'TallyBy' => $request->get('TallyBy'),
+                'EndTime' => date("Y-m-d H:i:s"),
+                'DateofStuf' => date("Y-m-d H:i:s"),
+            ));
+        }
 
         $data = array(
             'status' => "success"
@@ -173,13 +197,13 @@ class UnstuffingController extends Controller
     function checkLockedInventory(Request $request)
     {
         $inventory  = DB::connection("sqlsrv3")->table($this->db2017 . '.dbo.HSC_Inventory')->select('LockedBy', 'LockedPC')->where('InventoryID', $request->get('InventoryID'))->first();
-        // dd($inventory);
-        if(empty($inventory))
+       
+        if(empty($inventory->LockedBy))
         {
             $data    = array(
                 'status' => false,
-                'LockedBy' => $inventory->LockedBy,
-                'LockedPC' => $inventory->LockedPC
+                'LockedBy' => "",
+                'LockedPC' => ""
             );
             return response($data);
         }else{
@@ -208,7 +232,8 @@ class UnstuffingController extends Controller
     function addOverlanded(Request $request)
     {
         $inventoryPalletID = 0;
-        DB::connection("sqlsrv3")->update("SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;exec " . $this->db2017 . ".dbo.InventoryPallet_InsertOverlanded " . $inventoryPalletID . ", "  . $request->get('Dummy') .", " .  $request->get('CreatedBy') ."");
+        $CreatedBy = '"' . $request->get('CreatedBy') .'"';
+        DB::connection("sqlsrv3")->update("SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;exec " . $this->db2017 . ".dbo.InventoryPallet_InsertOverlanded " . $inventoryPalletID . ", "  . $request->get('Dummy') .", " . $CreatedBy . "");
         
         $data    = array(
             'status' => "success",
@@ -283,7 +308,7 @@ class UnstuffingController extends Controller
                         }
 
                         // TESTING
-                        // $loadImage = str_replace("//server-db/Files/Photo","http://192.168.14.70:9030/",$gallery->PhotoNameSystem);
+                        // $loadImage = str_replace("//server-db/Files/Photo","http://192.168.14.70:9060/",$gallery->PhotoNameSystem);
                         // $loadPath = str_replace("//server-db/Files/Photo","",$gallery->PhotoNameSystem);
                         // $file = '../../../Photo2' . $loadPath;
                         // if (file_exists($file)) {
@@ -323,7 +348,7 @@ class UnstuffingController extends Controller
                 }
                 $lastFrom = $break->InventoryPalletID;
 
-                $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flagImp')->get();
+                $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flag')->get();
                 $flagSelected = array();
                 $flagShow = array();
                 // dd($flag);
@@ -376,7 +401,7 @@ class UnstuffingController extends Controller
             }
         }
         $typeChecklist  = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'type')->get();
-        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flagImp')->get();
+        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flag')->get();
         $locations      = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'location')->get();
         // dd($galleries);
         $data           = array(
@@ -392,16 +417,17 @@ class UnstuffingController extends Controller
     }
     function copyPallet(Request $request)
     {
-        Log::debug('DEBUG QUERY -  COPY PALLET FROM ' . $request->get('InventoryPalletID'));
         $copy          = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
         //   $listAvailable = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryID', $copy->InventoryID)->where('DelStatus', 'N')->get();
         $InventoryPalletID = 0;
         $type = "copy";
         $CreatedBy = '"' . $request->get('CreatedBy') .' "';
-        DB::connection("sqlsrv3")->update("SET NOCOUNT ON;SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;SET ARITHABORT ON;exec HSC2017.dbo.InventoryPallet_Insert " . $InventoryPalletID . ", "  . $copy->InventoryID . ", " .  $request->get('InventoryPalletID') . ", " . $type . ", " . $CreatedBy . "");
-        
+        Log::debug('DEBUG QUERY - UNSTUFFING COPY PALLET FROM ' . $request->get('InventoryPalletID') . ' BY ' . $CreatedBy);
+        $last = DB::connection("sqlsrv3")->update("SET NOCOUNT ON;SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;SET ARITHABORT ON;exec HSC2017.dbo.InventoryPallet_Insert " . $InventoryPalletID . ", "  . $copy->InventoryID . ", " .  $request->get('InventoryPalletID') . ", " . $type . ", " . $CreatedBy . "");
+
+    
         $data = array(
-            'status' => "success"
+            'status' => "success",
         );
         return response($data);
     }
@@ -426,7 +452,26 @@ class UnstuffingController extends Controller
         $breakdownRaw = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
         $breakdownId = 0;
         DB::connection("sqlsrv3")->update("SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;exec HSC2017.dbo.InventoryBreakdown_CopyBreakdown " . $breakdownId . ", "  . $breakdownRaw->BreakDownID .", " .  $request->get('CreatedBy') ."");
-        
+        // $breakdown    = array(
+        //     "InventoryPalletID" => (int) $breakdownRaw->InventoryPalletID,
+        //     "Markings" => $breakdownRaw->Markings,
+        //     "Quantity" => (int) $breakdownRaw->Quantity,
+        //     "Type" => $breakdownRaw->Type,
+        //     "Length" => (int) $breakdownRaw->Length,
+        //     "Breadth" => (int) $breakdownRaw->Breadth,
+        //     "Height" => (int) $breakdownRaw->Height,
+        //     "Volume" => $breakdownRaw->Volume,
+        //     "Remarks" => '',
+        //     "CreatedBy" => $request->get('CreatedBy'),
+        //     "CreatedDt" => date("Y-m-d H:i:s"),
+        //     "UpdatedBy" => null,
+        //     "UpdatedDt" => null,
+        //     "DelStatus" => $breakdownRaw->DelStatus,
+        //     "Flags" => '',
+        //     "Tally" => $breakdownRaw->Tally,
+        //     "Weight" => $breakdownRaw->Weight
+        // );
+        // DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->insert($breakdown);
         $data = array(
             'status' => "success"
         );
@@ -592,8 +637,8 @@ class UnstuffingController extends Controller
     {
         Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN PROC');
         Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN PROC TRY - FLAG with data ' . $request->post('F'));
-        Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN PROC  - LBH with data ' . $request->post('L'));
-        $markings = is_null($request->post('Markings')) ? '" "' : '"' . trim($request->post('Markings')) .'"';
+        Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN PROC  - LBH with data ' . $request->post('Markings'));
+        $markings = is_null($request->post('Markings')) ? "''" : "'" . $this->ms_escape_string(trim($request->post('Markings'))) ."'";
         $type = '"' . trim($request->post('T')) .'"';
         $qty      = (int) $request->post('Qty') ? $request->post('Qty') : 0;
         $length   = (int) $request->post('L') ? $request->post('L') : 0;
@@ -692,7 +737,7 @@ class UnstuffingController extends Controller
             'status' => 'success',
             'last_photo' => array(
               'InventoryPhotoID' => $id,
-              'PhotoNameSystem' => $cntr->CntrID . '/' .$finalName
+              'PhotoNameSystem' => $cntr->CntrID  . "/" . $finalName
             )
         );
         return response($data);
@@ -726,8 +771,12 @@ class UnstuffingController extends Controller
         $imageFix = public_path() . '/temp/' . $finalName;
 
         $dir = '\\\\SERVER-DB\\Files\\Photo\\';
-        // $dir = '../../../Photo2';
-
+        // $dir = '../../../Photo2/';
+        $checkDir = $this->folder_exist($dir . $request->get('CntrID'));
+        if (!$checkDir) {
+            mkdir($dir . $request->get('CntrID') , 0775);
+        }
+        
         list($width, $height) = getimagesize($imageFix);
         if ($width > $height)
         {
@@ -782,23 +831,44 @@ class UnstuffingController extends Controller
         );
         return response($data);
     }
+    function folder_exist($folder)
+    {
+        // Get canonicalized absolute pathname
+        $path = realpath($folder);
+
+        // If it exist, check if it's a directory
+        return ($path !== false AND is_dir($path)) ? $path : false;
+    }
     public function getPhotoHBL(Request $request)
     {
         $galleries = array();
         $images = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_CntrPhoto')->where('CntrID', $request->get('CntrID'))->where('DelStatus', 'N')->get();
+        
         foreach($images as $gallery)
         {
-
-            $loadImage = str_replace("//server-db/Files/Photo","http://192.168.14.70:9030/",$gallery->PhotoNameSystem);
-            list($width, $height) = getimagesize($loadImage);
-            $imageGallery = array(
-                'width' => $width,
-                'CntrPhotoID' => $gallery->CntrPhotoID,
-                'PhotoName' => $gallery->PhotoName,
-                'PhotoExt' => $gallery->PhotoExt,
-                'PhotoNameSystem' => $loadImage
-            );
-            array_push($galleries, $imageGallery);
+            $loadImage = str_replace("//server-db/Files/Photo", "http://192.168.14.70:9060/", $gallery->PhotoNameSystem);
+            // $loadImage = str_replace("//server-db/Files/Photo","http://192.168.14.70:9030/",$gallery->PhotoNameSystem);
+            // list($width, $height) = getimagesize($loadImage);
+            // $imageGallery = array(
+            //     'width' => $width,
+            //     'CntrPhotoID' => $gallery->CntrPhotoID,
+            //     'PhotoName' => $gallery->PhotoName,
+            //     'PhotoExt' => $gallery->PhotoExt,
+            //     'PhotoNameSystem' => $loadImage
+            // );
+            // array_push($galleries, $imageGallery);
+            if ($this->checkRemoteFile($loadImage))
+            {
+                list($width, $height) = getimagesize($loadImage);
+                $imageGallery = array(
+                    'width' => $width,
+                    'CntrPhotoID' => $gallery->CntrPhotoID,
+                    'PhotoName' => $gallery->PhotoName,
+                    'PhotoExt' => $gallery->PhotoExt,
+                    'PhotoNameSystem' => $loadImage
+                );
+                array_push($galleries, $imageGallery);
+            }
         }
         $data = array(
             'status' => 'success',
@@ -808,6 +878,7 @@ class UnstuffingController extends Controller
     }
     function deleteHBLPhoto(Request $request)
     {
+        Log::debug('DEBUG QUERY -  DELETE PHOTO CONTAINER - ' . $request->get('CntrPhotoID'));
         DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_CntrPhoto')->where('CntrPhotoID', $request->get('CntrPhotoID'))->update(array(
             'DelStatus' => 'Y',
             'ModifyDt' => date("Y-m-d H:i:s"),
@@ -830,7 +901,8 @@ class UnstuffingController extends Controller
               'status' => "success"
           );
           return response($data);
-        }else{
+        }
+        else{
           $qty = 0;
           $totalTag = 0;
           $totalPhoto = 0;
@@ -850,6 +922,7 @@ class UnstuffingController extends Controller
 
                 $photo = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPhoto')->select('InventoryPhotoID', 'DelStatus')->where('BreakDownID', $brk->BreakDownID)->where('DelStatus', 'N')->count();
                 $totalPhoto += $photo;
+                
                 if (in_array('SHORTLANDED', str_replace(' ', '', explode(',', $brk->Flags))))
                 {
                     array_push($check, 'yes');
@@ -869,10 +942,10 @@ class UnstuffingController extends Controller
           }
           else if($MQty == $qty)
           {
-            // DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
-            //     'CheckStatus' => 'Y'
-            // ));
-            
+            DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                'CheckStatus' => 'Y'
+            ));
+
             if($ContainerInfo->DeliverTo == "HSC" || $ContainerInfo->DeliverTo == "122")
             {
                 if ($totalPhoto >= 1)
@@ -880,14 +953,7 @@ class UnstuffingController extends Controller
                     DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
                         'CheckStatus' => 'Y'
                     ));
-                }
-                elseif ($totalTag >= 1)
-                {
-                    DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
-                        'CheckStatus' => 'Y'
-                    ));
-                }
-                else{
+                }else{
                     DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
                         'CheckStatus' => 'N'
                     ));
@@ -952,5 +1018,95 @@ class UnstuffingController extends Controller
           );
           return response($data);
         }
+    }
+    public function test()
+    {
+        // $first = 'your, first, array';
+        // $second = 'your, second, array';
+
+        // $result = array_merge(explode(",", $first), explode(",", $second));
+        // dd($result);
+        // $result1= array_unique($result);
+        // dd($result1);
+        $str = '"MERCADORIA EM TRANSITO AO RECINTO ALFANDEGADO DO';
+        $cleanFlag = ["TORN","DENT","TORN, DENT, TORN, DENT, TORN, DENT, TORN, DENT, TORN, DENT"];
+        $filter = array_filter(array_unique(array_map('trim', $cleanFlag)));
+        dd($filter);
+//         $my_array = array('sheldon', 'leonard', 'howard', 'penny');
+// $to_remove = array('howard');
+// $result = array_diff($my_array, $to_remove);
+// dd($result);
+        // $curl = curl_init();
+
+        // curl_setopt_array($curl, array(
+        //   CURLOPT_URL => "http://192.168.14.5:8080/qpe/getTagPosition?version=2&tag=1ab1247b5bb8&maxAge=900000&humanReadable=true",
+        //   CURLOPT_RETURNTRANSFER => true,
+        //   CURLOPT_ENCODING => "",
+        //   CURLOPT_MAXREDIRS => 10,
+        //   CURLOPT_TIMEOUT => 0,
+        //   CURLOPT_FOLLOWLOCATION => true,
+        //   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        //   CURLOPT_CUSTOMREQUEST => "GET",
+        // ));
+        
+        // $response = curl_exec($curl);
+        
+        // curl_close($curl);
+        // $parse = json_decode($response);
+        // // dd($parse);
+        // if (isset($parse->tags[0])) {
+        //     dd($parse->tags[0]->smoothedPosition[0]);
+        // }
+        // else{
+        //     echo "not oke";
+        // }
+        
+
+    }
+    function ms_escape_string($str)
+    {
+        if(get_magic_quotes_gpc())
+        {
+            $str = stripslashes($str);
+        }
+        return str_replace("'", "''", $str);
+    }
+    function checkRemoteFile($url)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL,$url);
+        // don't download content
+        curl_setopt($ch, CURLOPT_NOBODY, 1);
+        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+        if($result !== FALSE)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    function listFolderFiles($dir){
+        $ffs = scandir($dir);
+
+        unset($ffs[array_search('.', $ffs, true)]);
+        unset($ffs[array_search('..', $ffs, true)]);
+
+        // prevent empty ordered elements
+        if (count($ffs) < 1)
+            return;
+
+        echo '<ol>';
+        foreach($ffs as $ff){
+            echo '<li>'.$ff;
+            if(is_dir($dir.'/'.$ff)) $this->listFolderFiles($dir.'/'.$ff);
+            echo '</li>';
+        }
+        echo '</ol>';
     }
 }

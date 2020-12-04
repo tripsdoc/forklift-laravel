@@ -297,7 +297,8 @@ class ReceivingController extends Controller
         $copy          = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
         $InventoryPalletID = 0;
         $type = "copy";
-        $CreatedBy = '"' . $request->get('CreatedBy') .' "';
+        $CreatedBy = '"' . $request->get('CreatedBy') .'"';
+        Log::debug('DEBUG QUERY -  COPY PALLET FROM ' . $request->get('InventoryPalletID') . ' BY ' . $CreatedBy);
         DB::connection("sqlsrv3")->update("SET NOCOUNT ON;SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;SET ARITHABORT ON;exec HSC2017.dbo.InventoryPallet_Insert " . $InventoryPalletID . ", "  . $copy->InventoryID . ", " .  $request->get('InventoryPalletID') . ", " . $type . ", " . $CreatedBy . "");
         
 
@@ -498,7 +499,7 @@ class ReceivingController extends Controller
     {
         Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN PROC');
         Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN PROC TRY - REMARKS with data ' . $request->post('r'));
-        $markings = is_null($request->post('Markings')) ? '" "' : '"' . trim($request->post('Markings')) .'"';
+        $markings = is_null($request->post('Markings')) ? "''" : "'" . trim($request->post('Markings')) ."'";
         $type = '"' . trim($request->post('T')) .'"';
         $qty      = (int) $request->post('Qty') ? $request->post('Qty') : 0;
         $length   = (int) $request->post('L') ? $request->post('L') : 0;
@@ -743,6 +744,167 @@ class ReceivingController extends Controller
             'status' => "success"
         );
         return response($data);
+    }
+    public function patchStatus(Request $request)
+    {
+            $str = $request->get("warehouse");
+            $exp = explode(",", $str);
+            $parseTag = "";
+            foreach ($exp as $value) {
+                $parseTag = $parseTag . ",'" . $value . "'";
+            }
+            $tagging = substr($parseTag, 1);
+            $list     = DB::connection("sqlsrv3")->select("select j.ClientID, i.TranshipmentRef, i.POD, i.SequenceNo, i.StorageDate, i.MQuantity, i.InventoryID, i.CntrID, SUM(ib.Quantity) ItemQty, i.HBL, i.CheckStatus, i.MQuantity, i.MVolume, i.MWeight,
+            COUNT(distinct case when ip.Tag <> '' then ip.Tag else null end) CntTag, COUNT(distinct ip.InventoryPalletID) CntPlt, MAX(A.DN) DN
+     from HSC2012.dbo.JobInfo j inner join
+          HSC2012.dbo.ContainerInfo ci on  j.JobNumber = ci.JobNumber inner join
+          HSC2017.dbo.HSC_Inventory i on ci.Dummy = i.CntrID inner join
+          HSC2017.dbo.HSC_InventoryPallet ip on i.InventoryID = ip.InventoryID inner join
+          HSC2017.dbo.HSC_InventoryBreakdown ib on ip.InventoryPalletID = ib.InventoryPalletID left join
+          (select ip1.InventoryPalletID, MAX(di.DN) DN
+           from HSC2017.dbo.HSC_Inventory i1 inner join
+                HSC2017.dbo.HSC_InventoryPallet ip1 on i1.InventoryID = ip1.InventoryID inner join
+                HSC2017.dbo.HSC_DNInventory dni on ip1.InventoryPalletID = dni.InventoryPalletID inner join
+                HSC2017.dbo.HSC_DeliveryInfo di on dni.DeliveryID = di.DeliveryID
+           where DATEDIFF(hour, i1.StorageDate, GETDATE()) <= 24
+             and di.ClientID = '" . $request->get('ClientID') . "'
+             and ip1.CurrentLocation in (" . $tagging . ")
+             and di.CancelStatus = 'N'
+             and i1.DelStatus = 'N'
+             and ip1.DelStatus = 'N'
+           group by ip1.InventoryPalletID) A on A.InventoryPalletID = ip.InventoryPalletID
+     where DATEDIFF(hour, i.StorageDate, GETDATE()) <= 24
+       and j.ClientID = '" . $request->get('ClientID') . "'
+       and ip.CurrentLocation in (" . $tagging . ")
+       and i.DelStatus = 'N'
+       and ip.DelStatus = 'N'
+       and ib.DelStatus = 'N'
+     group by j.ClientID, i.TranshipmentRef, i.POD, i.MQuantity, i.StorageDate, i.InventoryID, i.CntrID, i.HBL, i.CheckStatus, i.MVolume, i.MWeight, i.SequenceNo ORDER BY i.StorageDate DESC");
+            $dataList = array();
+            foreach ($list as $key => $value)
+            {
+                $this->checkInventoryManual($value->InventoryID);
+            }
+            $data = array(
+                'data' => $dataList
+            );
+            return response($data);
+    }
+    public function checkInventoryManual($InventoryID)
+    {
+        $inventory     = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->first();
+        $pallet        = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->select('InventoryPalletID', 'Tag', 'CurrentLocation', 'DeliveryID')->where('InventoryID', $request->get('InventoryID'))->get();
+        $ContainerInfo = DB::connection("sqlsrv3")->table('HSC2012.dbo.ContainerInfo')->where('Dummy', $inventory->CntrID)->first();
+        $jobInfo       = DB::connection("sqlsrv3")->table('HSC2012.dbo.JobInfo')->where('JobNumber', $ContainerInfo->JobNumber)->first();
+        if ($inventory->HBL == 'OVERLANDED')
+        {
+            Log::debug('DEBUG QUERY -  CHECK INVENTORY OVERLANDED CHECKSTATUS IS -');
+            $data = array(
+                'status' => "success"
+            );
+            return response($data);
+        }
+        else
+        {
+            $qty        = 0;
+            $totalTag   = 0;
+            $totalPhoto = 0;
+            $check      = array();
+            $checkPalletDelivery =  array();
+            $checkPalletLocation =  array();
+            foreach ($pallet as $key => $plt)
+            {
+                if ($plt->Tag)
+                {
+                    $totalTag += 1;
+                }
+                if($plt->DeliveryID > 0)
+                {
+                  array_push($checkPalletDelivery, 'have_delivery');
+                }
+                if ($plt->CurrentLocation == "HSC" || $plt->CurrentLocation == "122") 
+                {
+                    array_push($checkPalletLocation, 'have_location');
+                }
+                $breakdown = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->select('BreakDownID', 'Quantity', 'Flags')->where('InventoryPalletID', $plt->InventoryPalletID)->where('DelStatus', 'N')->get();
+                foreach ($breakdown as $key => $brk)
+                {
+                    $qty += $brk->Quantity;
+
+                    $photo = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPhoto')->select('InventoryPhotoID', 'DelStatus')->where('BreakDownID', $brk->BreakDownID)->where('DelStatus', 'N')->count();
+                    $totalPhoto += $photo;
+                    if (in_array('SHORTLANDED', str_replace(' ', '', explode(',', $brk->Flags))))
+                    {
+                        array_push($check, 'yes');
+                    }
+                    else if(in_array('CONNECTING', str_replace(' ', '', explode(',', $brk->Flags)))) {
+                        array_push($check, 'connecting');
+                    }
+                }
+            }
+
+            $MQty = (int) $inventory->MQuantity;
+            if ($MQty == $qty)
+            {
+                if(in_array('have_location', $checkPalletLocation))
+                {
+                    if ($totalPhoto >= 1)
+                    {
+                        DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                            'CheckStatus' => 'Y'
+                        ));
+                    }
+                    else if ($totalPhoto >= 1 && $totalTag >= 1)
+                    {
+                        DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                            'CheckStatus' => 'Y'
+                        ));
+                    }
+                    else{
+                        DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                            'CheckStatus' => 'N'
+                        ));
+                    }
+                }
+                else if(in_array('have_delivery', $checkPalletDelivery)) 
+                {
+                    DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                        'CheckStatus' => 'Y'
+                    ));
+                }
+                else if ($totalPhoto >= 1 && $totalTag >= 1)
+                {
+                    DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                        'CheckStatus' => 'Y'
+                    ));
+                }
+                else if ($jobInfo->ClientID == 'VANGUARD' && $totalPhoto >= 1)
+                {
+                    DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                        'CheckStatus' => 'Y'
+                    ));
+                }
+                else if(in_array('connecting', $check) && $totalPhoto >= 1)
+                {
+                    DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                        'CheckStatus' => 'Y'
+                    ));
+                }
+                else
+                {
+                    DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                        'CheckStatus' => 'N'
+                    ));
+                }
+            }
+            else{
+
+                DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_Inventory')->where('InventoryID', $request->get('InventoryID'))->update(array(
+                    'CheckStatus' => 'N'
+                ));
+            }
+            return true;
+        }
     }
     public function checkInventory(Request $request)
     {

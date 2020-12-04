@@ -176,6 +176,7 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::get('receiving/getPhotoHBL', 'ReceivingController@getPhotoHBL');
   Route::get('receiving/deleteHBLPhoto', 'ReceivingController@deleteHBLPhoto');
   Route::get('receiving/checkInventory', 'ReceivingController@checkInventory');
+  Route::get('receiving/patchStatus', 'ReceivingController@patchStatus');
   
   // Release
   Route::get('release/getClient', 'ReleaseController@getClient');
@@ -186,6 +187,8 @@ Route::group(['prefix' => 'clerk'], function () {
 
   //Stuffing
   Route::get('stuffing/exportSummary', 'StuffingController@exportSummary');
+  Route::get('stuffing/listexportsummary', 'StuffingController@detailExportSummary');
+  
   Route::get('stuffing/detailExport', 'StuffingController@detailExport');
   Route::get('stuffing/currentContainer', 'StuffingController@getCurrentContainer');
   Route::post('stuffing/updateContainerInfo', 'StuffingController@updateContainerInfo');
@@ -195,5 +198,13 @@ Route::group(['prefix' => 'clerk'], function () {
   Route::get('stuffing/inventorylist', 'StuffingController@InventoryList');
   Route::post('stuffing/updateShutout', 'StuffingController@updateShutout');
   Route::get('stuffing/palletbreakdown', 'StuffingController@getPalletBreakdown');
-  Route::get('dev/test', 'ReceivingController@test');
+  Route::get('stuffing/infoExport', 'StuffingController@infoExport');
+  Route::get('stuffing/checkInventory', 'StuffingController@checkInventory');
+  Route::get('stuffing/checkHBL', 'StuffingController@checkHBL');
+  Route::get('stuffing/searchhbl', 'StuffingController@searchHBL');
+  Route::get('stuffing/unTick', 'StuffingController@unTick');
+  Route::post('stuffing/uploadphoto', 'StuffingController@uploadBreakdownGallery');
+  Route::get('stuffing/deleteBreakdownPhoto', 'StuffingController@deleteBreakdownPhoto');
+  Route::post('stuffing/updatebreakdown', 'StuffingController@updateBreakdown');
+  Route::post('stuffing/updatebreakdownLBH', 'StuffingController@updateBreakdownLBH');
 });
