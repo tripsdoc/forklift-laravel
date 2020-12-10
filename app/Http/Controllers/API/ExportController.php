@@ -20,8 +20,8 @@ class ExportController extends Controller
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
-        $result = DB::table('Inventory AS I')
-        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        $result = DB::table('HSC2017.dbo.HSC_Inventory AS I')
+        ->join('HSC2017.dbo.HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
@@ -70,8 +70,8 @@ class ExportController extends Controller
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
-        $result = DB::table('Inventory AS I')
-        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        $result = DB::table('HSC2017.dbo.HSC_Inventory AS I')
+        ->join('HSC2017.dbo.HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
@@ -111,9 +111,9 @@ class ExportController extends Controller
     }
 
     function getQuantity($ids) {
-        $result = DB::table('Inventory AS I')
-        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
-        ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        $result = DB::table('HSC2017.dbo.HSC_Inventory AS I')
+        ->join('HSC2017.dbo.HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('HSC2017.dbo.HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->where('IB.DelStatus', '=', 'N')
@@ -135,8 +135,8 @@ class ExportController extends Controller
         } else {
             $datawarehouse = array_map('trim', explode(",", $getwarehouse));
         }
-        $result = DB::table('Inventory AS I')
-        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        $result = DB::table('HSC2017.dbo.HSC_Inventory AS I')
+        ->join('HSC2017.dbo.HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
@@ -166,7 +166,7 @@ class ExportController extends Controller
         $dataArray = array();
         $dataQty = $this->getQuantity($iddata);
         foreach($data as $key => $datas) {
-            $newdata = $this->formatData($datas, $dataQty);
+            $newdata = $this->formatDataTag($datas, $dataQty);
             array_push($dataArray, $newdata);
         }
 
@@ -178,20 +178,23 @@ class ExportController extends Controller
 
     function getMQuantity() {
         $pod = $_GET['pod'];
-        $result = DB::table('Inventory AS I')
-        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
-        ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        $result = DB::table('HSC2017.dbo.HSC_Inventory AS I')
+        ->join('HSC2017.dbo.HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('HSC2017.dbo.HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        ->join('HSC2017.dbo.HSC_TempExpPlan AS TE', 'I.InventoryID', '=', 'TE.InventoryIDImp')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')
         ->where('IB.DelStatus', '=', 'N')
         ->whereRaw("IP.Tag <> ''")
+        ->where('IP.isActivityForStuffing', 1)
         ->where('JI.POD', '=', $pod);
         $iddata = $result->pluck('IP.InventoryID');
         
-        $data = $result->groupBy('I.InventoryID', 'I.MQuantity')
-        ->select('I.InventoryID','I.MQuantity')
+        $data = $result->groupBy('I.InventoryID', 'TE.SequenceNo')
+        //->select('I.InventoryID','I.MQuantity')
+        ->select('I.InventoryID', 'TE.SequenceNo', DB::raw('SUM(IB.Quantity) AS Qty'))
         ->get();
 
         $dataArray = array();
@@ -207,9 +210,9 @@ class ExportController extends Controller
     }
 
     function getSequence($ids) {
-        $result = DB::table('Inventory AS I')
-        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
-        ->join('InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        $result = DB::table('HSC2017.dbo.HSC_Inventory AS I')
+        ->join('HSC2017.dbo.HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('HSC2017.dbo.HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
         ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
         ->where('I.DelStatus', '=', 'N')
@@ -224,7 +227,9 @@ class ExportController extends Controller
     function formatData($datas, $dataQty) {
         $Qty = $dataQty->where('InventoryID', $datas->InventoryID)->pluck('Quantity');
         $loopdata = new \stdClass();
-        $loopdata->Count = count($Qty);
+        $loopdata->ID = $datas->InventoryID;
+        $loopdata->Count = $Qty->sum();
+        $loopdata->SequenceNo = $datas->SequenceNo;
         $loopdata->Sequence = $Qty;
         return $loopdata;
     }

@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class InventoryPallet extends Model
 {
-    protected $table = 'InventoryPallet';
+    protected $connection = 'sqlsrv3';
+    protected $table = 'HSC_InventoryPallet';
     public $timestamps = false;
     protected $primaryKey = 'InventoryPalletID';
     protected $fillable = [

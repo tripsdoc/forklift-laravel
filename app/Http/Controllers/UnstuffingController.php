@@ -846,7 +846,7 @@ class UnstuffingController extends Controller
         
         foreach($images as $gallery)
         {
-            $loadImage = str_replace("//server-db/Files/Photo", "http://192.168.14.70:9060/", $gallery->PhotoNameSystem);
+            $loadImage = str_replace("//server-db/Files/Photo", "http://192.168.14.70:9030/", $gallery->PhotoNameSystem);
             // $loadImage = str_replace("//server-db/Files/Photo","http://192.168.14.70:9030/",$gallery->PhotoNameSystem);
             // list($width, $height) = getimagesize($loadImage);
             // $imageGallery = array(

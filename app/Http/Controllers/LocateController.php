@@ -18,7 +18,7 @@ class LocateController extends Controller
           $deliverTo = $deliverTo . ",'" . $datawarehouse[$i] . "'";
         }
       }
-      $container =  DB::select("SELECT CI.[Dummy], JI.[ClientID], JI.[POD], CI.[ContainerPrefix], CI.[ContainerNumber], CI.[ContainerSize], CI.[ContainerType], CI.[Status], VI.[ETA], CI.[DeliverTo], CI.[TT] FROM HSC2012.dbo.VesselInfo VI, HSC2012.dbo.JobInfo JI, HSC2012.dbo.ContainerInfo CI WHERE VI.VesselID = JI.VesselID AND JI.JobNumber = CI.JobNumber AND JI.[Import/Export] = 'Export' AND CI.[DateofStuf/Unstuf] IS NULL AND CI.StartTime IS NULL AND CI.DeliverTo IN (" . $deliverTo . ") AND EXISTS (SELECT 1 FROM InventoryPallet IP WHERE IP.ExpCntrID = CI.[Dummy] AND IP.DelStatus = 'N') ORDER BY VI.ETA");
+      $container =  DB::select("SELECT CI.[Dummy], JI.[ClientID], JI.[POD], CI.[ContainerPrefix], CI.[ContainerNumber], CI.[ContainerSize], CI.[ContainerType], CI.[Status], VI.[ETA], CI.[DeliverTo], CI.[TT] FROM HSC2012.dbo.VesselInfo VI, HSC2012.dbo.JobInfo JI, HSC2012.dbo.ContainerInfo CI WHERE VI.VesselID = JI.VesselID AND JI.JobNumber = CI.JobNumber AND JI.[Import/Export] = 'Export' AND CI.[DateofStuf/Unstuf] IS NULL AND CI.StartTime IS NULL AND CI.DeliverTo IN (" . $deliverTo . ") AND EXISTS (SELECT 1 FROM HSC2017.dbo.HSC_InventoryPallet IP WHERE IP.ExpCntrID = CI.[Dummy] AND IP.DelStatus = 'N') ORDER BY VI.ETA");
       /* $data = array(
         'status' => 'success',
         'container' => $container
@@ -78,8 +78,8 @@ class LocateController extends Controller
       } else {
           $datawarehouse = array_map('trim', explode(",", $getwarehouse));
       }
-      $result = DB::table('Inventory AS I')
-      ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+      $result = DB::table('HSC2017.dbo.HSC_Inventory AS I')
+      ->join('HSC2017.dbo.HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
       ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
       ->join('HSC2012.dbo.ContainerInfo AS CI', 'IP.ExpCntrID', '=', 'CI.Dummy')
       ->join('HSC2012.dbo.JobInfo AS JI', 'CI.JobNumber', '=', 'JI.JobNumber')
@@ -150,7 +150,7 @@ class LocateController extends Controller
   }
 
   function getByDummy() {
-    $data = DB::table('InventoryPallet AS IP')
+    $data = DB::table('HSC2017.dbo.HSC_InventoryPallet AS IP')
     ->where('IP.ExpCntrID', '=', $_GET['dummy'])->get();
     $response['status'] = (count($data) > 0)? TRUE : FALSE;
     $response['data'] = $data;

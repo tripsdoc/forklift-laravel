@@ -38,6 +38,7 @@ class StuffingController extends Controller
             break;
         }
     }
+    
     public function exportSummary(Request $request)
     {
         $str = $request->get("warehouse");
@@ -48,7 +49,22 @@ class StuffingController extends Controller
             $parseTag = $parseTag . ",'" . $value . "'";
         }
         $tagging = substr($parseTag, 1);
-        $query = DB::connection("sqlsrv3")->select("SELECT CI.DeliverTo, CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, CI.Dummy, CI.NTunstuffingstatus, CI.TallyBy, JI.ClientID, JI.POD, SUM(IB.Quantity) Qty FROM HSC2017.dbo.HSC_InventoryPallet IP, HSC2012.dbo.ContainerInfo CI, HSC2012.dbo.JobInfo JI, HSC2017.dbo.HSC_InventoryBreakdown IB WHERE IP.ExpCntrID = CI.Dummy AND CI.JobNumber = JI.JobNumber AND IP.InventoryPalletID = IB.InventoryPalletID AND IP.DelStatus = 'N' AND IB.DelStatus = 'N' AND CI.Status not in ('NEW','PRINTED','PENDING','INVOICED','CLOSED','CANCELLED') AND CI.[DateofStuf/Unstuf] IS NULL AND CI.DeliverTo IN (" . $tagging . ") GROUP BY CI.DeliverTo, CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, CI.NTunstuffingstatus, CI.TallyBy, JI.ClientID, JI.POD, CI.Dummy");
+        $query = DB::connection("sqlsrv3")->select("SELECT CI.DeliverTo, CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, CI.Dummy, CI.NTunstuffingstatus,
+        CI.TallyBy, JI.ClientID, JI.POD, SUM(IB.Quantity) Qty
+        FROM HSC2017.dbo.HSC_InventoryPallet IP, HSC2012.dbo.ContainerInfo CI, HSC2012.dbo.JobInfo JI, HSC2012.dbo.VesselInfo VI,
+        HSC2017.dbo.HSC_InventoryBreakdown IB
+        WHERE IP.ExpCntrID = CI.Dummy
+        AND CI.JobNumber = JI.JobNumber
+        AND JI.VesselID = VI.VesselID
+        AND IP.InventoryPalletID = IB.InventoryPalletID
+        AND IP.DelStatus = 'N'
+        AND IB.DelStatus = 'N'
+        AND CI.Status not in ('NEW','PRINTED','PENDING','INVOICED','CLOSED','CANCELLED')
+        AND CI.[DateofStuf/Unstuf] IS NULL
+        AND CI.DeliverTo IN (" . $tagging . ")
+        GROUP BY CI.DeliverTo, CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, CI.NTunstuffingstatus, CI.TallyBy,
+        JI.ClientID, JI.POD, CI.Dummy, VI.ETA
+        ORDER BY CI.NTUnstuffingStatus DESC, VI.ETA");
         $data = array(
             'data' => $query
         );
@@ -182,20 +198,36 @@ class StuffingController extends Controller
         $checklist7P = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
             ->where('Category', '7p')
             ->get();
-        $InventoryList = DB::connection("sqlsrv3")->select("select ci.Dummy, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, i.InventoryID, i.SequenceNo, i.Status, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) TotalQty, i.MQuantity, i.MWeight, i.MVolume, count(distinct case when ip.Tag = '' then null else ip.Tag end) TotalTag, TagList = STUFF((
-            SELECT ', '+ ISNULL(IP1.Tag,'') AS [text()]
-            FROM HSC2017.dbo.HSC_InventoryPallet IP1
-            WHERE IP1.ExpCntrID = IP.ExpCntrID
-              AND Tag <> ''
-            FOR XML PATH('')
-          ), 1, 2,'') from HSC2017.dbo.HSC_Inventory I inner join HSC2017.dbo.HSC_InventoryPallet IP on I.InventoryID = IP.InventoryID inner join HSC2012.dbo.ContainerInfo CI on CI.Dummy = IP.ExpCntrID inner join HSC2012.dbo.JobInfo JI on ji.JobNumber = ci.JobNumber inner join HSC2017.dbo.HSC_InventoryBreakdown IB on IP.InventoryPalletID = IB.InventoryPalletID where ip.ExpCntrID = '" . $request->get("CntrID") . "' and i.DelStatus = 'N' and ip.DelStatus = 'N' and ib.DelStatus = 'N' group by ip.ExpCntrID, ci.Dummy, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, i.InventoryID, i.Status, i.SequenceNo, i.SequencePrefix, i.HBL, i.MWeight, i.MVolume, i.MQuantity order by i.SequenceNo, i.SequencePrefix");
+        $InventoryList = DB::connection("sqlsrv3")->select("select ci.Dummy, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, i.InventoryID, i.SequenceNo,
+        i.Status, i.SequencePrefix, i.HBL, max(ib.Markings) Markings, sum(ib.Quantity) TotalQty, i.MQuantity, i.MWeight, i.MVolume,
+        count(distinct case when ip.Tag = '' then null else ip.Tag end) TotalTag,
+        TagList = STUFF((
+                    SELECT ', '+ ISNULL(IP1.Tag,'') AS [text()]
+                    FROM HSC2017.dbo.HSC_InventoryPallet IP1
+                    WHERE IP1.ExpCntrID = IP.ExpCntrID
+                      AND Tag <> ''
+                    FOR XML PATH('')
+                  ), 1, 2,''),
+        I.CheckStatusStuffing
+        from HSC2017.dbo.HSC_Inventory I inner join
+        HSC2017.dbo.HSC_InventoryPallet IP on I.InventoryID = IP.InventoryID inner join
+        HSC2012.dbo.ContainerInfo CI on CI.Dummy = IP.ExpCntrID inner join
+        HSC2012.dbo.JobInfo JI on ji.JobNumber = ci.JobNumber inner join
+        HSC2017.dbo.HSC_InventoryBreakdown IB on IP.InventoryPalletID = IB.InventoryPalletID
+        where ip.ExpCntrID = '" . $request->get("CntrID") . "'
+        and i.DelStatus = 'N'
+        and ip.DelStatus = 'N'
+        and ib.DelStatus = 'N'
+        group by ip.ExpCntrID, ci.Dummy, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD,
+        i.InventoryID, i.Status, i.SequenceNo, i.SequencePrefix, i.HBL, i.MWeight, i.MVolume, i.MQuantity, I.CheckStatusStuffing
+        order by i.SequenceNo, i.SequencePrefix");
         $checkIsCompleted = array();
         // dd($InventoryList);
         if ($InventoryList)
         {
-            foreach ($InventoryList as $key => $valueCheckTag)
+            foreach ($InventoryList as $key => $valueCheckInventory)
             {
-                if ($valueCheckTag->TotalTag == 0)
+                if ($valueCheckInventory->CheckStatusStuffing == "Y")
                 {
                     array_push($checkIsCompleted, true);
                 }
@@ -395,41 +427,64 @@ class StuffingController extends Controller
     }
     public function InventoryList(Request $request)
     {
-        
-//         $query = DB::connection("sqlsrv3")->select("select ExpPlan.CntrIDExp Dummy, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, i.InventoryID,
-//         ExpPlan.SequenceNo, i.TranshipmentRef, i.CheckStatusStuffing, max(ib.Markings) Markings, sum(ib.Quantity) TotalQty, i.MQuantity,
-//         case when I.StorageDate is not null then 'send in' else 'transhipment' end InvStatus,
-//         count(distinct case when ip.Tag = '' then null else ip.Tag end) TotalTag,
-//     TagList = STUFF((  
-//                          SELECT ', '+ ISNULL(IP1.Tag,'') AS [text()]
-//                          FROM HSC2017.dbo.HSC_InventoryPallet IP1, HSC2017.dbo.HSC_InventoryBreakdown IB1,
-//                               HSC2017.dbo.HSC_TempExpPlan ExpPlan1
-//                          WHERE IP1.InventoryPalletID = IB1.InventoryPalletID
-//                            AND IB1.BreakDownID = ExpPlan1.BreakDownIDImp
-//                            AND ExpPlan1.CntrIDExp = ExpPlan.CntrIDExp
-//                            AND IP1.InventoryID = I.InventoryID
-//                            AND IP1.Tag <> ''
-//                            AND IP1.DelStatus = 'N'
-//                            AND IB1.DelStatus = 'N'
-//                            AND ExpPlan1.DelStatus = 'N'
-//                          FOR XML PATH('')
-//                          ), 1, 2,'')
-//  from HSC2017.dbo.HSC_Inventory I inner join
-//  HSC2017.dbo.HSC_InventoryPallet IP on I.InventoryID = IP.InventoryID inner join
-//  HSC2017.dbo.HSC_InventoryBreakdown IB on IP.InventoryPalletID = IB.InventoryPalletID inner join
-//  HSC2017.dbo.HSC_TempExpPlan ExpPlan on ExpPlan.BreakDownIDImp = ib.BreakDownID inner join
-//       HSC2012.dbo.ContainerInfo CI on CI.Dummy = ExpPlan.CntrIDExp inner join
-//       HSC2012.dbo.JobInfo JI on ji.JobNumber = ci.JobNumber
-//  where ExpPlan.CntrIDExp = '" . $request->get("CntrID") . "'
-//  and i.DelStatus = 'N'
-//  and ip.DelStatus = 'N'
-//  and ib.DelStatus = 'N'
-//  and ExpPlan.DelStatus = 'N'
-//  and ci.Status <> 'CANCELLED'
-//  group by ExpPlan.CntrIDExp, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, 
-//           i.InventoryID, ExpPlan.SequenceNo, i.TranshipmentRef, i.MQuantity, i.CheckStatusStuffing,
-//           case when I.StorageDate is not null then 'send in' else 'transhipment' end
-//  order by ExpPlan.SequenceNo");
+        $rawQuery = "select ExpPlan.CntrIDExp Dummy, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, i.InventoryID,
+        ExpPlan.SequenceNo, i.TranshipmentRef, i.CheckStatusStuffing, max(ib.Markings) Markings, sum(ib.Quantity) TotalQty, i.MQuantity,
+        case when I.StorageDate is not null then 'send in' else 'transhipment' end InvStatus,
+        count(distinct case when ip.Tag = '' then null else ip.Tag end) TotalTag,
+        TagList = STUFF((
+        SELECT ', '+ ISNULL(IP1.Tag,'') AS [text()]
+        FROM HSC2017.dbo.HSC_InventoryPallet IP1, HSC2017.dbo.HSC_InventoryBreakdown IB1,
+        HSC2017.dbo.HSC_TempExpPlan ExpPlan1
+        WHERE IP1.InventoryPalletID = IB1.InventoryPalletID
+        AND IB1.BreakDownID = ExpPlan1.BreakDownIDImp
+        AND ExpPlan1.CntrIDExp = ExpPlan.CntrIDExp
+        AND IP1.InventoryID = I.InventoryID
+        AND IP1.Tag <> ''
+        AND IP1.DelStatus = 'N'
+        AND IB1.DelStatus = 'N'
+        AND ExpPlan1.DelStatus = 'N'
+        FOR XML PATH('')
+        ), 1, 2,''),
+        case when I.StorageDate is not null then I.StorageDate else CII.[DateofStuf/Unstuf] end StorageDate
+        from HSC2012.dbo.ContainerInfo CII inner join
+        HSC2017.dbo.HSC_Inventory I on I.CntrID = CII.Dummy inner join
+        HSC2017.dbo.HSC_InventoryPallet IP on I.InventoryID = IP.InventoryID inner join
+        HSC2017.dbo.HSC_InventoryBreakdown IB on IP.InventoryPalletID = IB.InventoryPalletID inner join
+        HSC2017.dbo.HSC_TempExpPlan ExpPlan on ExpPlan.BreakDownIDImp = ib.BreakDownID inner join
+        HSC2012.dbo.ContainerInfo CI on CI.Dummy = ExpPlan.CntrIDExp inner join
+        HSC2012.dbo.JobInfo JI on ji.JobNumber = ci.JobNumber
+        where ExpPlan.CntrIDExp = '" . $request->get("CntrID") . "'
+        and i.DelStatus = 'N'
+        and ip.DelStatus = 'N'
+        and ib.DelStatus = 'N'
+        and ExpPlan.DelStatus = 'N'
+        and ci.Status <> 'CANCELLED'
+        group by ExpPlan.CntrIDExp, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD,
+        i.InventoryID, ExpPlan.SequenceNo, i.TranshipmentRef, i.MQuantity, i.CheckStatusStuffing,
+        case when I.StorageDate is not null then 'send in' else 'transhipment' end,
+        case when I.StorageDate is not null then I.StorageDate else CII.[DateofStuf/Unstuf] end
+        order by ExpPlan.SequenceNo";
+        $query = DB::connection("sqlsrv3")->select($rawQuery);
+        $counterUpdate = 0;
+        foreach ($query as $key => $value) {
+            $counterUpdate += 1;
+            $this->checkInventoryInternal($value->InventoryID, $request->get("CntrID"));
+        }
+        if (count($query) == $counterUpdate) {
+            $queryLast = DB::connection("sqlsrv3")->select($rawQuery);
+            $data = array(
+                'data' => $queryLast
+            );
+            return response($data);
+        } else {
+            $data = array(
+                'data' => $query
+            );
+            return response($data);
+        }
+    }
+    public function InventoryList_old(Request $request)
+    {
         $query = DB::connection("sqlsrv3")->select("select ExpPlan.CntrIDExp Dummy, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, i.InventoryID,
         ExpPlan.SequenceNo, i.TranshipmentRef, i.CheckStatusStuffing, max(ib.Markings) Markings, sum(ib.Quantity) TotalQty, i.MQuantity,
         case when I.StorageDate is not null then 'send in' else 'transhipment' end InvStatus,
@@ -971,8 +1026,8 @@ class StuffingController extends Controller
     {
         $SQL = "select COUNT(*) CountTag
         from HSC2012.dbo.ContainerInfo CII, HSC2017.dbo.HSC_Inventory I,
-             HSC2017.dbo.HSC_InventoryPallet IP, HSC2017.dbo.HSC_InventoryBreakdown IB,
-             HSC2017.dbo.HSC_TempExpPlan ExpPan
+                HSC2017.dbo.HSC_InventoryPallet IP, HSC2017.dbo.HSC_InventoryBreakdown IB,
+                HSC2017.dbo.HSC_TempExpPlan ExpPan
         where CII.Dummy = I.CntrID
         and I.InventoryID = IP.InventoryID
         and IP.InventoryPalletID = IB.InventoryPalletID
@@ -982,8 +1037,8 @@ class StuffingController extends Controller
         and IP.DelStatus = 'N'
         and IB.DelStatus = 'N'
         and ExpPan.DelStatus = 'N'
-        and ((IP.Tag <> '' and CHARINDEX('missing tag', IB.Flags) <= 0 and CHARINDEX('shut out', IB.Flags) <= 0) OR
-             (CII.[DateofStuf/Unstuf] is null and I.StorageDate is null and CHARINDEX('shut out', IB.Flags) <= 0))";
+        and ((IP.Tag <> '' and CHARINDEX('missing tag', isnull(IB.Flags,'')) <= 0 and CHARINDEX('shut out', isnull(IB.Flags,'')) <= 0) OR
+             (CII.[DateofStuf/Unstuf] is null and I.StorageDate is null and CHARINDEX('shut out', isnull(IB.Flags,'')) <= 0 and isnull(I.ToDGWhse,0) = 0))";
         $parse = DB::connection("sqlsrv3")->select($SQL);
       
         if ($parse[0]->CountTag == 0)
@@ -1008,19 +1063,19 @@ class StuffingController extends Controller
     {
         $SQL = "select COUNT(*) CountTag
         from HSC2012.dbo.ContainerInfo CII, HSC2017.dbo.HSC_Inventory I,
-             HSC2017.dbo.HSC_InventoryPallet IP, HSC2017.dbo.HSC_InventoryBreakdown IB,
-             HSC2017.dbo.HSC_TempExpPlan ExpPan
+                HSC2017.dbo.HSC_InventoryPallet IP, HSC2017.dbo.HSC_InventoryBreakdown IB,
+                HSC2017.dbo.HSC_TempExpPlan ExpPan
         where CII.Dummy = I.CntrID
         and I.InventoryID = IP.InventoryID
         and IP.InventoryPalletID = IB.InventoryPalletID
         and IB.BreakDownID = ExpPan.BreakDownIDImp
-        and IP.InventoryID = " . $request->get('InventoryID') . "
-        and ExpPan.CntrIDExp = " . $request->get('CntrIDExp') . "
+        and IP.InventoryID = " . $inventoryID . "
+        and ExpPan.CntrIDExp = " . $CntrIDExp . "
         and IP.DelStatus = 'N'
         and IB.DelStatus = 'N'
         and ExpPan.DelStatus = 'N'
-        and ((IP.Tag <> '' and CHARINDEX('missing tag', IB.Flags) <= 0 and CHARINDEX('shut out', IB.Flags) <= 0) OR
-             (CII.[DateofStuf/Unstuf] is null and I.StorageDate is null and CHARINDEX('shut out', IB.Flags) <= 0))";
+        and ((IP.Tag <> '' and CHARINDEX('missing tag', isnull(IB.Flags,'')) <= 0 and CHARINDEX('shut out', isnull(IB.Flags,'')) <= 0) OR
+             (CII.[DateofStuf/Unstuf] is null and I.StorageDate is null and CHARINDEX('shut out', isnull(IB.Flags,'')) <= 0 and isnull(I.ToDGWhse,0) = 0))";
         $parse = DB::connection("sqlsrv3")->select($SQL);
       
         if ($parse[0]->CountTag == 0)
@@ -1051,6 +1106,9 @@ class StuffingController extends Controller
             ->update(array(
             'Tag' => null
         ));
+        if ($request->get('InventoryID')) {
+            $this->checkInventoryInternal($request->get('InventoryID'), $request->get('CntrID'));
+        }
         $data = array(
             'status' => true
         );

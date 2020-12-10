@@ -30,8 +30,8 @@ class StoreController extends Controller
         //Get data from 2 databases, JobInfo Table is from HSC2012 Database
         $result = DB::table('HSC2012.dbo.JobInfo AS JI')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
-        ->join('Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
-        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('HSC2017.dbo.HSC_Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
+        ->join('HSC2017.dbo.HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->join('ForkLiftJobsFilter AS JF', 'JF.TagID', '=', 'IP.Tag')
         ->where('I.DelStatus', '=', 'N')
@@ -70,8 +70,8 @@ class StoreController extends Controller
         }
         $result = DB::table('HSC2012.dbo.JobInfo AS JI')
         ->join('HSC2012.dbo.ContainerInfo AS CI', 'JI.JobNumber', '=', 'CI.JobNumber')
-        ->join('Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
-        ->join('InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
+        ->join('HSC2017.dbo.HSC_Inventory AS I', 'CI.Dummy', '=', 'I.CntrID')
+        ->join('HSC2017.dbo.HSC_InventoryPallet AS IP', 'I.InventoryID', '=', 'IP.InventoryID')
         ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
         ->where('I.DelStatus', '=', 'N')
         ->where('IP.DelStatus', '=', 'N')

@@ -41,6 +41,7 @@ Route::group(['prefix' => 'forklift'], function () {
 
 //Debug
 Route::group(['prefix' => 'debug'], function () {
+  Route::get('retrieve', 'RetrieveController@debug');
   Route::get('onee', 'API\ParkController@debug');
   Route::get('container', 'ContainerAPIController@debug');
   Route::get('dummy/{dummy}', 'API\HistoryController@checkDummyisExist');
