@@ -23,6 +23,13 @@ Route::post('login', 'LoginController@login');
 Route::get('device', 'API\DeviceController@getDeviceTag');
 Route::post('device/register', 'API\DeviceController@registerDevice');
 
+//Supervisor API
+Route::group(['prefix' => 'supervisor'], function () {
+  Route::post('import', 'API\SupervisorController@getImport');
+  Route::post('export', 'API\SupervisorController@getExport');
+  Route::post('all', 'API\SupervisorController@getAll');
+});
+
 //Forklift API
 Route::group(['prefix' => 'forklift'], function () {
   //Retrieve Route
