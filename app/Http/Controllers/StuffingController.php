@@ -189,13 +189,13 @@ class StuffingController extends Controller
  group by ExpPlan.CntrIDExp, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD,
           ci.SealNumber, ci.BkRef, ci.YardRemarks, ci.Bay, ci.Stevedore, ci.SevenPoints, ci.NTunstuffingstatus");
       
-        $checklistBay = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+        $checklistBay = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
             ->where('Category', 'Bay')
             ->get();
-        $checklistStevedore = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+        $checklistStevedore = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
             ->where('Category', 'Stevedore')
             ->get();
-        $checklist7P = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+        $checklist7P = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
             ->where('Category', '7p')
             ->get();
         $InventoryList = DB::connection("sqlsrv3")->select("select ci.Dummy, ci.ContainerPrefix, ci.ContainerNumber, ci.ContainerSize, ci.ContainerType, ji.ClientID, ji.POD, i.InventoryID, i.SequenceNo,
@@ -280,11 +280,11 @@ class StuffingController extends Controller
             ->update(array(
             $request->get('type') => $request->get('data')
         ));
-        DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ContainerInfo')
-            ->where('Id', $request->get('dummy'))
-            ->update(array(
-            $request->get('type') => $request->get('data')
-        ));
+        // DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ContainerInfo')
+        //     ->where('Id', $request->get('dummy'))
+        //     ->update(array(
+        //     $request->get('type') => $request->get('data')
+        // ));
         $data = array(
             'status' => "success"
         );
@@ -312,12 +312,12 @@ class StuffingController extends Controller
             'StartTime' => date("Y-m-d H:i:s") ,
             'NTunstuffingstatus' => "PROCESSING " . $request->get('TallyBy')
         ));
-        DB::connection("sqlsrv3")
-            ->table($this->dbhsc . '.dbo.ContainerInfo')
-            ->where('Id', $request->get('dummy'))
-            ->update(array(
-            'StartTime' => date("Y-m-d H:i:s")
-        ));
+        // DB::connection("sqlsrv3")
+        //     ->table($this->dbhsc . '.dbo.ContainerInfo')
+        //     ->where('Id', $request->get('dummy'))
+        //     ->update(array(
+        //     'StartTime' => date("Y-m-d H:i:s")
+        // ));
         DB::connection("sqlsrv3")->statement("UPDATE HSC2017.dbo.HSC_InventoryPallet
         SET isActivityForStuffing = 1
         FROM HSC2017.dbo.HSC_InventoryPallet
@@ -329,17 +329,17 @@ class StuffingController extends Controller
         AND T.DelStatus = 'N'
         AND ISNULL(HSC_InventoryPallet.isActivityForStuffing, 0) = 0
         AND HSC_InventoryPallet.Tag <> ''");
-        DB::connection("sqlsrv3")->statement("UPDATE HSC_IPS.dbo.InventoryPallet
-        SET isActivityForStuffing = 1
-        FROM HSC_IPS.dbo.InventoryPallet
-        INNER JOIN HSC_IPS.dbo.InventoryBreakdown IB ON InventoryPallet.InventoryPalletID = IB.InventoryPalletID
-        INNER JOIN HSC2017.dbo.HSC_TempExpPlan T ON IB.BreakDownID = T.BreakDownIDImp
-        WHERE T.CntrIDExp = " . $request->get('dummy') . "
-        AND InventoryPallet.DelStatus = 'N'
-        AND IB.DelStatus = 'N'
-        AND T.DelStatus = 'N'
-        AND ISNULL(InventoryPallet.isActivityForStuffing, 0) = 0
-        AND InventoryPallet.Tag <> ''");
+        // DB::connection("sqlsrv3")->statement("UPDATE HSC_IPS.dbo.InventoryPallet
+        // SET isActivityForStuffing = 1
+        // FROM HSC_IPS.dbo.InventoryPallet
+        // INNER JOIN HSC_IPS.dbo.InventoryBreakdown IB ON InventoryPallet.InventoryPalletID = IB.InventoryPalletID
+        // INNER JOIN HSC2017.dbo.HSC_TempExpPlan T ON IB.BreakDownID = T.BreakDownIDImp
+        // WHERE T.CntrIDExp = " . $request->get('dummy') . "
+        // AND InventoryPallet.DelStatus = 'N'
+        // AND IB.DelStatus = 'N'
+        // AND T.DelStatus = 'N'
+        // AND ISNULL(InventoryPallet.isActivityForStuffing, 0) = 0
+        // AND InventoryPallet.Tag <> ''");
         
         $dir = '\\\\SERVER-DB\\Files\\Photo\\';
 
@@ -365,12 +365,12 @@ class StuffingController extends Controller
             'StartTime' => null,
             'NTunstuffingstatus' => "EMPTY"
         ));
-        DB::connection("sqlsrv3")
-            ->table($this->dbhsc . '.dbo.ContainerInfo')
-            ->where('Id', $request->get('dummy'))
-            ->update(array(
-            'StartTime' => null,
-        ));
+        // DB::connection("sqlsrv3")
+        //     ->table($this->dbhsc . '.dbo.ContainerInfo')
+        //     ->where('Id', $request->get('dummy'))
+        //     ->update(array(
+        //     'StartTime' => null,
+        // ));
         $data = array(
             'status' => "success"
         );
@@ -390,15 +390,15 @@ class StuffingController extends Controller
                 'DateofStuf/Unstuf' => date("Y-m-d H:i:s") ,
                 'NTunstuffingstatus' => "COMPLETED",
             ));
-            DB::connection("sqlsrv3")
-                ->table($this->dbhsc . '.dbo.ContainerInfo')
-                ->where('Id', $request->get('dummy'))
-                ->update(array(
-                'TallyBy' => $request->get('TallyBy') ,
-                'Status' => 'STUFFED',
-                'EndTime' => date("Y-m-d H:i:s") ,
-                'DateofStuf' => date("Y-m-d H:i:s") ,
-            ));
+            // DB::connection("sqlsrv3")
+            //     ->table($this->dbhsc . '.dbo.ContainerInfo')
+            //     ->where('Id', $request->get('dummy'))
+            //     ->update(array(
+            //     'TallyBy' => $request->get('TallyBy') ,
+            //     'Status' => 'STUFFED',
+            //     'EndTime' => date("Y-m-d H:i:s") ,
+            //     'DateofStuf' => date("Y-m-d H:i:s") ,
+            // ));
         }
         else
         {
@@ -410,14 +410,14 @@ class StuffingController extends Controller
                 'DateofStuf/Unstuf' => date("Y-m-d H:i:s") ,
                 'NTunstuffingstatus' => "COMPLETED",
             ));
-            DB::connection("sqlsrv3")
-                ->table($this->dbhsc . '.dbo.ContainerInfo')
-                ->where('Id', $request->get('dummy'))
-                ->update(array(
-                'TallyBy' => $request->get('TallyBy') ,
-                'EndTime' => date("Y-m-d H:i:s") ,
-                'DateofStuf' => date("Y-m-d H:i:s") ,
-            )); 
+            // DB::connection("sqlsrv3")
+            //     ->table($this->dbhsc . '.dbo.ContainerInfo')
+            //     ->where('Id', $request->get('dummy'))
+            //     ->update(array(
+            //     'TallyBy' => $request->get('TallyBy') ,
+            //     'EndTime' => date("Y-m-d H:i:s") ,
+            //     'DateofStuf' => date("Y-m-d H:i:s") ,
+            // )); 
         }
 
         $data = array(
@@ -549,11 +549,11 @@ class StuffingController extends Controller
                 }
                 $flagFilter = array_filter(array_unique(array_map('trim', $cleanFlag)));
                 Log::debug("FLAGFINAL", $flagFilter);
-                DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryBreakdown')->where('BreakDownID', $br->BreakDownID)->update(array(
-                    'Flags' => implode(", ", $flagFilter),
-                    'UpdatedDt' => date("Y-m-d H:i:s"),
-                    'UpdatedBy' => $request->get('UpdatedBy')
-                ));
+                // DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryBreakdown')->where('BreakDownID', $br->BreakDownID)->update(array(
+                //     'Flags' => implode(", ", $flagFilter),
+                //     'UpdatedDt' => date("Y-m-d H:i:s"),
+                //     'UpdatedBy' => $request->get('UpdatedBy')
+                // ));
                 DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $br->BreakDownID)->update(array(
                     'Flags' => implode(", ", $flagFilter),
                     'UpdatedDt' => date("Y-m-d H:i:s"),
@@ -680,7 +680,7 @@ class StuffingController extends Controller
                 }
                 $lastFrom = $break->InventoryPalletID;
 
-                $flag = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+                $flag = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
                     ->where('Category', 'flagExp')
                     ->get();
                 $flagSelected = array();
@@ -734,13 +734,13 @@ class StuffingController extends Controller
                 array_push($breakdown, $loopBreakdown);
             }
         }
-        $typeChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+        $typeChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
             ->where('Category', 'type')
             ->get();
-        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
             ->where('Category', 'flagExp')
             ->get();
-        $locations = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+        $locations = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
             ->where('Category', 'location')
             ->get();
         // dd($DeliveryID);
@@ -795,10 +795,10 @@ class StuffingController extends Controller
             ->orderBy('BreakDownID', 'ASC')
             ->get();
             $x = 1;
-            $typeChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+            $typeChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
                 ->where('Category', 'type')
                 ->get();
-            $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+            $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
                 ->where('Category', 'flagExp')
                 ->get();
     
@@ -873,7 +873,7 @@ class StuffingController extends Controller
                         array_push($galleries, $imageGallery);
                     }
                 }
-                $flag = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+                $flag = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
                     ->where('Category', 'flagExp')
                     ->get();
                 $flagSelected = array();
@@ -993,11 +993,11 @@ class StuffingController extends Controller
             }
             $flagFilter = array_filter(array_unique(array_map('trim', $cleanFlag)));
             // Log::debug("MYFLAGcleanFlag", $flagFilter);
-            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
-                $request->post('type') => implode(", ", $flagFilter),
-                'UpdatedDt' => date("Y-m-d H:i:s"),
-                'UpdatedBy' => $request->get('UpdatedBy')
-            ));
+            // DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
+            //     $request->post('type') => implode(", ", $flagFilter),
+            //     'UpdatedDt' => date("Y-m-d H:i:s"),
+            //     'UpdatedBy' => $request->get('UpdatedBy')
+            // ));
             DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
                 $request->post('type') => implode(", ", $flagFilter),
                 'UpdatedDt' => date("Y-m-d H:i:s"),
@@ -1006,11 +1006,11 @@ class StuffingController extends Controller
         }
         else
         {
-            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
-                $request->post('type') => ltrim($request->post('data')),
-                'UpdatedDt' => date("Y-m-d H:i:s"),
-                'UpdatedBy' => $request->get('UpdatedBy')
-            ));
+            // DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
+            //     $request->post('type') => ltrim($request->post('data')),
+            //     'UpdatedDt' => date("Y-m-d H:i:s"),
+            //     'UpdatedBy' => $request->get('UpdatedBy')
+            // ));
             DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
                 $request->post('type') => ltrim($request->post('data')),
                 'UpdatedDt' => date("Y-m-d H:i:s"),
@@ -1095,11 +1095,11 @@ class StuffingController extends Controller
     function unTick(Request $request)
     {
         Log::debug('DEBUG QUERY -  UNTAG ' . $request->get('InventoryPalletID'));
-        DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')
-            ->where('InventoryPalletID', $request->get('InventoryPalletID'))
-            ->update(array(
-            'Tag' => null
-        ));
+        // DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')
+        //     ->where('InventoryPalletID', $request->get('InventoryPalletID'))
+        //     ->update(array(
+        //     'Tag' => null
+        // ));
         DB::connection("sqlsrv3")
             ->table('HSC2017.dbo.HSC_InventoryPallet')
             ->where('InventoryPalletID', $request->get('InventoryPalletID'))

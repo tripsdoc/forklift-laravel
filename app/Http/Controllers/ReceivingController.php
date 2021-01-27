@@ -223,7 +223,7 @@ class ReceivingController extends Controller
                 }
                 $lastFrom = $break->InventoryPalletID;
 
-                $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flagImp')->get();
+                $flag         = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')->where('Category', 'flagImp')->get();
                 $flagSelected = array();
                 $flagShow     = array();
                 // dd($flag);
@@ -277,9 +277,9 @@ class ReceivingController extends Controller
                 array_push($breakdown, $loopBreakdown);
             }
         }
-        $typeChecklist  = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'type')->get();
-        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'flagImp')->get();
-        $locations      = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')->where('Category', 'location')->get();
+        $typeChecklist  = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')->where('Category', 'type')->get();
+        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')->where('Category', 'flagImp')->get();
+        $locations      = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')->where('Category', 'location')->get();
         // dd($DeliveryID);
         $data           = array(
             'status' => "success",
@@ -297,13 +297,18 @@ class ReceivingController extends Controller
         $copy          = DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->get('InventoryPalletID'))->first();
         $InventoryPalletID = 0;
         $type = "copy";
-        $CreatedBy = '"' . $request->get('CreatedBy') .'"';
-        Log::debug('DEBUG QUERY -  COPY PALLET FROM ' . $request->get('InventoryPalletID') . ' BY ' . $CreatedBy);
-        DB::connection("sqlsrv3")->update("SET NOCOUNT ON;SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;SET ARITHABORT ON;exec HSC2017.dbo.InventoryPallet_Insert " . $InventoryPalletID . ", "  . $copy->InventoryID . ", " .  $request->get('InventoryPalletID') . ", " . $type . ", " . $CreatedBy . "");
-        
-
+        $CreatedBy = '"' . trim($request->get('CreatedBy')) .' "';
+        try {
+            $last = DB::connection("sqlsrv3")->update("SET NOCOUNT ON;SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;SET ARITHABORT ON;exec HSC2017.dbo.InventoryPallet_Insert " . $InventoryPalletID . ", "  . $copy->InventoryID . ", " .  $request->get('InventoryPalletID') . ", " . $type . ", " . $CreatedBy . "");
+        } catch (\Throwable $th) {
+            Log::debug('COPY ERROR - ' . $th->getMessage() );
+            $data = array(
+                'status' => "failed",
+            );
+            return response($data, 500);
+        }
         $data = array(
-            'status' => "success"
+            'status' => "success",
         );
         return response($data);
     }
@@ -354,11 +359,11 @@ class ReceivingController extends Controller
     {
         Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN');
         Log::debug('DEBUG QUERY -  UPDATE BREAKDOWN TRY - '. $request->post('type') . ' with data ' . $request->post('data') . ' in BreakDownID = ' . $request->post('BreakDownID'));
-        DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
-            $request->post('type') => ltrim($request->post('data')),
-            'UpdatedDt' => date("Y-m-d H:i:s"),
-            'UpdatedBy' => $request->get('UpdatedBy')
-        ));
+        // DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
+        //     $request->post('type') => ltrim($request->post('data')),
+        //     'UpdatedDt' => date("Y-m-d H:i:s"),
+        //     'UpdatedBy' => $request->get('UpdatedBy')
+        // ));
         DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryBreakdown')->where('BreakDownID', $request->post('BreakDownID'))->update(array(
             $request->post('type') => ltrim($request->post('data')),
             'UpdatedDt' => date("Y-m-d H:i:s"),
@@ -402,11 +407,14 @@ class ReceivingController extends Controller
                 
                 curl_close($curl);
                 $parse = json_decode($response);
+
+                // Change
                 $checkTAG = DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ForkLiftJobsFilter')->where('TagID', $request->post('data'))->first();
                 if (isset($parse->tags[0])) {
                     if (isset($parse->tags[0]->smoothedPosition)) {
                         if ($checkTAG) 
                         {
+                            // Change
                             DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ForkLiftJobsFilter')->where('TagID', $request->post('data'))->update(array(
                                 'x' => $parse->tags[0]->smoothedPosition[0],
                                 'y' => $parse->tags[0]->smoothedPosition[1],
@@ -415,6 +423,7 @@ class ReceivingController extends Controller
                         }
                         else
                         {
+                            // Change
                             DB::connection("sqlsrv3")->table('HSC_IPS.dbo.ForkLiftJobsFilter')->insert(array(
                                 'TagID' => $request->post('data'),
                                 'x' => $parse->tags[0]->smoothedPosition[0],
@@ -466,11 +475,11 @@ class ReceivingController extends Controller
                     }
                 }
             }
-            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
-                $request->post('type') => $request->post('data'),
-                'UpdatedDt' => date("Y-m-d H:i:s"),
-                'UpdatedBy' => $request->post('UpdatedBy')
-            ));
+            // DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
+            //     $request->post('type') => $request->post('data'),
+            //     'UpdatedDt' => date("Y-m-d H:i:s"),
+            //     'UpdatedBy' => $request->post('UpdatedBy')
+            // ));
 
             DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
                 $request->post('type') => $request->post('data'),
@@ -478,11 +487,11 @@ class ReceivingController extends Controller
                 'UpdatedBy' => $request->post('UpdatedBy')
             ));
         }else{
-            DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
-                $request->post('type') => $request->post('data'),
-                'UpdatedDt' => date("Y-m-d H:i:s"),
-                'UpdatedBy' => $request->post('UpdatedBy')
-            ));
+            // DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
+            //     $request->post('type') => $request->post('data'),
+            //     'UpdatedDt' => date("Y-m-d H:i:s"),
+            //     'UpdatedBy' => $request->post('UpdatedBy')
+            // ));
 
             DB::connection("sqlsrv3")->table('HSC2017.dbo.HSC_InventoryPallet')->where('InventoryPalletID', $request->post('InventoryPalletID'))->update(array(
                 $request->post('type') => $request->post('data'),

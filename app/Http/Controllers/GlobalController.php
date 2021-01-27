@@ -10,7 +10,7 @@ class GlobalController extends Controller
       function getChecklist()
       {
         Log::debug('DEBUG QUERY -  GETING FROM CHECKLIST');
-          $checklist = DB::table('HSC_IPS.dbo.Checklist')->where('Category', $_GET['type'])->get();
+          $checklist = DB::table('HSC2017.dbo.IPS_Checklist')->where('Category', $_GET['type'])->get();
           $data = array(
             'status' => 'success',
             'data' => $checklist

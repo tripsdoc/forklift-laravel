@@ -72,7 +72,7 @@ class ReleaseController extends Controller
         {
             $SQL .= " and (IP.Tag = '" . $request->get('TAG') . "' AND IP.Tag <> '')";
         }
-
+        // Change in TagLocationLatest
         $SQL .= " group by CI.Dummy, CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, JI.ClientID,
       case when i.StorageDate is not null or isnull(I.TranshipmentRef, '') <> '' then I.TranshipmentRef else I.HBL end,
       case when i.StorageDate is not null then 'Export' when isnull(I.TranshipmentRef, '') <> '' then 'Transhipment' else 'Local' end,
@@ -194,10 +194,10 @@ case when i.StorageDate is not null or isnull(I.TranshipmentRef, '') <> '' then 
         $rawBreakdown = DB::connection("sqlsrv3")->select($sqlBreakdown);
         $breakdown = array();
         $i = 1;
-        $typeChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+        $typeChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
             ->where('Category', 'type')
             ->get();
-        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+        $flagsChecklist = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
             ->where('Category', 'flag')
             ->get();
 
@@ -260,7 +260,7 @@ case when i.StorageDate is not null or isnull(I.TranshipmentRef, '') <> '' then 
                     array_push($galleries, $imageGallery);
                 }
             }
-            $flag = DB::connection("sqlsrv3")->table('HSC2017.dbo.Checklist')
+            $flag = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_Checklist')
                 ->where('Category', 'flag')
                 ->get();
             $flagSelected = array();
@@ -385,7 +385,7 @@ case when i.StorageDate is not null or isnull(I.TranshipmentRef, '') <> '' then 
         {
             $SQL .= " and (IP.Tag = '" . $request->get('TAG') . "' AND IP.Tag <> '')";
         }
-
+        // Change in TagLocationLatest
         $SQL .= " group by CI.Dummy, CI.ContainerPrefix, CI.ContainerNumber, CI.ContainerSize, CI.ContainerType, JI.ClientID,
       case when i.StorageDate is not null or isnull(I.TranshipmentRef, '') <> '' then I.TranshipmentRef else I.HBL end,
       case when i.StorageDate is not null then 'Export' when isnull(I.TranshipmentRef, '') <> '' then 'Transhipment' else 'Local' end,
@@ -539,11 +539,11 @@ where ip1.DelStatus = 'N'
     }
     function unTick(Request $request)
     {
-        DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')
-            ->where('InventoryPalletID', $request->get('InventoryPalletID'))
-            ->update(array(
-            'Tag' => null
-        ));
+        // DB::connection("sqlsrv3")->table('HSC_IPS.dbo.InventoryPallet')
+        //     ->where('InventoryPalletID', $request->get('InventoryPalletID'))
+        //     ->update(array(
+        //     'Tag' => null
+        // ));
         DB::connection("sqlsrv3")
             ->table('HSC2017.dbo.HSC_InventoryPallet')
             ->where('InventoryPalletID', $request->get('InventoryPalletID'))

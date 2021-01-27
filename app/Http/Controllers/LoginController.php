@@ -10,12 +10,12 @@ use App\ShifterUser;
 class LoginController extends Controller
 {
     function getUserData() {
-        $dataUser = DB::table('ForkliftUser')->get();
+        $dataUser = DB::table('HSC2017.dbo.IPS_ForkliftUser')->get();
         return response($dataUser);
     }
 
     function login(Request $request) {
-        $check = DB::table('ForkliftUser')
+        $check = DB::table('HSC2017.dbo.IPS_ForkliftUser')
         ->where('UserName', $request->username)
         ->where('Password', $request->password)->first();
 
@@ -32,7 +32,7 @@ class LoginController extends Controller
     }
     function loginClerk(Request $request)
     {
-        $check = DB::connection("sqlsrv3")->table('HSC_IPS.dbo.IpsUser')
+        $check = DB::connection("sqlsrv3")->table('HSC2017.dbo.IPS_IpsUser')
         ->where('UserName', $request->username)
         ->where('Password', $request->password)->first();
 

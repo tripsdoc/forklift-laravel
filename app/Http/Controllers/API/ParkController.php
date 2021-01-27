@@ -334,7 +334,7 @@ class ParkController extends Controller
     function getOngoingDummy($dummy) {
         $reqdummy = ContainerView::where('Dummy', '=', $dummy)->first();
         $data = DB::table('HSC2012.dbo.Onee AS IP')
-        ->join('HSC2017Test_V2.dbo.HSC_OngoingPark AS IB', 'IP.Dummy', '=', 'IB.Dummy')
+        ->join('HSC2012.dbo.HSC_OngoingPark AS IB', 'IP.Dummy', '=', 'IB.Dummy')
         ->where('Prefix', '=', $reqdummy->Prefix)
         ->where('Number', '=', $reqdummy->Number)
         ->first();
@@ -409,7 +409,7 @@ class ParkController extends Controller
 
     function getParkingLot($prefix, $number) {
         $result = DB::table('HSC2012.dbo.Onee AS IP')
-        ->join('HSC2017Test_V2.dbo.HSC_OngoingPark AS IB', 'IP.Dummy', '=', 'IB.Dummy')
+        ->join('HSC2012.dbo.HSC_OngoingPark AS IB', 'IP.Dummy', '=', 'IB.Dummy')
         ->where('Prefix', '=', $prefix)
         ->where('Number', '=', $number)
         ->groupBy('IP.Prefix', 'IP.Number', 'IP.Dummy', 'IB.ParkingLot')

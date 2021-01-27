@@ -15,6 +15,24 @@ use Storage;
 
 class CacheController extends Controller
 {
+
+    function debug() {
+        $DummyToAssign = '719886';
+        $checkDummy = ContainerView::where('Dummy', '=', '719886')->first();
+        if($checkDummy != null) {
+            $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
+            ->where('Number', '=', $checkDummy->Number)
+            ->where('Import/Export', '=', 'Export')
+            ->where('YardRemarks', 'like', '%RE-USE%')
+            ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
+            ->first();
+            $DummyToAssign = (!empty($newOnee) && $newOnee != $dummy) ? $newOnee->Dummy : $dummy;
+        }
+        $response['status'] = TRUE;
+        $response['message'] = $DummyToAssign;
+        return response($response);
+    }
+
     function retrieveFile(Request $request) {
         //Assign File
         /* if($request->hasFile('assign')) {
@@ -50,6 +68,7 @@ class CacheController extends Controller
             $removeObject = json_decode($request->remove);
             foreach($removeObject as $key => $dataRemove) {
                 $returnText = $this->removeContainer($dataRemove->park, $dataRemove->username);
+                
                 Storage::append('remove.log', $returnText);
             }
         }
@@ -61,22 +80,29 @@ class CacheController extends Controller
 
     function removeOldDummyFromOngoing($dummy) {
         $data = ContainerView::where('Dummy', '=', $dummy)->first();
-        $check = ContainerView::where('Prefix', '=', $data->Prefix)->where('Number', '=', $data->Number)->get();
-        foreach($check as $key => $datas) {
-            $deletedata = TemporaryPark::where('Dummy', '=', $datas->Dummy)->delete();
+        if($data != null) {
+            $check = ContainerView::where('Prefix', '=', $data->Prefix)->where('Number', '=', $data->Number)->get();
+            foreach($check as $key => $datas) {
+                $deletedata = TemporaryPark::where('Dummy', '=', $datas->Dummy)->delete();
+            }
+        } else {
+            $deletedata = TemporaryPark::where('Dummy', '=', $dummy)->delete();
         }
         return;
     }
 
     function checkReUSE($dummy) {
+        $DummyToAssign = $dummy;
         $checkDummy = ContainerView::where('Dummy', '=', $dummy)->first();
-        $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
-        ->where('Number', '=', $checkDummy->Number)
-        ->where('Import/Export', '=', 'Export')
-        ->where('YardRemarks', 'like', '%RE-USE%')
-        ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
-        ->first();
-        $DummyToAssign = (!empty($newOnee) && $newOnee != $dummy) ? $newOnee->Dummy : $dummy;
+        if($checkDummy != null) {
+            $newOnee = ContainerView::where('Prefix', '=', $checkDummy->Prefix)
+            ->where('Number', '=', $checkDummy->Number)
+            ->where('Import/Export', '=', 'Export')
+            ->where('YardRemarks', 'like', '%RE-USE%')
+            ->whereIn('Status', ['EMPTY', 'CREATED', 'STUFFED', 'SHIPPED', 'COMPLETED', 'CLOSED'])
+            ->first();
+            $DummyToAssign = (!empty($newOnee) && $newOnee != $dummy) ? $newOnee->Dummy : $dummy;
+        }
         return $DummyToAssign;
     }
 

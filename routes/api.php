@@ -46,6 +46,7 @@ Route::group(['prefix' => 'debug'], function () {
   Route::get('container', 'ContainerAPIController@debug');
   Route::get('dummy/{dummy}', 'API\HistoryController@checkDummyisExist');
   Route::get('summary', 'API\HistoryController@debug');
+  Route::get('cache', 'API\CacheController@debug');
 });
 
 Route::get('user', 'LoginController@getUserData');

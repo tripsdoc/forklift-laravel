@@ -40,16 +40,43 @@ class RetrieveController extends Controller
         return response($response);
     }
 
-    function debug() {
-        $warehouse = "110";
-        $data = DeviceInfo::limit(10)->get();
-        $result = DB::table('HSC2017.dbo.IPS_DeviceInfo AS IP')
-            
-            ->select(DB::raw("TOP 10 *"))
-            ->get();
-
+    function debug1() {
+        $result = DB::table('HSC2017.dbo.HSC_InventoryBreakdown')
+        ->select(DB::raw("TOP 100 *"))->get();
         $response['status'] = (count($result) > 0)? TRUE : FALSE;
         $response['total'] = count($result);
+        $response['data'] = $result;
+        return response($response);
+    }
+
+    function debug() {
+        $result = DB::table('HSC2017.dbo.HSC_InventoryPallet AS IP')
+            //->join('HSC2017.dbo.HSC_DeliveryInfo AS DI', 'IP.DeliveryID', '=', 'DI.DeliveryID')
+            ->join('HSC2017.dbo.HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+            ->whereExists(function($query) {
+                $query->select(DB::raw(1))
+                ->from('HSC2017.dbo.HSC_InventoryPallet AS IP1')
+                //->join('HSC2017.dbo.HSC_DeliveryInfo AS DI1', 'IP1.DeliveryID', '=', 'DI1.DeliveryID')
+                ->join('TagLocationLatest AS TL', 'IP1.Tag', '=', 'TL.Id')
+                ->where('IP1.DelStatus', '=', 'N')
+                //->where('DI1.DN', '>', 0)
+                ->whereRaw("IP1.Tag <> ''")
+                ->where('TL.Zones','like', '%"name": "110%')
+                ->whereColumn('IP1.DeliveryID', 'IP.DeliveryID');
+            })
+            //->whereNotNull('DI.DN')
+            ->where('IP.DelStatus', '=', 'N')
+            ->where('IB.DelStatus', '=', 'N');
+            $data = $result->select(DB::raw('TOP 100 *'))->get();
+            /* $data = $result->groupBy('DI.DN', 'IP.DeliveryID')
+            ->select(DB::raw('ROW_NUMBER() OVER(ORDER BY DI.DN) AS SN, DI.DN, SUM(IB.Quantity) Qty, IP.DeliveryID'))
+            ->sharedLock()
+            ->get(); */
+            
+        $iddata = $data->pluck('InventoryID');
+        $response['status'] = (count($data) > 0)? TRUE : FALSE;
+        $response['total'] = count($data);
+        $response['iddata'] = $iddata;
         $response['data'] = $data;
         return response($response);
     }
@@ -61,8 +88,8 @@ class RetrieveController extends Controller
         if(isset($_GET['warehouse'])) {
             $mode = "warehouse";
             $result = DB::table('HSC2017.dbo.HSC_InventoryPallet AS IP')
-            ->join('HSC2017.dbo.HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
             ->join('HSC2017.dbo.HSC_DeliveryInfo AS DI', 'IP.DeliveryID', '=', 'DI.DeliveryID')
+            ->join('HSC2017.dbo.HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
             ->whereExists(function($query) {
                 $query->select(DB::raw(1))
                 ->from('HSC2017.dbo.HSC_InventoryPallet AS IP1')
@@ -80,13 +107,13 @@ class RetrieveController extends Controller
             $iddata = $result->pluck('IP.InventoryID');
             $data = $result->groupBy('DI.DN', 'IP.DeliveryID')
             ->select(DB::raw('ROW_NUMBER() OVER(ORDER BY DI.DN) AS SN, DI.DN, SUM(IB.Quantity) Qty, IP.DeliveryID'))
-            ->get();
+            ->get();   
         } else {
         //Get all delivery notes
             $mode = "all";
             $result = DB::table('HSC2017.dbo.HSC_InventoryPallet AS IP')
-            ->join('HSC2017.dbo.HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
             ->join('HSC2017.dbo.HSC_DeliveryInfo AS DI', 'IP.DeliveryID', '=', 'DI.DeliveryID')
+            ->join('HSC2017.dbo.HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
             ->join('TagLocationLatest AS TL', 'IP.Tag', '=', 'TL.Id')
             ->whereExists(function($query) {
                 $query->select(DB::raw(1))
