@@ -29,6 +29,18 @@ class SupervisorController extends Controller
         return response($response);
     }
 
+    function getConnection(Request $request) {
+        $data = DB::connection("sqlsrv2")->select("exec HSC2017.dbo.CntrConnImpExp '', '" . $request->dateStart . "', '" . $request->dateEnd . "', '" . $request->warehouse . "', 'ImpConnExp'");
+        $dataArray = array();
+        foreach($data as $key => $datas) {
+            $newdata = $this->formatConnection($datas);
+            array_push($dataArray, $newdata);
+        }
+        $response['status'] = (count($dataArray) > 0)? TRUE : FALSE;
+        $response['data'] = $dataArray;
+        return response($response);
+    }
+
     function getAll(Request $request) {
         $import = getProc(1, $request->warehouse);
         $export = getProc(2, $request->warehouse);
@@ -48,6 +60,21 @@ class SupervisorController extends Controller
         return response($response);
     }
 
+    function formatConnection($datas) {
+        $loopdata = new \stdClass();
+        $loopdata->ClientID = $datas->ClientID;
+        $loopdata->DeliverTo = $datas->DeliveryToExp;
+        $loopdata->Status = $datas->StatusImp;
+        $loopdata->ContainerPrefix = $datas->CntrPrefix;
+        $loopdata->ContainerNumber = $datas->CntrNumber;
+        $loopdata->ETA = $datas->ETA;
+        $loopdata->POD = $datas->POD;
+        $loopdata->ETA1 = $datas->ETA1;
+        $loopdata->Vol = $datas->Vol;
+        $loopdata->DG = $datas->DG;
+        return $loopdata;
+    }
+
     function formatAll($datas, $format) {
         $loopdata = new \stdClass();
         $loopdata->ETA = $datas->ETA;
@@ -61,6 +88,7 @@ class SupervisorController extends Controller
         $loopdata->Status = $datas->Status;
         $loopdata->TT = $datas->TT;
         $loopdata->Remarks = $datas->Remarks;
+        $loopdata->DeliverTo = $datas->DeliverTo;
 
         if($format == "Import") {
             $loopdata->Connect = $datas->ImpConnExp;

@@ -27,6 +27,7 @@ Route::post('device/register', 'API\DeviceController@registerDevice');
 Route::group(['prefix' => 'supervisor'], function () {
   Route::post('import', 'API\SupervisorController@getImport');
   Route::post('export', 'API\SupervisorController@getExport');
+  Route::post('connect', 'API\SupervisorController@getConnection');
   Route::post('all', 'API\SupervisorController@getAll');
 });
 
