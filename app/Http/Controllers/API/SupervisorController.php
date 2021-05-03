@@ -115,6 +115,7 @@ class SupervisorController extends Controller
     function formatConnection($datas) {
         $loopdata = new \stdClass();
         $loopdata->ClientID = $datas->ClientID;
+        $loopdata->ClientExp = $datas->ClientIDExp;
         $loopdata->DeliverTo = $datas->DeliveryToExp;
         $loopdata->Status = $datas->StatusImp;
         $loopdata->ContainerPrefix = $datas->CntrPrefix;

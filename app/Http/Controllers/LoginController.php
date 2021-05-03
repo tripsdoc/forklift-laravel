@@ -10,7 +10,8 @@ use App\ShifterUser;
 class LoginController extends Controller
 {
     function getUserData() {
-        $dataUser = DB::table('HSC2017.dbo.IPS_ForkliftUser')->get();
+        $dataUser = ShifterUser::all();
+        //$dataUser = DB::table('HSC2017.dbo.IPS_ForkliftUser')->get();
         return response($dataUser);
     }
 

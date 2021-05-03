@@ -24,12 +24,14 @@ Route::get('device', 'API\DeviceController@getDeviceTag');
 Route::post('device/register', 'API\DeviceController@registerDevice');
 
 //Supervisor API
+/*
 Route::group(['prefix' => 'supervisor'], function () {
   Route::post('import', 'API\SupervisorController@getImport');
   Route::post('export', 'API\SupervisorController@getExport');
   Route::post('connect', 'API\SupervisorController@getConnection');
   Route::post('all', 'API\SupervisorController@getAll');
 });
+*/
 
 //Forklift API
 Route::group(['prefix' => 'forklift'], function () {
@@ -92,6 +94,7 @@ Route::get('qpe/alltags', 'TagsController@getAllTags');
 //Route::post('search/container', 'ContainerAPIController@getContainerSearch');
 
 //Shifter API
+/*
 Route::group(['prefix' => 'shifter'], function () {
   Route::post('login', 'LoginController@loginShifter');
   Route::post('assign', 'API\ParkController@assignContainerToPark');
@@ -99,8 +102,8 @@ Route::group(['prefix' => 'shifter'], function () {
   Route::post('remove', 'API\ParkController@removeContainer');
 });
 Route::group(['prefix' => 'check'], function () {
-  /* Route::post('container', 'API\ParkController@getDialogContainer');
-  Route::post('dummy', 'API\ParkController@getDialogDummy'); */
+  //Route::post('container', 'API\ParkController@getDialogContainer');
+  //Route::post('dummy', 'API\ParkController@getDialogDummy');
   Route::post('number', 'API\ParkController@getLikeContainer');
 });
 Route::group(['prefix' => 'json'], function() {
@@ -110,6 +113,7 @@ Route::group(['prefix' => 'json'], function() {
   Route::get('summary', 'API\HistoryController@getSummaryJson');
 });
 
+
 Route::get('temppark/today/{id}', 'API\ParkController@getCurrent');
 Route::post('temppark/update', 'API\ParkController@editContainer');
 Route::post('temppark/add', 'API\ParkController@bookPark');
@@ -118,7 +122,7 @@ Route::post('finish', 'API\ParkController@releasePark');
 Route::post('cancel', 'API\ParkController@cancelPark');
 
 Route::post('cache', 'API\CacheController@retrieveFile');
-
+*/
 //Clerk API
 Route::group(['prefix' => 'clerk'], function () {
   // Authentication
