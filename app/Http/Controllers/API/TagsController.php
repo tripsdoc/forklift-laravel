@@ -145,4 +145,25 @@ class TagsController extends Controller
         $response['updatelog'] = "\t- Bug Fixes \n \t- Add Temporary Cache File for Tag Data";
         return $response;
     }
+
+    function getListImage($tag) {
+        $result = DB::table('HSC2017.dbo.HSC_InventoryPallet AS IP')
+        ->join('HSC2017.dbo.HSC_InventoryBreakdown AS IB', 'IP.InventoryPalletID', '=', 'IB.InventoryPalletID')
+        ->join('HSC2017.dbo.HSC_InventoryPhoto AS P', 'IB.BreakDownID', '=', 'P.BreakDownID')
+        ->where('IP.DelStatus','N')
+        ->where('IB.DelStatus','N')
+        ->where('P.DelStatus','N')
+        ->whereExists(function($query) use($tag) {
+            $query->select(DB::raw(1))
+            ->from('HSC2017.dbo.HSC_InventoryPallet AS IP1')
+            ->where('IP1.Tag', '=', $tag)
+            ->where('IP1.DelStatus','N')
+            ->whereColumn('IP1.InventoryID', 'IP.InventoryID');
+        })
+        ->select(DB::raw('P.*'))->get();;
+
+        $response["status"] = (count($result) > 0);
+        $response["data"] = $result;
+        return response($response);
+    }
 }

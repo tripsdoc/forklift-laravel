@@ -35,6 +35,7 @@ Route::group(['prefix' => 'supervisor'], function () {
 
 //Forklift API
 Route::group(['prefix' => 'forklift'], function () {
+  Route::get('image/{tag}', 'TagsController@getListImage');
   //Retrieve Route
   Route::get('retrieve/debug', 'RetrieveController@debugTag');
   Route::get('retrieve/deliverynotes', 'RetrieveController@getDeliveryNotes');

@@ -98,7 +98,7 @@ class RetrieveController extends Controller
                 ->where('IP1.DelStatus', '=', 'N')
                 ->where('DI1.DN', '>', 0)
                 ->whereRaw("IP1.Tag <> ''")
-                ->where('TL.Zones','like', '%"name": "' . $_GET['warehouse'] . '%')
+                ->where('TL.Zones','like', '%' . $_GET['warehouse'] . '%')
                 ->whereColumn('IP1.DeliveryID', 'IP.DeliveryID');
             })
             ->whereNotNull('DI.DN')
@@ -127,6 +127,8 @@ class RetrieveController extends Controller
                     $query->where('TL1.CoordinateSystemName', 'like', '%108%')
                     ->orWhere('TL1.CoordinateSystemName', 'like', '%109%')
                     ->orWhere('TL1.CoordinateSystemName', 'like', '%110%')
+                    ->orWhere('TL1.CoordinateSystemName', 'like', '%111%')
+                    ->orWhere('TL1.CoordinateSystemName', 'like', '%112%')
                     ->orWhere('TL1.CoordinateSystemName', 'like', '%121%')
                     ->orWhere('TL1.CoordinateSystemName', 'like', '%122%')
                     ->orWhere('TL1.CoordinateSystemName', 'like', '%107%');
@@ -192,9 +194,9 @@ class RetrieveController extends Controller
             {
                 for($i=0;$i<count($datawarehouse);$i++){
                     if($i == 0) {
-                        $query->where('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
+                        $query->where('TL.Zones', 'like', '%' . $datawarehouse[$i] . '%');
                     } else {
-                        $query->orWhere('TL.Zones', 'like', '%"name": "' . $datawarehouse[$i] . '%');
+                        $query->orWhere('TL.Zones', 'like', '%' . $datawarehouse[$i] . '%');
                     }
                 }
             });

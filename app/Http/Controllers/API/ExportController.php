@@ -12,7 +12,10 @@ class ExportController extends Controller
     function getAllTagsActivatedforStuffing() {
         $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $getwarehouse = $_GET['warehouse'];
-        if($getwarehouse == "fullmap") {
+        if($getwarehouse == "allmap") {
+            $datawarehouse = ['108', '109', '110', '111', '112'];
+        }
+        else if($getwarehouse == "fullmap") {
             $datawarehouse = ['108', '109', '110'];
         }
         else if ($getwarehouse == "full_12x") {
@@ -62,7 +65,10 @@ class ExportController extends Controller
     function getAllPortActivatedforStuffing() {
         $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $getwarehouse = $_GET['warehouse'];
-        if($getwarehouse == "fullmap") {
+        if($getwarehouse == "allmap") {
+            $datawarehouse = ['108', '109', '110', '111', '112'];
+        }
+        else if($getwarehouse == "fullmap") {
             $datawarehouse = ['108', '109', '110'];
         }
         else if ($getwarehouse == "full_12x") {
@@ -127,7 +133,10 @@ class ExportController extends Controller
     function getActivatedTagsByPort($pod) {
         $url = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $getwarehouse = $_GET['warehouse'];
-        if($getwarehouse == "fullmap") {
+        if($getwarehouse == "allmap") {
+            $datawarehouse = ['108', '109', '110', '111', '112'];
+        }
+        else if($getwarehouse == "fullmap") {
             $datawarehouse = ['108', '109', '110'];
         }
         else if ($getwarehouse == "full_12x") {
